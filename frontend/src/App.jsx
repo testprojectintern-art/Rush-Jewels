@@ -98,7 +98,7 @@ function App() {
       <Route
         path="/price-checker"
         element={
-          <ProtectedRoute allowedRoles={['customer', 'admin', 'manager', 'staff']}>
+          <ProtectedRoute allowedRoles={['customer', 'admin', 'manager', 'inventory_admin', 'staff']}>
             <PriceCheckerPage />
           </ProtectedRoute>
         }
@@ -106,7 +106,7 @@ function App() {
 
       <Route
         element={
-          <ProtectedRoute allowedRoles={['admin', 'manager', 'accountant', 'sales_manager', 'sales_rep', 'warehouse_staff', 'production_staff', 'staff']}>
+          <ProtectedRoute allowedRoles={['admin', 'manager', 'accountant', 'sales_manager', 'sales_rep', 'warehouse_staff', 'production_staff', 'inventory_admin', 'staff']}>
             <AppLayout />
           </ProtectedRoute>
         }

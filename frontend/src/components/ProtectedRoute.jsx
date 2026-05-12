@@ -10,6 +10,11 @@ export default function ProtectedRoute({ children, allowedRoles }) {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
+    // Wait for user object to be available (zustand hydration)
+    if (!user) {
+        return null;
+    }
+
     // Role-based guard (optional)
     if (allowedRoles && !allowedRoles.includes(user?.role)) {
         return <Navigate to="/unauthorized" replace />;
