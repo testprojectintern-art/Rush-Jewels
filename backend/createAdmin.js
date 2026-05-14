@@ -21,8 +21,9 @@ const createAdmin = async () => {
         let adminUser = await User.findOne({ email: 'admin@admin.com' });
         
         if (adminUser) {
-            console.log('Admin user exists. Resetting password...');
+            console.log('Admin user exists. Resetting password and ensuring active status...');
             adminUser.password = 'password123';
+            adminUser.isActive = true;
             await adminUser.save();
         } else {
             console.log('Creating new admin user...');

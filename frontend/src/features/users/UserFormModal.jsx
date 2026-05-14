@@ -14,7 +14,11 @@ const createSchema = z.object({
     firstName: z.string().min(1, 'First name required').max(50),
     lastName: z.string().min(1, 'Last name required').max(50),
     email: z.string().email('Invalid email'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    password: z.string()
+        .min(8, 'Password must be at least 8 characters')
+        .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
+        .regex(/[a-z]/, 'Must contain at least one lowercase letter')
+        .regex(/[0-9]/, 'Must contain at least one number'),
     phone: z.string().optional().or(z.literal('')),
     role: z.string().min(1, 'Select a role'),
     isActive: z.boolean().optional(),
@@ -129,10 +133,10 @@ export default function UserFormModal({ isOpen, onClose, user = null }) {
                             <Input label="Email" type="email" required error={errors.email?.message} {...register('email')} />
                             <Input label="Password" type="password" required
                                 error={errors.password?.message}
-                                placeholder="At least 6 characters"
+                                placeholder="Min 8 chars, 1 Uppercase, 1 Number"
                                 {...register('password')} />
                             <p className="text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
-                                Share this password with the user. They should change it after first login.
+                                Requirements: 8+ characters, uppercase, lowercase, and a number.
                             </p>
                         </>
                     )}

@@ -25,7 +25,7 @@ export const getDashboardKpis = asyncHandler(async (req, res) => {
     const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
 
     // Revenue (invoiced amount this month vs last month)
-    const [currentMonthInvoices, lastMonthInvoices] = await Promise.all([
+    const [currentMonthInvoices, lastMonthInvoices, currentMonthBills, lastMonthBills, currentMonthIn, lastMonthIn, currentMonthOut, lastMonthOut] = await Promise.all([
         Invoice.aggregate([
             { $match: { deletedAt: null, invoiceDate: { $gte: startOfMonth, $lt: tomorrow } } },
             { $group: { _id: null, total: { $sum: '$grandTotal' }, count: { $sum: 1 } } },
@@ -34,12 +34,56 @@ export const getDashboardKpis = asyncHandler(async (req, res) => {
             { $match: { deletedAt: null, invoiceDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
             { $group: { _id: null, total: { $sum: '$grandTotal' }, count: { $sum: 1 } } },
         ]),
+        Bill.aggregate([
+            { $match: { deletedAt: null, billDate: { $gte: startOfMonth, $lt: tomorrow } } },
+            { $group: { _id: null, total: { $sum: '$grandTotal' } } },
+        ]),
+        Bill.aggregate([
+            { $match: { deletedAt: null, billDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+            { $group: { _id: null, total: { $sum: '$grandTotal' } } },
+        ]),
+        Payment.aggregate([
+            { $match: { deletedAt: null, direction: 'received', paymentDate: { $gte: startOfMonth, $lt: tomorrow } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
+        Payment.aggregate([
+            { $match: { deletedAt: null, direction: 'received', paymentDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
+        Payment.aggregate([
+            { $match: { deletedAt: null, direction: 'paid', paymentDate: { $gte: startOfMonth, $lt: tomorrow } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
+        Payment.aggregate([
+            { $match: { deletedAt: null, direction: 'paid', paymentDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
     ]);
 
     const revenueThisMonth = currentMonthInvoices[0]?.total || 0;
     const revenueLastMonth = lastMonthInvoices[0]?.total || 0;
     const revenueGrowth = revenueLastMonth > 0
         ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth * 100).toFixed(1)
+        : 0;
+
+    const expensesThisMonth = currentMonthBills[0]?.total || 0;
+    const expensesLastMonth = lastMonthBills[0]?.total || 0;
+
+    const gpThisMonth = revenueThisMonth - expensesThisMonth;
+    const gpLastMonth = revenueLastMonth - expensesLastMonth;
+    const gpGrowth = gpLastMonth !== 0
+        ? ((gpThisMonth - gpLastMonth) / Math.abs(gpLastMonth) * 100).toFixed(1)
+        : 0;
+
+    const collectedThisMonth = currentMonthIn[0]?.total || 0;
+    const collectedLastMonth = lastMonthIn[0]?.total || 0;
+    const paidThisMonth = currentMonthOut[0]?.total || 0;
+    const paidLastMonth = lastMonthOut[0]?.total || 0;
+
+    const cashFlowThisMonth = collectedThisMonth - paidThisMonth;
+    const cashFlowLastMonth = collectedLastMonth - paidLastMonth;
+    const cashFlowGrowth = cashFlowLastMonth !== 0
+        ? ((cashFlowThisMonth - cashFlowLastMonth) / Math.abs(cashFlowLastMonth) * 100).toFixed(1)
         : 0;
 
     // Orders metrics
@@ -130,6 +174,14 @@ export const getDashboardKpis = asyncHandler(async (req, res) => {
                 lastMonth: +revenueLastMonth.toFixed(2),
                 growth: +revenueGrowth,
                 invoiceCount: currentMonthInvoices[0]?.count || 0,
+            },
+            grossProfit: {
+                thisMonth: +gpThisMonth.toFixed(2),
+                growth: +gpGrowth,
+            },
+            cashFlow: {
+                thisMonth: +cashFlowThisMonth.toFixed(2),
+                growth: +cashFlowGrowth,
             },
             orders: {
                 today: todaysOrders,

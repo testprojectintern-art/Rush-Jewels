@@ -110,13 +110,8 @@ export default function UsersPage() {
     ];
 
     const handleDelete = async () => {
-        requestAdminVerify(async () => {
-            await deleteMutation.mutateAsync(deactivating._id);
-            setDeactivating(null);
-        }, {
-            title: "Authorize Deactivation",
-            message: `Please verify your admin credentials to deactivate ${deactivating?.firstName}.`
-        });
+        await deleteMutation.mutateAsync(deactivating._id);
+        setDeactivating(null);
     };
 
     // Summary counts

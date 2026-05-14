@@ -65,46 +65,53 @@ export default function DashboardPage() {
             </div>
 
             {/* Primary KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
                 <KpiCard
-                    label="Revenue This Month" value={fmtShort(k.revenue.thisMonth)}
-                    icon={DollarSign} iconColor="text-green-600" iconBg="bg-green-50"
-                    trend={k.revenue.growth} accentColor="bg-green-500"
-                    subtext={`${k.revenue.invoiceCount} invoices`} />
+                    label="Revenue" value={fmtShort(k.revenue?.thisMonth)}
+                    icon={TrendingUp} iconColor="text-indigo-600" iconBg="bg-indigo-50"
+                    trend={k.revenue?.growth} accentColor="bg-indigo-500"
+                    subtext="This Month" />
                 <KpiCard
-                    label="Orders Today" value={k.orders.today}
-                    icon={ShoppingCart} iconColor="text-blue-600" iconBg="bg-blue-50"
-                    accentColor="bg-blue-500"
-                    subtext={`${k.orders.thisMonth} this month`}
+                    label="Gross Profit" 
+                    value={`${fmtShort(k.grossProfit?.thisMonth)} (${k.revenue?.thisMonth > 0 ? ((k.grossProfit?.thisMonth / k.revenue?.thisMonth) * 100).toFixed(1) : '0.0'}%)`}
+                    icon={DollarSign} iconColor="text-emerald-600" iconBg="bg-emerald-50"
+                    trend={k.grossProfit?.growth} accentColor="bg-emerald-500"
+                    subtext="Gross Margin Percentage" />
+                <KpiCard
+                    label="Net Cash Flow" 
+                    value={`${fmtShort(k.cashFlow?.thisMonth)} (${k.revenue?.thisMonth > 0 ? ((k.cashFlow?.thisMonth / k.revenue?.thisMonth) * 100).toFixed(1) : '0.0'}%)`}
+                    icon={CreditCard} iconColor="text-blue-600" iconBg="bg-blue-50"
+                    trend={k.cashFlow?.growth} accentColor="bg-blue-500"
+                    subtext="% of Total Revenue" />
+                <KpiCard
+                    label="Orders Today" value={k.orders?.today}
+                    icon={ShoppingCart} iconColor="text-purple-600" iconBg="bg-purple-50"
+                    accentColor="bg-purple-500"
                     onClick={() => navigate('/sales-orders')} />
                 <KpiCard
-                    label="Outstanding Receivables" value={fmtShort(k.receivables.total)}
-                    icon={CreditCard} iconColor="text-amber-600" iconBg="bg-amber-50"
+                    label="Receivables" value={fmtShort(k.receivables?.total)}
+                    icon={ArrowRight} iconColor="text-amber-600" iconBg="bg-amber-50"
                     accentColor="bg-amber-500"
-                    subtext={k.receivables.overdueCount > 0
-                        ? `${fmtShort(k.receivables.overdue)} overdue (${k.receivables.overdueCount})`
-                        : 'No overdue'}
                     onClick={() => navigate('/invoices')} />
                 <KpiCard
-                    label="Low Stock Alerts" value={k.stock.lowStockCount}
+                    label="Low Stock" value={k.stock?.lowStockCount}
                     icon={AlertTriangle} iconColor="text-red-600" iconBg="bg-red-50"
                     accentColor="bg-red-500"
-                    subtext="Products at or below reorder level"
                     onClick={() => navigate('/reports/inventory/low-stock')} />
             </div>
 
             {/* Secondary KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <KpiCard label="Pending Approvals" value={k.orders.pendingApproval}
+                <KpiCard label="Pending Approvals" value={k.orders?.pendingApproval}
                     icon={FileText} iconColor="text-indigo-600" iconBg="bg-indigo-50" accentColor="bg-indigo-500" />
-                <KpiCard label="Pending Dispatch" value={k.orders.pendingDispatch}
+                <KpiCard label="Pending Dispatch" value={k.orders?.pendingDispatch}
                     icon={Package} iconColor="text-purple-600" iconBg="bg-purple-50" accentColor="bg-purple-500" />
-                <KpiCard label="Active Production" value={k.production.active}
+                <KpiCard label="Active Production" value={k.production?.active}
                     icon={Factory} iconColor="text-pink-600" iconBg="bg-pink-50" accentColor="bg-pink-500"
-                    subtext={`${k.production.completedThisMonth} completed this month`} />
-                <KpiCard label="Active Customers" value={k.customers.total}
+                    subtext={`${k.production?.completedThisMonth} completed this month`} />
+                <KpiCard label="Active Customers" value={k.customers?.total}
                     icon={Users} iconColor="text-cyan-600" iconBg="bg-cyan-50" accentColor="bg-cyan-400"
-                    subtext={`${k.customers.newThisMonth} new this month`} />
+                    subtext={`${k.customers?.newThisMonth} new this month`} />
             </div>
 
             {/* Revenue Chart */}
@@ -206,7 +213,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Low Stock Alerts */}
-            {k.stock.lowStockItems.length > 0 && (
+            {k.stock?.lowStockItems?.length > 0 && (
                 <Card className="p-6 border-l-4 border-l-red-500">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-semibold text-red-700 flex items-center gap-2">

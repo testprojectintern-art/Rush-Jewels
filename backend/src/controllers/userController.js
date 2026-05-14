@@ -6,7 +6,9 @@ export const getUsers = asyncHandler(async (req, res) => {
     const filter = {};
 
     if (role) filter.role = role;
-    if (isActive !== undefined) filter.isActive = isActive === 'true';
+    if (isActive && isActive !== '') {
+        filter.isActive = isActive === 'true';
+    }
     if (search) {
         filter.$or = [
             { firstName: { $regex: search, $options: 'i' } },
@@ -47,8 +49,7 @@ export const deleteUser = asyncHandler(async (req, res) => {
     if (user._id.toString() === req.user._id.toString()) {
         res.status(400); throw new Error('Cannot delete yourself');
     }
-    user.deletedAt = new Date();
-    user.isActive = false;
-    await user.save();
-    res.json({ success: true, message: 'User deleted' });
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'User deleted permanently from database' });
 });

@@ -53,14 +53,7 @@ const app = express();
 // Security & parsing middleware
 app.use(helmet());
 app.use(cors({
-    origin: function (origin, callback) {
-        const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : [];
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: true, // Allow all origins in dev, or use the logic below
     credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
