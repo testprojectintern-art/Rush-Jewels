@@ -66,3 +66,8 @@ export const deleteExpense = asyncHandler(async (req, res) => {
 
     res.json({ success: true, message: 'Expense deleted' });
 });
+
+export const getExpenseCategories = asyncHandler(async (req, res) => {
+    const categories = await Expense.distinct('category', { deletedAt: null });
+    res.json({ success: true, data: categories.filter(Boolean).sort() });
+});

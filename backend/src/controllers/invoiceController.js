@@ -213,9 +213,69 @@ export const createFromSalesOrder = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Helper to dynamically calculate and update aging details for unpaid invoices
+ */
+export const updateInvoiceAging = async () => {
+    const unpaidInvoices = await Invoice.find({
+        paymentStatus: { $in: ['unpaid', 'partially_paid', 'overdue'] },
+        deletedAt: null
+    });
+    
+    const now = new Date();
+    const bulkOps = [];
+    const customerIdsToUpdate = new Set();
+    
+    for (const inv of unpaidInvoices) {
+        if (!inv.dueDate) continue;
+        
+        const daysPast = Math.floor((now - new Date(inv.dueDate)) / (1000 * 60 * 60 * 24));
+        const currentDaysPastDue = Math.max(0, daysPast);
+        
+        let currentPaymentStatus = inv.paymentStatus;
+        if (currentDaysPastDue > 0 && inv.paymentStatus === 'unpaid') {
+            currentPaymentStatus = 'overdue';
+        }
+        
+        let currentAgingBucket = 'current';
+        if (currentDaysPastDue === 0) currentAgingBucket = 'current';
+        else if (currentDaysPastDue <= 30) currentAgingBucket = '1_30';
+        else if (currentDaysPastDue <= 60) currentAgingBucket = '31_60';
+        else if (currentDaysPastDue <= 90) currentAgingBucket = '61_90';
+        else currentAgingBucket = '91_plus';
+        
+        if (inv.daysPastDue !== currentDaysPastDue || 
+            inv.paymentStatus !== currentPaymentStatus || 
+            inv.agingBucket !== currentAgingBucket) {
+            
+            bulkOps.push({
+                updateOne: {
+                    filter: { _id: inv._id },
+                    update: {
+                        $set: {
+                            daysPastDue: currentDaysPastDue,
+                            paymentStatus: currentPaymentStatus,
+                            agingBucket: currentAgingBucket
+                        }
+                    }
+                }
+            });
+            customerIdsToUpdate.add(inv.customerId.toString());
+        }
+    }
+    
+    if (bulkOps.length > 0) {
+        await Invoice.bulkWrite(bulkOps);
+        for (const cid of customerIdsToUpdate) {
+            await updateCustomerBalance(cid);
+        }
+    }
+};
+
+/**
  * GET /api/invoices
  */
 export const getInvoices = asyncHandler(async (req, res) => {
+    await updateInvoiceAging();
     const {
         search, customerId, paymentStatus, status, agingBucket,
         startDate, endDate,
@@ -285,6 +345,7 @@ export const getInvoiceById = asyncHandler(async (req, res) => {
  * Accounts receivable aging summary
  */
 export const getAgingSummary = asyncHandler(async (req, res) => {
+    await updateInvoiceAging();
     const { customerId } = req.query;
     const match = {
         paymentStatus: { $in: ['unpaid', 'partially_paid', 'overdue'] },

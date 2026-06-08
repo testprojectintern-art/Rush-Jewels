@@ -21,6 +21,7 @@ export default function SalaryStructuresPage() {
     const createM = useCreateSalaryStructure(); const updateM = useUpdateSalaryStructure(); const deleteM = useDeleteSalaryStructure();
 
     const [isOpen, setIsOpen] = useState(false);
+    const [isView, setIsView] = useState(false);
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
     const [form, setForm] = useState({ name: '', code: '', description: '', components: [] });
@@ -28,12 +29,21 @@ export default function SalaryStructuresPage() {
     const list = data?.data || [];
 
     const openNew = () => {
+        setIsView(false);
         setEditing(null);
         setForm({ name: '', code: '', description: '', components: [] });
         setIsOpen(true);
     };
 
     const openEdit = (s) => {
+        setIsView(false);
+        setEditing(s);
+        setForm({ name: s.name, code: s.code || '', description: s.description || '', components: s.components || [] });
+        setIsOpen(true);
+    };
+
+    const openView = (s) => {
+        setIsView(true);
         setEditing(s);
         setForm({ name: s.name, code: s.code || '', description: s.description || '', components: s.components || [] });
         setIsOpen(true);
@@ -82,10 +92,11 @@ export default function SalaryStructuresPage() {
         { key: 'components', label: 'Components', render: (r) => r.components?.length || 0 },
         { key: 'status', label: 'Status', render: (r) => <Badge variant={r.isActive ? 'success' : 'default'}>{r.isActive ? 'Active' : 'Inactive'}</Badge> },
         {
-            key: 'actions', label: '', width: '100px', render: (r) => (
+            key: 'actions', label: 'Actions', width: '120px', render: (r) => (
                 <div className="flex gap-1">
-                    <button onClick={() => openEdit(r)} className="p-1.5 hover:bg-gray-100 rounded"><Edit size={16} /></button>
-                    <button onClick={() => setDeleting(r)} className="p-1.5 hover:bg-red-50 text-red-600 rounded"><Trash2 size={16} /></button>
+                    <button onClick={() => openView(r)} className="p-1.5 hover:bg-gray-100 rounded" title="View"><Eye size={16} /></button>
+                    <button onClick={() => openEdit(r)} className="p-1.5 hover:bg-gray-100 rounded" title="Edit"><Edit size={16} /></button>
+                    <button onClick={() => setDeleting(r)} className="p-1.5 hover:bg-red-50 text-red-600 rounded" title="Delete"><Trash2 size={16} /></button>
                 </div>
             )
         },
@@ -103,8 +114,8 @@ export default function SalaryStructuresPage() {
                     : <Table columns={columns} data={list} />}
             </Card>
 
-            <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}
-                title={editing ? 'Edit Salary Structure' : 'New Salary Structure'} size="xl">
+            <Modal isOpen={isOpen} onClose={() => { setIsOpen(false); setIsView(false); }}
+                title={editing ? (isView ? 'View Salary Structure' : 'Edit Salary Structure') : 'New Salary Structure'} size="xl">
                 <div className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <Input disabled={isView} label="Name" required value={form.name}
@@ -116,9 +127,11 @@ export default function SalaryStructuresPage() {
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <h4 className="text-sm font-semibold">Components</h4>
-                            <Button type="button" variant="outline" size="sm" onClick={addComponent}>
-                                <Plus size={14} className="mr-1" />Add Component
-                            </Button>
+                            {!isView && (
+                                <Button type="button" variant="outline" size="sm" onClick={addComponent}>
+                                    <Plus size={14} className="mr-1" />Add Component
+                                </Button>
+                            )}
                         </div>
                         <p className="text-xs text-gray-500 mb-3">
                             Earnings are added to gross pay. Deductions are subtracted. EPF, ETF and APIT are calculated automatically — you don't need to add them here.
@@ -136,15 +149,20 @@ export default function SalaryStructuresPage() {
                                             options={[
                                                 { value: 'fixed', label: 'Fixed Amount' },
                                                 { value: 'percentage_of_basic', label: '% of Basic' },
-                                            ]}
+                                              ]}
                                             value={c.calculationType} onChange={(e) => updateComponent(idx, 'calculationType', e.target.value)} />
                                         {c.calculationType === 'fixed'
                                             ? <Input disabled={isView} label="Amount" type="number" step="0.01" min="0" value={c.amount}
                                                 onChange={(e) => updateComponent(idx, 'amount', e.target.value)} />
                                             : <Input disabled={isView} label="Percentage" type="number" step="0.01" min="0" max="100" value={c.percentage}
                                                 onChange={(e) => updateComponent(idx, 'percentage', e.target.value)} />}
-                                        <button onClick={() => removeComponent(idx)}
-                                            className="p-2 hover:bg-red-50 text-red-600 rounded"><Trash2 size={14} /></button>
+                                        <button 
+                                            onClick={() => removeComponent(idx)}
+                                            className="p-2 hover:bg-red-50 text-red-600 rounded disabled:opacity-50"
+                                            disabled={isView}
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
                                     </div>
                                     <div className="mt-2 flex gap-4">
                                         <label className="flex items-center gap-1 text-xs">
@@ -159,10 +177,14 @@ export default function SalaryStructuresPage() {
                     </div>
                 </div>
                 <div className="flex justify-end gap-2 px-6 py-4 border-t bg-gray-50">
-                    <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={submit} loading={createM.isPending || updateM.isPending}>
-                        {editing ? 'Update' : 'Create'}
+                    <Button variant={isView ? 'primary' : 'outline'} onClick={() => { setIsOpen(false); setIsView(false); }}>
+                        {isView ? 'Close' : 'Cancel'}
                     </Button>
+                    {!isView && (
+                        <Button variant="primary" onClick={submit} loading={createM.isPending || updateM.isPending}>
+                            {editing ? 'Update' : 'Create'}
+                        </Button>
+                    )}
                 </div>
             </Modal>
 

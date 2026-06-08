@@ -61,6 +61,7 @@ import SupplierReturnDetailPage from './pages/SupplierReturnDetailPage';
 import RepairsPage from './pages/RepairsPage';
 import RepairDetailPage from './pages/RepairDetailPage';
 import PosPage from './pages/PosPage';
+import PosSessionsPage from './pages/PosSessionsPage';
 
 import EmployeesPage from './pages/EmployeesPage';
 import EmployeeFormPage from './pages/EmployeeFormPage';
@@ -174,6 +175,7 @@ function App() {
         <Route path="/credit-notes" element={<CreditNotesPage />} />
         <Route path="/credit-notes/:id" element={<CreditNoteDetailPage />} />
         <Route path="/pos" element={<PosPage />} />
+        <Route path="/pos-sessions" element={<PosSessionsPage />} />
 
         <Route path="/supplier-returns/:id" element={<SupplierReturnDetailPage />} />
         <Route path="/repairs" element={<RepairsPage />} />

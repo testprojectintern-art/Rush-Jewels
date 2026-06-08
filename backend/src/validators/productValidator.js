@@ -51,6 +51,8 @@ export const createProductSchema = z.object({
     unitOfMeasure: z.string().min(1),
     basePrice: z.number().min(0),
     mrp: z.number().min(0).optional(),
+    callPrice: z.number().min(0).optional(),
+    purchasePrice: z.number().min(0).optional(),
     tierPricing: z.array(z.object({
         tierName: z.string(),
         minQuantity: z.number().min(0),

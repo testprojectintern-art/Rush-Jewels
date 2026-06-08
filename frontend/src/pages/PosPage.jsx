@@ -13,6 +13,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Select from '../components/ui/Select';
 import Badge from '../components/ui/Badge';
+import Modal from '../components/ui/Modal';
 import { customersApi } from '../features/customers/customersApi';
 import { productsApi } from '../features/products/productsApi';
 import { stockApi } from '../features/stock/stockApi';
@@ -56,6 +57,7 @@ export default function PosPage() {
     const [activeCategory, setActiveCategory] = useState('all');
     const [customerSearch, setCustomerSearch] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
+    const [phoneSearch, setPhoneSearch] = useState('');
     const [orderDiscountPercent, setOrderDiscountPercent] = useState(0);
     const [orderDiscountAmount, setOrderDiscountAmount] = useState(0);
     const createCustomer = useCreateCustomer();
@@ -64,6 +66,9 @@ export default function PosPage() {
     const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
     const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
     const [isCloseRegisterModalOpen, setIsCloseRegisterModalOpen] = useState(false);
+    const [isCalculatorModalOpen, setIsCalculatorModalOpen] = useState(false);
+    const [calculatorCashReceived, setCalculatorCashReceived] = useState('');
+    const [calculatorChangeReturned, setCalculatorChangeReturned] = useState(0);
 
     // Direct Printing
     const [recentInvoice, setRecentInvoice] = useState(null);
@@ -140,14 +145,38 @@ export default function PosPage() {
     }, [products, activeCategory, searchQuery]);
 
     const customerSuggestions = useMemo(() => {
-        if (!customerSearch || customerId) return [];
+        if ((!customerSearch && !phoneSearch) || customerId) return [];
         const q = customerSearch.toLowerCase();
-        return customers.filter(c =>
-            c.displayName?.toLowerCase().includes(q) ||
-            c.primaryContact?.phone?.includes(q) ||
-            c.customerCode?.toLowerCase().includes(q)
-        ).slice(0, 5);
-    }, [customerSearch, customers, customerId]);
+        const ph = phoneSearch.toLowerCase();
+        return customers.filter(c => {
+            if (customerSearch) return (
+                c.displayName?.toLowerCase().includes(q) ||
+                c.primaryContact?.phone?.includes(q) ||
+                c.customerCode?.toLowerCase().includes(q)
+            );
+            if (phoneSearch) return c.primaryContact?.phone?.includes(ph);
+            return false;
+        }).slice(0, 5);
+    }, [customerSearch, phoneSearch, customers, customerId]);
+
+    const phoneSuggestions = useMemo(() => {
+        if (!phoneSearch || customerId) return [];
+        const ph = phoneSearch.toLowerCase();
+        return customers.filter(c => c.primaryContact?.phone?.includes(ph)).slice(0, 5);
+    }, [phoneSearch, customers, customerId]);
+
+    // Helper: get tier price for product at given quantity
+    const getTierPrice = (product, qty) => {
+        if (!product.tierPricing || product.tierPricing.length === 0) return product.basePrice;
+        const tiers = [...product.tierPricing].sort((a, b) => (b.minQuantity || 0) - (a.minQuantity || 0));
+        for (const tier of tiers) {
+            if (qty >= (tier.minQuantity || 0)) {
+                const maxOk = !tier.maxQuantity || qty <= tier.maxQuantity;
+                if (maxOk && tier.price > 0) return tier.price;
+            }
+        }
+        return product.basePrice;
+    };
 
     const selectedCustomer = customers.find((c) => c._id === customerId);
     const customerOptions = customers.map((c) => ({
@@ -172,11 +201,18 @@ export default function PosPage() {
                     toast.error(`Only ${available} available`);
                     return prev;
                 }
+                const newQty = existing.qty + 1;
+                const tierPrice = getTierPrice(product, newQty);
+                let price = tierPrice;
+                if (selectedCustomer?.defaultDiscountPercent) {
+                    price = price * (1 - selectedCustomer.defaultDiscountPercent / 100);
+                }
                 return prev.map((i) => i.productId === product._id
-                    ? { ...i, qty: i.qty + 1 } : i);
+                    ? { ...i, qty: newQty, price: +price.toFixed(2), tierPricing: product.tierPricing } : i);
             }
 
-            let price = product.basePrice;
+            const tierPrice = getTierPrice(product, 1);
+            let price = tierPrice;
             if (selectedCustomer?.defaultDiscountPercent) {
                 price = price * (1 - selectedCustomer.defaultDiscountPercent / 100);
             }
@@ -187,10 +223,10 @@ export default function PosPage() {
                 code: product.productCode,
                 price: +price.toFixed(2),
                 qty: 1,
-                price: +price.toFixed(2),
-                qty: 1,
                 available,
                 unitOfMeasure: product.unitOfMeasure,
+                tierPricing: product.tierPricing || [],
+                basePrice: product.basePrice,
             }];
         });
     };
@@ -204,7 +240,13 @@ export default function PosPage() {
                 toast.error(`Only ${i.available} available`);
                 return i;
             }
-            return { ...i, qty: newQty };
+            // Recalculate tier price on qty change
+            const newPrice = getTierPrice({ basePrice: i.basePrice || i.price, tierPricing: i.tierPricing || [] }, newQty);
+            let finalPrice = newPrice;
+            if (selectedCustomer?.defaultDiscountPercent) {
+                finalPrice = finalPrice * (1 - selectedCustomer.defaultDiscountPercent / 100);
+            }
+            return { ...i, qty: newQty, price: +finalPrice.toFixed(2) };
         }).filter(Boolean));
     };
 
@@ -216,7 +258,13 @@ export default function PosPage() {
                 toast.error(`Only ${i.available} available`);
                 return i;
             }
-            return { ...i, qty: newQty };
+            // Recalculate tier price on qty change
+            const newPrice = getTierPrice({ basePrice: i.basePrice || i.price, tierPricing: i.tierPricing || [] }, newQty);
+            let finalPrice = newPrice;
+            if (selectedCustomer?.defaultDiscountPercent) {
+                finalPrice = finalPrice * (1 - selectedCustomer.defaultDiscountPercent / 100);
+            }
+            return { ...i, qty: newQty, price: +finalPrice.toFixed(2) };
         }).filter((i) => i.qty > 0));
     };
 
@@ -249,7 +297,7 @@ export default function PosPage() {
 
     const fmt = (n) => new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', minimumFractionDigits: 2 }).format(n || 0);
 
-    const handleCheckout = async (saveAsDraft = false) => {
+    const handleCheckout = async (saveAsDraft = false, cashAmt = null, changeAmt = null) => {
         let finalCustomerId = customerId;
 
         // Auto-add customer if not selected but name typed
@@ -277,6 +325,13 @@ export default function PosPage() {
         if (cart.length === 0) { toast.error('Cart is empty'); return; }
         if (!activeSession) { toast.error('You must open the cash register first'); setIsSessionModalOpen(true); return; }
 
+        if (!saveAsDraft && cashAmt === null) {
+            setCalculatorCashReceived('');
+            setCalculatorChangeReturned(0);
+            setIsCalculatorModalOpen(true);
+            return;
+        }
+
         const payload = {
             customerId: finalCustomerId,
             sourceWarehouseId,
@@ -291,6 +346,8 @@ export default function PosPage() {
                 ? { type: 'fixed', value: totals.orderDiscount }
                 : undefined,
             status: saveAsDraft ? 'draft' : 'approved',
+            cashReceived: saveAsDraft ? undefined : (cashAmt || 0),
+            changeReturned: saveAsDraft ? undefined : (changeAmt || 0),
         };
 
         try {
@@ -355,7 +412,7 @@ export default function PosPage() {
                             />
                             {(customerId || customerSearch) && (
                                 <button
-                                    onClick={() => { setCustomerId(''); setCustomerSearch(''); setCustomerPhone(''); }}
+                                    onClick={() => { setCustomerId(''); setCustomerSearch(''); setCustomerPhone(''); setPhoneSearch(''); }}
                                     className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                                 >
                                     <X size={14} />
@@ -390,12 +447,36 @@ export default function PosPage() {
                                 type="text"
                                 placeholder="Phone No..."
                                 className="w-full px-3 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none border-gray-200 shadow-sm transition-all"
-                                value={customerId ? (selectedCustomer?.primaryContact?.phone || '') : customerPhone}
+                                value={customerId ? (selectedCustomer?.primaryContact?.phone || '') : phoneSearch || customerPhone}
                                 onChange={(e) => {
-                                    if (!customerId) setCustomerPhone(e.target.value);
+                                    if (!customerId) {
+                                        setPhoneSearch(e.target.value);
+                                        setCustomerPhone(e.target.value);
+                                        setCustomerId('');
+                                    }
                                 }}
                                 readOnly={!!customerId}
                             />
+                            {phoneSearch && !customerId && phoneSuggestions.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200" style={{minWidth:'220px'}}>
+                                    <div className="p-2 text-[10px] uppercase tracking-wider font-bold text-gray-400 bg-gray-50 border-b">By Phone</div>
+                                    {phoneSuggestions.map(c => (
+                                        <button
+                                            key={c._id}
+                                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-primary-50 transition-colors border-b last:border-0 flex flex-col"
+                                            onClick={() => {
+                                                setCustomerId(c._id);
+                                                setCustomerSearch('');
+                                                setPhoneSearch('');
+                                                setCustomerPhone('');
+                                            }}
+                                        >
+                                            <span className="font-bold text-gray-800">{c.displayName}</span>
+                                            <span className="text-[10px] text-gray-500">{c.primaryContact?.phone} • {c.customerCode}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <Button variant="outline" size="sm" onClick={() => setIsCustomerModalOpen(true)} title={selectedCustomer ? "Edit Customer" : "Advanced Add"} className="h-[42px] px-2 shrink-0">
@@ -727,6 +808,119 @@ export default function PosPage() {
 
             <PosSessionModal isOpen={isSessionModalOpen} onClose={() => setIsSessionModalOpen(false)} />
             <CloseRegisterModal isOpen={isCloseRegisterModalOpen} onClose={() => setIsCloseRegisterModalOpen(false)} session={activeSession} />
+
+            <Modal
+                isOpen={isCalculatorModalOpen}
+                onClose={() => setIsCalculatorModalOpen(false)}
+                title="POS Cash Payment Calculator"
+                size="md"
+            >
+                <div className="p-6 space-y-6">
+                    {/* Grand Total Display */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100 flex justify-between items-center">
+                        <div>
+                            <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Total Payable</p>
+                            <p className="text-3xl font-extrabold text-indigo-950 mt-1">{fmt(totals.grandTotal)}</p>
+                        </div>
+                        <div className="bg-indigo-500 text-white rounded-lg p-2.5 shadow-md shadow-indigo-200">
+                            <CreditCard size={28} />
+                        </div>
+                    </div>
+
+                    {/* Cash Received Input */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700">Cash Received (LKR)</label>
+                        <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-lg">Rs.</span>
+                            <input
+                                type="number"
+                                step="any"
+                                autoFocus
+                                placeholder="0.00"
+                                value={calculatorCashReceived}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setCalculatorCashReceived(val);
+                                    const parsed = parseFloat(val) || 0;
+                                    setCalculatorChangeReturned(Math.max(0, parsed - totals.grandTotal));
+                                }}
+                                className="w-full bg-white border border-gray-300 rounded-lg py-3.5 pl-12 pr-4 text-2xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Quick Cash Buttons */}
+                    <div className="space-y-2">
+                        <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Quick Cash Shortcuts</span>
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setCalculatorCashReceived(totals.grandTotal.toString());
+                                    setCalculatorChangeReturned(0);
+                                }}
+                                className="py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-lg transition duration-200 border border-gray-200 active:scale-95"
+                            >
+                                Exact Cash
+                            </button>
+                            {[1000, 2000, 5000, 10000].map((denom) => (
+                                <button
+                                    key={denom}
+                                    type="button"
+                                    onClick={() => {
+                                        setCalculatorCashReceived(denom.toString());
+                                        setCalculatorChangeReturned(Math.max(0, denom - totals.grandTotal));
+                                    }}
+                                    className="py-2 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg transition duration-200 border border-indigo-100 active:scale-95"
+                                >
+                                    {denom.toLocaleString('en-LK')}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Change Returned Display */}
+                    <div className="bg-emerald-50 rounded-xl p-5 border border-emerald-100 flex justify-between items-center">
+                        <div>
+                            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Change to Return</p>
+                            <p className="text-3xl font-extrabold text-emerald-950 mt-1">{fmt(calculatorChangeReturned)}</p>
+                        </div>
+                        <div className="bg-emerald-500 text-white rounded-lg p-2.5 shadow-md shadow-emerald-200">
+                            <CheckCircle size={28} />
+                        </div>
+                    </div>
+
+                    {/* Insufficient Cash Warning */}
+                    {calculatorCashReceived && (parseFloat(calculatorCashReceived) || 0) < totals.grandTotal && (
+                        <div className="flex items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-100 rounded-lg p-3">
+                            <AlertCircle size={18} />
+                            <span>Cash received is less than total payable!</span>
+                        </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex gap-3 pt-2">
+                        <Button
+                            variant="outline"
+                            className="flex-1 py-3"
+                            onClick={() => setIsCalculatorModalOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white"
+                            disabled={!calculatorCashReceived || (parseFloat(calculatorCashReceived) || 0) < totals.grandTotal || createOrder.isLoading}
+                            onClick={async () => {
+                                setIsCalculatorModalOpen(false);
+                                await handleCheckout(false, parseFloat(calculatorCashReceived), calculatorChangeReturned);
+                            }}
+                        >
+                            {createOrder.isLoading ? 'Checking out...' : 'Confirm & Pay'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
 
 

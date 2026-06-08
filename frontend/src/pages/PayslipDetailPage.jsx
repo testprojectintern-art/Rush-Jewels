@@ -25,7 +25,7 @@ export default function PayslipDetailPage() {
         <div>
             <PageHeader title="Payslip"
                 actions={
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <Button variant="outline" onClick={() => navigate(`/payroll/${payrollId}`)}>
                             <ArrowLeft size={16} className="mr-1.5" /> Back
                         </Button>
@@ -35,20 +35,20 @@ export default function PayslipDetailPage() {
                     </div>
                 } />
 
-            <Card className="p-8 max-w-3xl">
-                <div className="border-b pb-4 mb-4 flex justify-between">
+            <Card className="p-4 sm:p-8 max-w-3xl">
+                <div className="border-b pb-4 mb-4 flex flex-col sm:flex-row justify-between gap-4">
                     <div>
                         <h2 className="text-xl font-bold">PAYSLIP</h2>
                         <p className="text-sm text-gray-600">{monthNames[payroll.periodMonth - 1]} {payroll.periodYear}</p>
                         <p className="text-xs text-gray-500 font-mono">{payroll.payrollNumber}</p>
                     </div>
-                    <div className="text-right text-sm">
+                    <div className="text-left sm:text-right text-sm">
                         <p className="text-gray-500">Period</p>
                         <p>{new Date(payroll.periodStartDate).toLocaleDateString('en-LK')} — {new Date(payroll.periodEndDate).toLocaleDateString('en-LK')}</p>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 mb-6 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6 text-sm">
                     <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Employee</p>
                         <p className="font-medium text-base">{employee.firstName} {employee.lastName}</p>
@@ -65,16 +65,16 @@ export default function PayslipDetailPage() {
 
                 <div className="mb-6">
                     <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Attendance</p>
-                    <div className="grid grid-cols-5 gap-2 text-sm">
-                        <div><p className="text-gray-500">Working Days</p><p className="font-semibold">{ps.workingDays}</p></div>
-                        <div><p className="text-gray-500">Present</p><p className="font-semibold">{ps.daysPresent}</p></div>
-                        <div><p className="text-gray-500">Absent</p><p className="font-semibold">{ps.daysAbsent}</p></div>
-                        <div><p className="text-gray-500">Leave</p><p className="font-semibold">{ps.leaveDays}</p></div>
-                        <div><p className="text-gray-500">OT Hours</p><p className="font-semibold">{ps.overtimeHours}</p></div>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
+                        <div><p className="text-gray-500 text-xs">Working Days</p><p className="font-semibold">{ps.workingDays}</p></div>
+                        <div><p className="text-gray-500 text-xs">Present</p><p className="font-semibold">{ps.daysPresent}</p></div>
+                        <div><p className="text-gray-500 text-xs">Absent</p><p className="font-semibold">{ps.daysAbsent}</p></div>
+                        <div><p className="text-gray-500 text-xs">Leave</p><p className="font-semibold">{ps.leaveDays}</p></div>
+                        <div><p className="text-gray-500 text-xs">OT Hours</p><p className="font-semibold">{ps.overtimeHours}</p></div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Earnings</p>
                         <table className="w-full text-sm">
@@ -111,12 +111,12 @@ export default function PayslipDetailPage() {
                     </div>
                 </div>
 
-                <div className="mt-6 pt-4 border-t-2 border-gray-900 flex justify-between items-center">
+                <div className="mt-6 pt-4 border-t-2 border-gray-900 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <p className="text-xs text-gray-500">NET PAY</p>
                         <p className="text-2xl font-bold text-primary-600">{fmt(ps.netPay)}</p>
                     </div>
-                    <div className="text-right text-xs text-gray-500">
+                    <div className="text-left sm:text-right text-xs text-gray-500">
                         <p>EPF Employer (12%): {fmt(ps.epfEmployerContribution)}</p>
                         <p>ETF (3%): {fmt(ps.etfContribution)}</p>
                         <p className="mt-1 italic">Employer contributions (not deducted from salary)</p>

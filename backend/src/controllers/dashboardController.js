@@ -9,12 +9,17 @@ import PurchaseOrder from '../models/PurchaseOrder.js';
 import Bill from '../models/Bill.js';
 import ProductionOrder from '../models/ProductionOrder.js';
 import CustomerReturn from '../models/CustomerReturn.js';
+import Expense from '../models/Expense.js';
+import { updateInvoiceAging } from './invoiceController.js';
+import { updateBillAging } from './billController.js';
 
 /**
  * GET /api/dashboard/kpis
  * Main admin dashboard key metrics
  */
 export const getDashboardKpis = asyncHandler(async (req, res) => {
+    await updateInvoiceAging();
+    await updateBillAging();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
@@ -25,7 +30,14 @@ export const getDashboardKpis = asyncHandler(async (req, res) => {
     const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
 
     // Revenue (invoiced amount this month vs last month)
-    const [currentMonthInvoices, lastMonthInvoices, currentMonthBills, lastMonthBills, currentMonthIn, lastMonthIn, currentMonthOut, lastMonthOut] = await Promise.all([
+    const [
+        currentMonthInvoices, lastMonthInvoices,
+        currentMonthBills, lastMonthBills,
+        currentMonthExpenses, lastMonthExpenses,
+        currentMonthIn, lastMonthIn,
+        currentMonthOut, lastMonthOut,
+        currentMonthExpensesPaid, lastMonthExpensesPaid
+    ] = await Promise.all([
         Invoice.aggregate([
             { $match: { deletedAt: null, invoiceDate: { $gte: startOfMonth, $lt: tomorrow } } },
             { $group: { _id: null, total: { $sum: '$grandTotal' }, count: { $sum: 1 } } },
@@ -41,6 +53,14 @@ export const getDashboardKpis = asyncHandler(async (req, res) => {
         Bill.aggregate([
             { $match: { deletedAt: null, billDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
             { $group: { _id: null, total: { $sum: '$grandTotal' } } },
+        ]),
+        Expense.aggregate([
+            { $match: { deletedAt: null, status: { $ne: 'cancelled' }, date: { $gte: startOfMonth, $lt: tomorrow } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
+        Expense.aggregate([
+            { $match: { deletedAt: null, status: { $ne: 'cancelled' }, date: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
         ]),
         Payment.aggregate([
             { $match: { deletedAt: null, direction: 'received', paymentDate: { $gte: startOfMonth, $lt: tomorrow } } },
@@ -58,6 +78,14 @@ export const getDashboardKpis = asyncHandler(async (req, res) => {
             { $match: { deletedAt: null, direction: 'paid', paymentDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
         ]),
+        Expense.aggregate([
+            { $match: { deletedAt: null, status: 'paid', date: { $gte: startOfMonth, $lt: tomorrow } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
+        Expense.aggregate([
+            { $match: { deletedAt: null, status: 'paid', date: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
     ]);
 
     const revenueThisMonth = currentMonthInvoices[0]?.total || 0;
@@ -66,8 +94,13 @@ export const getDashboardKpis = asyncHandler(async (req, res) => {
         ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth * 100).toFixed(1)
         : 0;
 
-    const expensesThisMonth = currentMonthBills[0]?.total || 0;
-    const expensesLastMonth = lastMonthBills[0]?.total || 0;
+    const billsThisMonth = currentMonthBills[0]?.total || 0;
+    const billsLastMonth = lastMonthBills[0]?.total || 0;
+    const generalExpensesThisMonth = currentMonthExpenses[0]?.total || 0;
+    const generalExpensesLastMonth = lastMonthExpenses[0]?.total || 0;
+
+    const expensesThisMonth = billsThisMonth + generalExpensesThisMonth;
+    const expensesLastMonth = billsLastMonth + generalExpensesLastMonth;
 
     const gpThisMonth = revenueThisMonth - expensesThisMonth;
     const gpLastMonth = revenueLastMonth - expensesLastMonth;
@@ -77,8 +110,14 @@ export const getDashboardKpis = asyncHandler(async (req, res) => {
 
     const collectedThisMonth = currentMonthIn[0]?.total || 0;
     const collectedLastMonth = lastMonthIn[0]?.total || 0;
-    const paidThisMonth = currentMonthOut[0]?.total || 0;
-    const paidLastMonth = lastMonthOut[0]?.total || 0;
+
+    const paymentsPaidThisMonth = currentMonthOut[0]?.total || 0;
+    const paymentsPaidLastMonth = lastMonthOut[0]?.total || 0;
+    const generalExpensesPaidThisMonth = currentMonthExpensesPaid[0]?.total || 0;
+    const generalExpensesPaidLastMonth = lastMonthExpensesPaid[0]?.total || 0;
+
+    const paidThisMonth = paymentsPaidThisMonth + generalExpensesPaidThisMonth;
+    const paidLastMonth = paymentsPaidLastMonth + generalExpensesPaidLastMonth;
 
     const cashFlowThisMonth = collectedThisMonth - paidThisMonth;
     const cashFlowLastMonth = collectedLastMonth - paidLastMonth;

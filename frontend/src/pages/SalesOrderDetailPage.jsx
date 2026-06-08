@@ -97,7 +97,7 @@ export default function SalesOrderDetailPage() {
                 }
                 description={`Created ${fmtDate(order.createdAt)}`}
                 actions={
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <Button variant="outline" onClick={() => navigate('/sales-orders')}>
                             <ArrowLeft size={16} className="mr-1.5" /> Back
                         </Button>
@@ -113,11 +113,11 @@ export default function SalesOrderDetailPage() {
                 }
             />
 
-            <div className="grid grid-cols-3 gap-6">
-                <div className="col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
                     <Card className="p-6">
                         <h3 className="text-sm font-semibold text-gray-700 mb-4">Customer & Delivery</h3>
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
                                 <p className="text-xs text-gray-500 uppercase mb-1">Bill To</p>
                                 <p className="font-medium">{order.customerSnapshot?.name}</p>
@@ -153,37 +153,39 @@ export default function SalesOrderDetailPage() {
                         <div className="px-6 py-4 border-b border-gray-200">
                             <h3 className="text-sm font-semibold text-gray-700">Line Items</h3>
                         </div>
-                        <table className="w-full">
-                            <thead className="bg-gray-50 border-b border-gray-200">
-                                <tr>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Product</th>
-                                    <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Qty</th>
-                                    <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Price</th>
-                                    <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Discount</th>
-                                    <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Tax</th>
-                                    <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {order.items.map((item) => (
-                                    <tr key={item._id || item.lineNumber}>
-                                        <td className="px-4 py-3">
-                                            <p className="font-medium text-sm">{item.productName}</p>
-                                            <p className="text-xs text-gray-500 font-mono">{item.productCode}</p>
-                                        </td>
-                                        <td className="px-4 py-3 text-right text-sm">
-                                            {item.orderedQuantity} {item.unitOfMeasure}
-                                        </td>
-                                        <td className="px-4 py-3 text-right text-sm">{fmt(item.unitPrice)}</td>
-                                        <td className="px-4 py-3 text-right text-sm text-red-600">
-                                            {item.lineDiscount > 0 ? `-${fmt(item.lineDiscount)}` : '—'}
-                                        </td>
-                                        <td className="px-4 py-3 text-right text-sm">{fmt(item.lineTax)}</td>
-                                        <td className="px-4 py-3 text-right text-sm font-medium">{fmt(item.lineTotal)}</td>
+                        <div className="overflow-x-auto">
+                            <table className="w-full min-w-[600px]">
+                                <thead className="bg-gray-50 border-b border-gray-200">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Product</th>
+                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Qty</th>
+                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Price</th>
+                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Discount</th>
+                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Tax</th>
+                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Total</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {order.items.map((item) => (
+                                        <tr key={item._id || item.lineNumber}>
+                                            <td className="px-4 py-3">
+                                                <p className="font-medium text-sm">{item.productName}</p>
+                                                <p className="text-xs text-gray-500 font-mono">{item.productCode}</p>
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-sm">
+                                                {item.orderedQuantity} {item.unitOfMeasure}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-sm">{fmt(item.unitPrice)}</td>
+                                            <td className="px-4 py-3 text-right text-sm text-red-600">
+                                                {item.lineDiscount > 0 ? `-${fmt(item.lineDiscount)}` : '—'}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-sm">{fmt(item.lineTax)}</td>
+                                            <td className="px-4 py-3 text-right text-sm font-medium">{fmt(item.lineTotal)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </Card>
 
                     {(order.customerNotes || order.internalNotes) && (

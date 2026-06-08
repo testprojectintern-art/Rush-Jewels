@@ -12,5 +12,9 @@ export const posSessionsApi = {
     close: async (data) => {
         const res = await api.post('/pos-sessions/close', data);
         return res.data;
+    },
+    list: async (params) => {
+        const res = await api.get('/pos-sessions', { params });
+        return res.data;
     }
 };

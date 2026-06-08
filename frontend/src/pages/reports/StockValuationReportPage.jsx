@@ -79,13 +79,13 @@ export default function StockValuationReportPage() {
                 <div className="py-16 text-center text-gray-500">Loading...</div>
             ) : (
                 <>
-                    <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                         <Card className="p-4"><p className="text-sm text-gray-600">Total Value</p><p className="text-2xl font-semibold">{fmt(report.summary.totalValue)}</p></Card>
                         <Card className="p-4"><p className="text-sm text-gray-600">Total Units</p><p className="text-2xl font-semibold">{fmtNum(report.summary.totalUnits)}</p></Card>
                         <Card className="p-4"><p className="text-sm text-gray-600">Stock Items</p><p className="text-2xl font-semibold">{report.summary.productCount}</p></Card>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-6 mb-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                         <Card className="p-6">
                             <h3 className="text-sm font-semibold text-gray-700 mb-4">Value by Product Type</h3>
                             <ResponsiveContainer width="100%" height={250}>
@@ -99,7 +99,7 @@ export default function StockValuationReportPage() {
                             </ResponsiveContainer>
                         </Card>
 
-                        <Card className="col-span-2 p-6">
+                        <Card className="lg:col-span-2 p-6">
                             <h3 className="text-sm font-semibold text-gray-700 mb-4">Type Breakdown</h3>
                             <div className="space-y-2">
                                 {report.byProductType.map((t) => (

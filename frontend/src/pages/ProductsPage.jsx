@@ -97,6 +97,15 @@ export default function ProductsPage() {
             render: (row) => <span className="font-medium text-primary-600">{formatPrice(row.basePrice)}</span>,
         },
         {
+            key: 'callPrice',
+            label: 'Call Price',
+            render: (row) => row.callPrice > 0 ? (
+                <span className="font-medium text-amber-700">{formatPrice(row.callPrice)}</span>
+            ) : (
+                <span className="text-gray-400 text-xs">—</span>
+            ),
+        },
+        {
             key: 'profit',
             label: 'Profit (%)',
             render: (row) => {

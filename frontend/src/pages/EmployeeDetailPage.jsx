@@ -29,7 +29,7 @@ export default function EmployeeDetailPage() {
                 title={<span className="flex items-center gap-3">{emp.firstName} {emp.lastName} <Badge variant={statusVariant[emp.status]}>{emp.status?.replace(/_/g, ' ')}</Badge></span>}
                 description={`${emp.employeeCode} · ${emp.designationId?.name || 'No designation'}`}
                 actions={
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <Button variant="outline" onClick={() => navigate('/employees')}>
                             <ArrowLeft size={16} className="mr-1.5" /> Back
                         </Button>
@@ -39,14 +39,14 @@ export default function EmployeeDetailPage() {
                     </div>
                 } />
 
-            <div className="grid grid-cols-3 gap-6">
-                <div className="col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
                     <Card className="p-6">
                         <div className="flex items-center gap-2 mb-4">
                             <User size={18} className="text-gray-600" />
                             <h3 className="text-sm font-semibold">Personal</h3>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                             <div><p className="text-gray-500">Full Name</p><p className="font-medium">{emp.firstName} {emp.lastName}</p></div>
                             <div><p className="text-gray-500">Gender</p><p>{emp.gender?.replace(/_/g, ' ') || '—'}</p></div>
                             <div><p className="text-gray-500">Date of Birth</p><p>{fmtDate(emp.dateOfBirth)}</p></div>
@@ -84,7 +84,7 @@ export default function EmployeeDetailPage() {
                             <Briefcase size={18} className="text-gray-600" />
                             <h3 className="text-sm font-semibold">Employment</h3>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                             <div><p className="text-gray-500">Department</p><p>{emp.departmentId?.name || '—'}</p></div>
                             <div><p className="text-gray-500">Designation</p><p>{emp.designationId?.name || '—'}</p></div>
                             <div><p className="text-gray-500">Employment Type</p><p>{emp.employmentType?.replace(/_/g, ' ')}</p></div>
@@ -101,7 +101,7 @@ export default function EmployeeDetailPage() {
                             <CreditCard size={18} className="text-gray-600" />
                             <h3 className="text-sm font-semibold">Statutory & Bank</h3>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                             <div><p className="text-gray-500">EPF Number</p><p className="font-mono">{emp.epfNumber || '—'}</p></div>
                             <div><p className="text-gray-500">ETF Number</p><p className="font-mono">{emp.etfNumber || '—'}</p></div>
                             <div><p className="text-gray-500">TIN</p><p className="font-mono">{emp.taxRegistrationNumber || '—'}</p></div>

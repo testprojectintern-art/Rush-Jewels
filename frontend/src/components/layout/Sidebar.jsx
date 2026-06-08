@@ -33,6 +33,7 @@ const menuItems = [
         icon: ShoppingCart,
         children: [
             { label: 'POS Terminal', path: '/pos' },
+            { label: 'POS Registers', path: '/pos-sessions' },
             { label: 'Sales Orders', path: '/sales-orders' },
             { label: 'Wholesale Prices', path: '/wholesale-prices' },
             { label: 'Invoices', path: '/invoices' },

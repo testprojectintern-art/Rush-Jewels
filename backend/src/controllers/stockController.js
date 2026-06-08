@@ -30,7 +30,7 @@ export const getStockItems = asyncHandler(async (req, res) => {
     const skip = (Number(page) - 1) * Number(limit);
 
     let items = await StockItem.find(filter)
-        .populate('productId', 'name productCode sku stockLevels')
+        .populate('productId', 'name productCode sku stockLevels costs purchasePrice')
         .populate('warehouseId', 'name warehouseCode')
         .sort({ productName: 1 })
         .skip(skip)

@@ -93,6 +93,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                 unitOfMeasure: product.unitOfMeasure || '',
                 basePrice: product.basePrice || 0,
                 mrp: product.mrp || 0,
+                callPrice: product.callPrice || 0,
                 taxable: product.tax?.taxable ?? true,
                 taxRate: product.tax?.taxRate ?? 18,
                 hsCode: product.tax?.hsCode || '',
@@ -132,6 +133,8 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                 buyingPrice: 0,
                 profitPercentage: 0,
                 basePrice: 0,
+                mrp: 0,
+                callPrice: 0,
                 tierPricing: [],
                 productNature: 'single',
                 variations: [],
@@ -160,6 +163,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
             basePrice: data.basePrice,
             purchasePrice: data.buyingPrice || 0,
             mrp: data.mrp || undefined,
+            callPrice: data.callPrice || undefined,
             costs: {
                 ...(product?.costs || {}),
                 standardCost: data.buyingPrice || 0,
@@ -509,6 +513,13 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                                     step="0.01"
                                     error={errors.mrp?.message}
                                     {...register('mrp')}
+                                />
+                                <Input
+                                    label="Call Price (LKR)"
+                                    type="number"
+                                    step="0.01"
+                                    error={errors.callPrice?.message}
+                                    {...register('callPrice')}
                                 />
                             </div>
                         </div>

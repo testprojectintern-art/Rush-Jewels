@@ -19,14 +19,29 @@ export default function HolidaysPage() {
     const createM = useCreateHoliday(); const updateM = useUpdateHoliday(); const deleteM = useDeleteHoliday();
 
     const [isOpen, setIsOpen] = useState(false);
+    const [isView, setIsView] = useState(false);
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
     const [form, setForm] = useState({ name: '', date: '', type: 'public' });
 
     const holidays = data?.data || [];
 
-    const openNew = () => { setEditing(null); setForm({ name: '', date: '', type: 'public' }); setIsOpen(true); };
+    const openNew = () => { 
+        setIsView(false); 
+        setEditing(null); 
+        setForm({ name: '', date: '', type: 'public' }); 
+        setIsOpen(true); 
+    };
+
     const openEdit = (h) => {
+        setIsView(false);
+        setEditing(h);
+        setForm({ name: h.name, date: h.date.slice(0, 10), type: h.type });
+        setIsOpen(true);
+    };
+
+    const openView = (h) => {
+        setIsView(true);
         setEditing(h);
         setForm({ name: h.name, date: h.date.slice(0, 10), type: h.type });
         setIsOpen(true);
@@ -46,10 +61,11 @@ export default function HolidaysPage() {
         { key: 'name', label: 'Name', render: (r) => <span className="font-medium">{r.name}</span> },
         { key: 'type', label: 'Type', render: (r) => <Badge>{r.type}</Badge> },
         {
-            key: 'actions', label: '', width: '100px', render: (r) => (
+            key: 'actions', label: 'Actions', width: '120px', render: (r) => (
                 <div className="flex gap-1">
-                    <button onClick={() => openEdit(r)} className="p-1.5 hover:bg-gray-100 rounded"><Edit size={16} /></button>
-                    <button onClick={() => setDeleting(r)} className="p-1.5 hover:bg-red-50 text-red-600 rounded"><Trash2 size={16} /></button>
+                    <button onClick={() => openView(r)} className="p-1.5 hover:bg-gray-100 rounded" title="View"><Eye size={16} /></button>
+                    <button onClick={() => openEdit(r)} className="p-1.5 hover:bg-gray-100 rounded" title="Edit"><Edit size={16} /></button>
+                    <button onClick={() => setDeleting(r)} className="p-1.5 hover:bg-red-50 text-red-600 rounded" title="Delete"><Trash2 size={16} /></button>
                 </div>
             )
         },
@@ -63,7 +79,7 @@ export default function HolidaysPage() {
             <Card>
                 <div className="p-4 border-b">
                     <div className="w-32">
-                        <Input disabled={isView} type="number" value={year} onChange={(e) => setYear(e.target.value)} />
+                        <Input label="Filter Year" type="number" value={year} onChange={(e) => setYear(e.target.value)} />
                     </div>
                 </div>
                 {holidays.length === 0
@@ -71,7 +87,7 @@ export default function HolidaysPage() {
                     : <Table columns={columns} data={holidays} />}
             </Card>
 
-            <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? 'Edit Holiday' : 'New Holiday'} size="md">
+            <Modal isOpen={isOpen} onClose={() => { setIsOpen(false); setIsView(false); }} title={editing ? (isView ? 'View Holiday' : 'Edit Holiday') : 'New Holiday'} size="md">
                 <div className="p-6 space-y-4">
                     <Input disabled={isView} label="Name" required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
                     <div className="grid grid-cols-2 gap-4">
@@ -89,10 +105,14 @@ export default function HolidaysPage() {
                     </div>
                 </div>
                 <div className="flex justify-end gap-2 px-6 py-4 border-t bg-gray-50">
-                    <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={submit} loading={createM.isPending || updateM.isPending}>
-                        {editing ? 'Update' : 'Create'}
+                    <Button variant={isView ? 'primary' : 'outline'} onClick={() => { setIsOpen(false); setIsView(false); }}>
+                        {isView ? 'Close' : 'Cancel'}
                     </Button>
+                    {!isView && (
+                        <Button variant="primary" onClick={submit} loading={createM.isPending || updateM.isPending}>
+                            {editing ? 'Update' : 'Create'}
+                        </Button>
+                    )}
                 </div>
             </Modal>
 

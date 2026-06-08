@@ -6,6 +6,7 @@ import LeaveRequest from '../models/LeaveRequest.js';
 import Holiday from '../models/Holiday.js';
 import { calculatePayslip } from '../services/payrollCalculator.js';
 import SalesOrder from '../models/SalesOrder.js';
+import Expense from '../models/Expense.js';
 
 /**
  * Get total sales commission for employee in a month
@@ -284,8 +285,29 @@ export const markPayrollPaid = asyncHandler(async (req, res) => {
         ps.paidAt = new Date();
     });
     await p.save();
+
+    // Auto-create Expense record for salary payout
+    try {
+        const totalNetPay = p.payslips.reduce((sum, ps) => sum + (ps.netPay || 0), 0);
+        if (totalNetPay > 0) {
+            await Expense.create({
+                date: p.paidAt || new Date(),
+                category: 'Salary',
+                amount: +totalNetPay.toFixed(2),
+                paymentMethod: 'bank_transfer',
+                reference: p.payrollNumber,
+                description: `Payroll ${p.payrollNumber} — ${p.periodMonth}/${p.periodYear} (${p.payslips.length} employees)`,
+                status: 'paid',
+                createdBy: req.user._id,
+            });
+        }
+    } catch (expErr) {
+        console.warn('Could not auto-create salary expense:', expErr.message);
+    }
+
     res.json({ success: true, data: p });
 });
+
 
 export const getEmployeePayslip = asyncHandler(async (req, res) => {
     const { payrollId, employeeId } = req.params;

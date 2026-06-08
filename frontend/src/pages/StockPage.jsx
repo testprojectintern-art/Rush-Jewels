@@ -94,8 +94,17 @@ export default function StockPage() {
             ),
         },
         {
-            key: 'value', label: 'Value',
-            render: (r) => <span className="text-sm">{fmtMoney(r.totalValue)}</span>,
+            key: 'unitCost', label: 'Unit Cost',
+            render: (r) => {
+                const cost = r.costPerUnit || r.productId?.costs?.averageCost || r.productId?.costs?.standardCost || r.productId?.purchasePrice || 0;
+                return cost > 0
+                    ? <span className="text-sm font-medium text-gray-700">{fmtMoney(cost)}</span>
+                    : <span className="text-gray-400 text-xs">—</span>;
+            },
+        },
+        {
+            key: 'value', label: 'Stock Value',
+            render: (r) => <span className="text-sm font-semibold text-indigo-700">{fmtMoney(r.totalValue)}</span>,
         },
         {
             key: 'status', label: 'Status',
@@ -114,7 +123,7 @@ export default function StockPage() {
                 title="Stock Overview"
                 description="Current inventory across all warehouses"
                 actions={canAdjust && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <Button variant="outline" onClick={() => navigate('/stock/opening')}>
                             <PackagePlus size={16} className="mr-1.5" /> Opening Stock
                         </Button>
@@ -132,7 +141,7 @@ export default function StockPage() {
             />
 
             {/* Summary strip */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <Card className="p-4">
                     <p className="text-sm text-gray-600">Total Items</p>
                     <p className="text-2xl font-semibold">{total}</p>

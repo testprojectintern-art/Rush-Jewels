@@ -120,7 +120,62 @@ export const createFromGrn = asyncHandler(async (req, res) => {
     res.status(201).json({ success: true, data: populated });
 });
 
+/**
+ * Helper to dynamically calculate and update aging details for unpaid bills
+ */
+export const updateBillAging = async () => {
+    const unpaidBills = await Bill.find({
+        paymentStatus: { $in: ['unpaid', 'partially_paid', 'overdue'] },
+        deletedAt: null
+    });
+    
+    const now = new Date();
+    const bulkOps = [];
+    
+    for (const bill of unpaidBills) {
+        if (!bill.dueDate) continue;
+        
+        const daysPast = Math.floor((now - new Date(bill.dueDate)) / (1000 * 60 * 60 * 24));
+        const currentDaysPastDue = Math.max(0, daysPast);
+        
+        let currentPaymentStatus = bill.paymentStatus;
+        if (currentDaysPastDue > 0 && bill.paymentStatus === 'unpaid') {
+            currentPaymentStatus = 'overdue';
+        }
+        
+        let currentAgingBucket = 'current';
+        if (currentDaysPastDue === 0) currentAgingBucket = 'current';
+        else if (currentDaysPastDue <= 30) currentAgingBucket = '1_30';
+        else if (currentDaysPastDue <= 60) currentAgingBucket = '31_60';
+        else if (currentDaysPastDue <= 90) currentAgingBucket = '61_90';
+        else currentAgingBucket = '91_plus';
+        
+        if (bill.daysPastDue !== currentDaysPastDue || 
+            bill.paymentStatus !== currentPaymentStatus || 
+            bill.agingBucket !== currentAgingBucket) {
+            
+            bulkOps.push({
+                updateOne: {
+                    filter: { _id: bill._id },
+                    update: {
+                        $set: {
+                            daysPastDue: currentDaysPastDue,
+                            paymentStatus: currentPaymentStatus,
+                            agingBucket: currentAgingBucket
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    if (bulkOps.length > 0) {
+        await Bill.bulkWrite(bulkOps);
+    }
+};
+
 export const getBills = asyncHandler(async (req, res) => {
+    await updateBillAging();
     const {
         search, supplierId, paymentStatus, agingBucket,
         startDate, endDate,
@@ -179,6 +234,7 @@ export const getBillById = asyncHandler(async (req, res) => {
 });
 
 export const getPayablesAging = asyncHandler(async (req, res) => {
+    await updateBillAging();
     const match = { paymentStatus: { $in: ['unpaid', 'partially_paid', 'overdue'] }, deletedAt: null };
 
     const aggregation = await Bill.aggregate([

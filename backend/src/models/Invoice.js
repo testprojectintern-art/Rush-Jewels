@@ -136,6 +136,9 @@ const invoiceSchema = new mongoose.Schema({
     cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     cancellationReason: String,
 
+    cashReceived: { type: Number },
+    changeReturned: { type: Number },
+
     notes: String,
     internalNotes: String,
     paymentInstructions: String,

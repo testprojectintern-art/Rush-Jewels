@@ -73,7 +73,7 @@ export default function PayrollDetailPage() {
                 title={<span className="flex items-center gap-3">{p.payrollNumber} <Badge variant={statusVariant[p.status]}>{p.status}</Badge></span>}
                 description={`${monthNames[p.periodMonth - 1]} ${p.periodYear} · ${p.totalEmployees} employees`}
                 actions={
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <Button variant="outline" onClick={() => navigate('/payroll')}>
                             <ArrowLeft size={16} className="mr-1.5" /> Back
                         </Button>
@@ -90,7 +90,7 @@ export default function PayrollDetailPage() {
                     </div>
                 } />
 
-            <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <Card className="p-4"><p className="text-sm text-gray-600">Gross Earnings</p><p className="text-lg font-semibold">{fmt(p.totalGrossEarnings)}</p></Card>
                 <Card className="p-4"><p className="text-sm text-gray-600">Total Deductions</p><p className="text-lg font-semibold text-red-600">{fmt(p.totalDeductions)}</p></Card>
                 <Card className="p-4"><p className="text-sm text-gray-600">EPF Employer (12%)</p><p className="text-lg font-semibold">{fmt(p.totalEpfEmployer)}</p></Card>

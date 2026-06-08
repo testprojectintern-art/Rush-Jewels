@@ -130,11 +130,11 @@ export default function InvoiceDetailPage() {
                 }
             />
 
-            <div className="grid grid-cols-3 gap-6">
-                <div className="col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
                     <Card className="p-6">
                         <h3 className="text-sm font-semibold text-gray-700 mb-4">Customer</h3>
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
                                 <p className="text-xs text-gray-500 uppercase mb-1">Bill To</p>
                                 <p className="font-medium">{inv.customerSnapshot?.name}</p>
@@ -173,30 +173,32 @@ export default function InvoiceDetailPage() {
                         <div className="px-6 py-4 border-b">
                             <h3 className="text-sm font-semibold text-gray-700">Line Items</h3>
                         </div>
-                        <table className="w-full">
-                            <thead className="bg-gray-50 border-b">
-                                <tr>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Item</th>
-                                    <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Qty</th>
-                                    <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Price</th>
-                                    <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                                {inv.items.map((item) => (
-                                    <tr key={item._id || item.lineNumber}>
-                                        <td className="px-4 py-3">
-                                            <p className="font-medium text-sm">{item.productName}</p>
-                                            {item.productCode && <p className="text-xs text-gray-500 font-mono">{item.productCode}</p>}
-                                            {item.description && <p className="text-xs text-gray-600 mt-1">{item.description}</p>}
-                                        </td>
-                                        <td className="px-4 py-3 text-right text-sm">{item.quantity} {item.unitOfMeasure}</td>
-                                        <td className="px-4 py-3 text-right text-sm">{fmt(item.unitPrice)}</td>
-                                        <td className="px-4 py-3 text-right text-sm font-medium">{fmt(item.lineTotal)}</td>
+                        <div className="overflow-x-auto">
+                            <table className="w-full min-w-[500px]">
+                                <thead className="bg-gray-50 border-b">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Item</th>
+                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Qty</th>
+                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Price</th>
+                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Total</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y">
+                                    {inv.items.map((item) => (
+                                        <tr key={item._id || item.lineNumber}>
+                                            <td className="px-4 py-3">
+                                                <p className="font-medium text-sm">{item.productName}</p>
+                                                {item.productCode && <p className="text-xs text-gray-500 font-mono">{item.productCode}</p>}
+                                                {item.description && <p className="text-xs text-gray-600 mt-1">{item.description}</p>}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-sm">{item.quantity} {item.unitOfMeasure}</td>
+                                            <td className="px-4 py-3 text-right text-sm">{fmt(item.unitPrice)}</td>
+                                            <td className="px-4 py-3 text-right text-sm font-medium">{fmt(item.lineTotal)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </Card>
                     
                     {payments.length > 0 && (
@@ -205,26 +207,28 @@ export default function InvoiceDetailPage() {
                                 <h3 className="text-sm font-semibold text-gray-700">Payment History</h3>
                                 <Badge variant="success">{payments.length} Payments</Badge>
                             </div>
-                            <table className="w-full">
-                                <thead className="bg-gray-50 border-b">
-                                    <tr>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Date</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Method</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Ref #</th>
-                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y">
-                                    {payments.map((p) => (
-                                        <tr key={p._id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/payments/${p._id}`)}>
-                                            <td className="px-4 py-3 text-sm">{fmtDate(p.paymentDate)}</td>
-                                            <td className="px-4 py-3 text-sm capitalize">{p.method.replace('_', ' ')}</td>
-                                            <td className="px-4 py-3 text-sm font-mono">{p.paymentNumber}</td>
-                                            <td className="px-4 py-3 text-right text-sm font-medium text-green-600">{fmt(p.amount)}</td>
+                            <div className="overflow-x-auto">
+                                <table className="w-full min-w-[500px]">
+                                    <thead className="bg-gray-50 border-b">
+                                        <tr>
+                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Date</th>
+                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Method</th>
+                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Ref #</th>
+                                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Amount</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {payments.map((p) => (
+                                            <tr key={p._id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/payments/${p._id}`)}>
+                                                <td className="px-4 py-3 text-sm">{fmtDate(p.paymentDate)}</td>
+                                                <td className="px-4 py-3 text-sm capitalize">{p.method.replace('_', ' ')}</td>
+                                                <td className="px-4 py-3 text-sm font-mono">{p.paymentNumber}</td>
+                                                <td className="px-4 py-3 text-right text-sm font-medium text-green-600">{fmt(p.amount)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </Card>
                     )}
 

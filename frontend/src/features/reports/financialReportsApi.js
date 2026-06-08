@@ -1,5 +1,9 @@
 import api from '../../api/axios';
 
 export const financialReportsApi = {
-    getProfitAndLoss: (params) => api.get('/financial-reports/profit-and-loss', { params }),
+    getProfitAndLoss: async (params) => {
+        const res = await api.get('/reports/financial/snapshot', { params });
+        return res.data;
+    },
 };
+

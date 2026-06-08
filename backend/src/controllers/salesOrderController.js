@@ -8,7 +8,7 @@ import {
     decreaseStock, increaseStock,
 } from '../services/stockService.js';
 import StockItem from '../models/StockItem.js';
-import { generateInvoiceFromOrders } from './invoiceController.js';
+import { generateInvoiceFromOrders, updateCustomerBalance } from './invoiceController.js';
 
 /**
  * Create Sales Order
@@ -226,7 +226,12 @@ export const createSalesOrder = asyncHandler(async (req, res) => {
                 invoice.balanceDue = 0;
                 invoice.paymentStatus = 'paid';
                 invoice.fullyPaidAt = new Date();
+                invoice.cashReceived = order.cashReceived;
+                invoice.changeReturned = order.changeReturned;
                 await invoice.save({ session });
+
+                // Recalculate customer credit balance to reflect payment
+                await updateCustomerBalance(order.customerId, session);
                 
                 // Update PosSession cashSales
                 const activeSession = await PosSession.findOne({ userId: req.user._id, status: 'open' }).session(session);

@@ -187,6 +187,9 @@ const salesOrderSchema = new mongoose.Schema(
         cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         cancelledAt: Date,
 
+        cashReceived: { type: Number },
+        changeReturned: { type: Number },
+
         createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         deletedAt: { type: Date, default: null },

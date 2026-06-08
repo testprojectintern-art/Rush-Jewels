@@ -35,6 +35,8 @@ export const createSalesOrderSchema = z.object({
     status: z.enum(['draft', 'pending_approval', 'approved']).optional(),
     creditOverride: z.boolean().optional(),
     creditOverrideReason: z.string().optional(),
+    cashReceived: z.coerce.number().min(0).optional(),
+    changeReturned: z.coerce.number().min(0).optional(),
 });
 
 export const updateSalesOrderSchema = createSalesOrderSchema.partial();

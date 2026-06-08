@@ -46,7 +46,7 @@ export default function PaymentDetailPage() {
                 </span>}
                 description={`${fmtDate(p.paymentDate)} · ${p.method.replace('_', ' ')}`}
                 actions={
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <Button variant="outline" onClick={() => navigate('/payments')}>
                             <ArrowLeft size={16} className="mr-1.5" /> Back
                         </Button>
@@ -68,11 +68,11 @@ export default function PaymentDetailPage() {
                 loading={deleteMutation.isPending}
             />
 
-            <div className="grid grid-cols-3 gap-6">
-                <div className="col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
                     <Card className="p-6">
                         <h3 className="text-sm font-semibold text-gray-700 mb-4">Details</h3>
-                        <div className="grid grid-cols-2 gap-6 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
                             <div>
                                 <p className="text-xs text-gray-500 uppercase mb-1">{p.direction === 'received' ? 'From' : 'To'}</p>
                                 <p className="font-medium">{p.partyName}</p>
@@ -100,27 +100,29 @@ export default function PaymentDetailPage() {
                     {p.allocations?.length > 0 && (
                         <Card>
                             <div className="px-6 py-4 border-b"><h3 className="text-sm font-semibold text-gray-700">Applied To</h3></div>
-                            <table className="w-full">
-                                <thead className="bg-gray-50 border-b">
-                                    <tr>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Document</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Type</th>
-                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y">
-                                    {p.allocations.map((a) => (
-                                        <tr key={a._id}>
-                                            <td className="px-4 py-3 font-mono text-sm">
-                                                <button onClick={() => navigate(`/${a.documentType}s/${a.documentId}`)}
-                                                    className="text-primary-600 hover:underline">{a.documentNumber}</button>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm capitalize">{a.documentType}</td>
-                                            <td className="px-4 py-3 text-right text-sm font-medium">{fmt(a.amount)}</td>
+                            <div className="overflow-x-auto">
+                                <table className="w-full min-w-[400px]">
+                                    <thead className="bg-gray-50 border-b">
+                                        <tr>
+                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Document</th>
+                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Type</th>
+                                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Amount</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {p.allocations.map((a) => (
+                                            <tr key={a._id}>
+                                                <td className="px-4 py-3 font-mono text-sm">
+                                                    <button onClick={() => navigate(`/${a.documentType}s/${a.documentId}`)}
+                                                        className="text-primary-600 hover:underline">{a.documentNumber}</button>
+                                                </td>
+                                                <td className="px-4 py-3 text-sm capitalize">{a.documentType}</td>
+                                                <td className="px-4 py-3 text-right text-sm font-medium">{fmt(a.amount)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </Card>
                     )}
                 </div>

@@ -197,6 +197,18 @@ export default function ReceiptPrintPage() {
                         <span style={{ textTransform: 'uppercase', color: '#555', fontSize: '10px' }}>Paid Amount</span>
                         <span style={{ fontWeight: '700' }}>{fmt(invoice.grandTotal)}</span>
                     </div>
+                    {invoice.cashReceived !== undefined && invoice.cashReceived > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                            <span style={{ textTransform: 'uppercase', color: '#555', fontSize: '10px' }}>Cash Received</span>
+                            <span style={{ fontWeight: '700' }}>{fmt(invoice.cashReceived)}</span>
+                        </div>
+                    )}
+                    {invoice.changeReturned !== undefined && invoice.changeReturned > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                            <span style={{ textTransform: 'uppercase', color: '#555', fontSize: '10px' }}>Change Returned</span>
+                            <span style={{ fontWeight: '700' }}>{fmt(invoice.changeReturned)}</span>
+                        </div>
+                    )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                         <span style={{ textTransform: 'uppercase', color: '#555', fontSize: '10px' }}>Balance Due</span>
                         <span style={{ fontWeight: '700' }}>{fmt(invoice.balanceDue || 0)}</span>

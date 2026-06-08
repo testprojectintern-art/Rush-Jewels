@@ -83,11 +83,11 @@ export default function StockTransferPage() {
                 </Button>}
             />
 
-            <div className="grid grid-cols-3 gap-6">
-                <div className="col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
                     <Card className="p-6">
                         <h3 className="text-sm font-semibold text-gray-700 mb-4">Route</h3>
-                        <div className="grid grid-cols-2 gap-6 items-center">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 items-center">
                             <Select
                                 label="From Warehouse" required
                                 placeholder="Select source..."
@@ -129,8 +129,8 @@ export default function StockTransferPage() {
                                         <div key={idx} className="border border-gray-200 rounded-lg p-3">
                                             <div className="flex gap-2 items-start">
                                                 <span className="text-xs text-gray-500 mt-2 w-6">{idx + 1}</span>
-                                                <div className="flex-1 grid grid-cols-4 gap-2">
-                                                    <div className="col-span-3">
+                                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                                    <div className="sm:col-span-3">
                                                         <Select
                                                             placeholder="Select product..."
                                                             options={availableProducts}

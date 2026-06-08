@@ -35,3 +35,38 @@ export const closeSession = asyncHandler(async (req, res) => {
     await session.save();
     res.json({ success: true, data: session });
 });
+
+export const getSessions = asyncHandler(async (req, res) => {
+    const { userId, startDate, endDate, page = 1, limit = 50 } = req.query;
+    const filter = {};
+
+    if (userId) filter.userId = userId;
+    if (startDate || endDate) {
+        filter.openedAt = {};
+        if (startDate) filter.openedAt.$gte = new Date(startDate);
+        if (endDate) {
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            filter.openedAt.$lte = end;
+        }
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+    const [sessions, total] = await Promise.all([
+        PosSession.find(filter)
+            .populate('userId', 'firstName lastName')
+            .sort({ openedAt: -1 })
+            .skip(skip)
+            .limit(Number(limit)),
+        PosSession.countDocuments(filter)
+    ]);
+
+    res.json({
+        success: true,
+        count: sessions.length,
+        total,
+        page: Number(page),
+        totalPages: Math.ceil(total / Number(limit)),
+        data: sessions
+    });
+});

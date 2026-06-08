@@ -19,7 +19,7 @@ const payslipSchema = new mongoose.Schema({
     earnings: [{
         name: String,
         amount: Number,
-        type: String, // 'fixed', 'overtime', 'commission', 'bonus'
+        type: { type: String }, // 'fixed', 'overtime', 'commission', 'bonus'
     }],
     grossEarnings: { type: Number, default: 0 },
 
@@ -27,7 +27,7 @@ const payslipSchema = new mongoose.Schema({
     deductions: [{
         name: String,
         amount: Number,
-        type: String, // 'epf', 'loan', 'advance', 'apit', 'unpaid_leave'
+        type: { type: String }, // 'epf', 'loan', 'advance', 'apit', 'unpaid_leave'
     }],
     totalDeductions: { type: Number, default: 0 },
 

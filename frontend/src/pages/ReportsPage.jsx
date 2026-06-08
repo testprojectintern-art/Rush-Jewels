@@ -66,7 +66,7 @@ export default function ReportsPage() {
                 {reportGroups.map((group) => (
                     <div key={group.category}>
                         <h3 className="text-sm font-semibold text-gray-700 mb-3">{group.category}</h3>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {group.reports.map((r) => (
                                 <Card key={r.title}
                                     className={`p-5 transition-all ${group.disabled ? 'opacity-50' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5'}`}

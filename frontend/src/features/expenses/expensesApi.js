@@ -12,5 +12,9 @@ export const expensesApi = {
     delete: async (id) => {
         const res = await api.delete(`/expenses/${id}`);
         return res.data;
-    }
+    },
+    getCategories: async () => {
+        const res = await api.get('/expenses/categories');
+        return res.data;
+    },
 };

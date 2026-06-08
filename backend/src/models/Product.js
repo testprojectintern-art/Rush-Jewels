@@ -111,6 +111,10 @@ const productSchema = new mongoose.Schema(
             type: Number,
             min: 0,
         },
+        callPrice: {
+            type: Number,
+            min: 0,
+        },
         currency: {
             type: String,
             default: 'LKR',

@@ -20,6 +20,7 @@ export const productFormSchema = z.object({
     buyingPrice: z.coerce.number().min(0, 'Buying Price must be 0 or greater').optional(),
     profitPercentage: z.coerce.number().optional(),
     mrp: z.coerce.number().min(0).optional(),
+    callPrice: z.coerce.number().min(0, 'Call Price must be 0 or greater').optional(),
     taxRate: z.coerce.number().min(0).max(100).optional(),
     taxable: z.boolean().optional(),
     hsCode: z.string().max(20).optional().or(z.literal('')),

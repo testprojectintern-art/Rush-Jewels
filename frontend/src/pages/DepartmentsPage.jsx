@@ -24,6 +24,7 @@ export default function DepartmentsPage() {
     const deleteMutation = useDeleteDepartment();
 
     const [isOpen, setIsOpen] = useState(false);
+    const [isView, setIsView] = useState(false);
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
     const [form, setForm] = useState({ code: '', name: '', description: '', parentDepartmentId: '' });
@@ -32,12 +33,24 @@ export default function DepartmentsPage() {
     const parentOptions = departments.map((d) => ({ value: d._id, label: d.name }));
 
     const openNew = () => {
+        setIsView(false);
         setEditing(null);
         setForm({ code: '', name: '', description: '', parentDepartmentId: '' });
         setIsOpen(true);
     };
 
     const openEdit = (d) => {
+        setIsView(false);
+        setEditing(d);
+        setForm({
+            code: d.code, name: d.name, description: d.description || '',
+            parentDepartmentId: d.parentDepartmentId?._id || '',
+        });
+        setIsOpen(true);
+    };
+
+    const openView = (d) => {
+        setIsView(true);
         setEditing(d);
         setForm({
             code: d.code, name: d.name, description: d.description || '',
@@ -63,10 +76,11 @@ export default function DepartmentsPage() {
         { key: 'manager', label: 'Manager', render: (r) => r.managerId ? `${r.managerId.firstName} ${r.managerId.lastName}` : '—' },
         { key: 'status', label: 'Status', render: (r) => <Badge variant={r.isActive ? 'success' : 'default'}>{r.isActive ? 'Active' : 'Inactive'}</Badge> },
         {
-            key: 'actions', label: 'Actions', width: '100px', render: (r) => (
+            key: 'actions', label: 'Actions', width: '120px', render: (r) => (
                 <div className="flex gap-1">
-                    <button onClick={() => openEdit(r)} className="p-1.5 hover:bg-gray-100 rounded"><Edit size={16} /></button>
-                    <button onClick={() => setDeleting(r)} className="p-1.5 hover:bg-red-50 text-red-600 rounded"><Trash2 size={16} /></button>
+                    <button onClick={() => openView(r)} className="p-1.5 hover:bg-gray-100 rounded" title="View"><Eye size={16} /></button>
+                    <button onClick={() => openEdit(r)} className="p-1.5 hover:bg-gray-100 rounded" title="Edit"><Edit size={16} /></button>
+                    <button onClick={() => setDeleting(r)} className="p-1.5 hover:bg-red-50 text-red-600 rounded" title="Delete"><Trash2 size={16} /></button>
                 </div>
             )
         },
@@ -84,8 +98,8 @@ export default function DepartmentsPage() {
                         : <Table columns={columns} data={departments} />}
             </Card>
 
-            <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}
-                title={editing ? 'Edit Department' : 'New Department'} size="md">
+            <Modal isOpen={isOpen} onClose={() => { setIsOpen(false); setIsView(false); }}
+                title={editing ? (isView ? 'View Department' : 'Edit Department') : 'New Department'} size="md">
                 <div className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <Input disabled={isView} label="Code" required value={form.code}
@@ -101,11 +115,15 @@ export default function DepartmentsPage() {
                         onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
                 </div>
                 <div className="flex justify-end gap-2 px-6 py-4 border-t bg-gray-50">
-                    <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={submit}
-                        loading={createMutation.isPending || updateMutation.isPending}>
-                        {editing ? 'Update' : 'Create'}
+                    <Button variant={isView ? 'primary' : 'outline'} onClick={() => { setIsOpen(false); setIsView(false); }}>
+                        {isView ? 'Close' : 'Cancel'}
                     </Button>
+                    {!isView && (
+                        <Button variant="primary" onClick={submit}
+                            loading={createMutation.isPending || updateMutation.isPending}>
+                            {editing ? 'Update' : 'Create'}
+                        </Button>
+                    )}
                 </div>
             </Modal>
 
