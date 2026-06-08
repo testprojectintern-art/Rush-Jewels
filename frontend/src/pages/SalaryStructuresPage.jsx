@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Edit, Trash2, Calculator } from 'lucide-react';
+import { Eye, Plus, Edit, Trash2, Calculator } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import PageHeader from '../components/ui/PageHeader';
@@ -107,9 +107,9 @@ export default function SalaryStructuresPage() {
                 title={editing ? 'Edit Salary Structure' : 'New Salary Structure'} size="xl">
                 <div className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <Input label="Name" required value={form.name}
+                        <Input disabled={isView} label="Name" required value={form.name}
                             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-                        <Input label="Code" value={form.code}
+                        <Input disabled={isView} label="Code" value={form.code}
                             onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))} />
                     </div>
 
@@ -127,28 +127,28 @@ export default function SalaryStructuresPage() {
                             {form.components.map((c, idx) => (
                                 <div key={idx} className="border rounded p-2">
                                     <div className="grid grid-cols-5 gap-2 items-end">
-                                        <Input label="Name" value={c.name}
+                                        <Input disabled={isView} label="Name" value={c.name}
                                             onChange={(e) => updateComponent(idx, 'name', e.target.value)} />
-                                        <Select label="Type"
+                                        <Select disabled={isView} label="Type"
                                             options={[{ value: 'earning', label: 'Earning' }, { value: 'deduction', label: 'Deduction' }]}
                                             value={c.type} onChange={(e) => updateComponent(idx, 'type', e.target.value)} />
-                                        <Select label="Calc Type"
+                                        <Select disabled={isView} label="Calc Type"
                                             options={[
                                                 { value: 'fixed', label: 'Fixed Amount' },
                                                 { value: 'percentage_of_basic', label: '% of Basic' },
                                             ]}
                                             value={c.calculationType} onChange={(e) => updateComponent(idx, 'calculationType', e.target.value)} />
                                         {c.calculationType === 'fixed'
-                                            ? <Input label="Amount" type="number" step="0.01" min="0" value={c.amount}
+                                            ? <Input disabled={isView} label="Amount" type="number" step="0.01" min="0" value={c.amount}
                                                 onChange={(e) => updateComponent(idx, 'amount', e.target.value)} />
-                                            : <Input label="Percentage" type="number" step="0.01" min="0" max="100" value={c.percentage}
+                                            : <Input disabled={isView} label="Percentage" type="number" step="0.01" min="0" max="100" value={c.percentage}
                                                 onChange={(e) => updateComponent(idx, 'percentage', e.target.value)} />}
                                         <button onClick={() => removeComponent(idx)}
                                             className="p-2 hover:bg-red-50 text-red-600 rounded"><Trash2 size={14} /></button>
                                     </div>
                                     <div className="mt-2 flex gap-4">
                                         <label className="flex items-center gap-1 text-xs">
-                                            <input type="checkbox" checked={c.isTaxable}
+                                            <input type="checkbox" disabled={isView} checked={c.isTaxable}
                                                 onChange={(e) => updateComponent(idx, 'isTaxable', e.target.checked)} />
                                             Taxable
                                         </label>

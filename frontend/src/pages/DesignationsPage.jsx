@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Edit, Trash2, Award } from 'lucide-react';
+import { Eye, Plus, Edit, Trash2, Award } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import PageHeader from '../components/ui/PageHeader';
@@ -80,16 +80,16 @@ export default function DesignationsPage() {
                 title={editing ? 'Edit Designation' : 'New Designation'} size="md">
                 <div className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <Input label="Code" required value={form.code}
+                        <Input disabled={isView} label="Code" required value={form.code}
                             onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))} />
-                        <Input label="Name" required value={form.name}
+                        <Input disabled={isView} label="Name" required value={form.name}
                             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <Select label="Department" placeholder="None" options={deptOptions}
+                        <Select disabled={isView} label="Department" placeholder="None" options={deptOptions}
                             value={form.departmentId}
                             onChange={(e) => setForm((f) => ({ ...f, departmentId: e.target.value }))} />
-                        <Input label="Level" type="number" min="1" max="10" value={form.level}
+                        <Input disabled={isView} label="Level" type="number" min="1" max="10" value={form.level}
                             onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} />
                     </div>
                 </div>

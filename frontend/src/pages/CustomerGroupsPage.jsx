@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Tags } from 'lucide-react';
+import { Eye, Plus, Edit, Trash2, Tags } from 'lucide-react';
 
 import PageHeader from '../components/ui/PageHeader';
 import Card from '../components/ui/Card';
@@ -27,6 +27,7 @@ export default function CustomerGroupsPage() {
     const qc = useQueryClient();
 
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isView, setIsView] = useState(false);
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
 
@@ -53,7 +54,8 @@ export default function CustomerGroupsPage() {
         defaultValues: { paymentType: 'cod', isActive: true, color: '#6366f1' },
     });
 
-    const openForm = (group = null) => {
+    const openForm = (group = null, viewMode = false) => {
+        setIsView(viewMode);
         setEditing(group);
         if (group) {
             reset({
@@ -96,8 +98,7 @@ export default function CustomerGroupsPage() {
         try {
             if (editing) await updateMutation.mutateAsync({ id: editing._id, data: payload });
             else await createMutation.mutateAsync(payload);
-            setIsFormOpen(false);
-            setEditing(null);
+            setIsFormOpen(false); setEditing(null); setIsView(false);
         } catch { }
     };
 
@@ -133,7 +134,8 @@ export default function CustomerGroupsPage() {
             key: 'actions', label: 'Actions', width: '120px',
             render: (r) => canManage && (
                 <div className="flex gap-1">
-                    <button onClick={() => openForm(r)} className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded">
+                    <button onClick={() => openForm(r, true)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="View"><Eye size={16} /></button>
+                        <button onClick={() => openForm(r)} className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded">
                         <Edit size={16} />
                     </button>
                     <button onClick={() => setDeleting(r)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded">
@@ -168,20 +170,20 @@ export default function CustomerGroupsPage() {
 
             <Modal
                 isOpen={isFormOpen}
-                onClose={() => { setIsFormOpen(false); setEditing(null); }}
+                onClose={() => { setIsFormOpen(false); setEditing(null); setIsView(false); }}
                 title={editing ? 'Edit Customer Group' : 'New Customer Group'}
                 size="md"
             >
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="p-6 space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                            <Input label="Name" required error={errors.name?.message} {...register('name')} />
-                            <Input label="Code" required error={errors.code?.message} {...register('code')} />
+                            <Input disabled={isView} label="Name" required error={errors.name?.message} {...register('name')} />
+                            <Input disabled={isView} label="Code" required error={errors.code?.message} {...register('code')} />
                         </div>
-                        <Textarea label="Description" rows={2} {...register('description')} />
+                        <Textarea disabled={isView} label="Description" rows={2} {...register('description')} />
 
                         <div className="grid grid-cols-2 gap-4">
-                            <Select
+                            <Select disabled={isView} 
                                 label="Default Payment Type" required
                                 options={[
                                     { value: 'advance', label: 'Advance' },
@@ -190,16 +192,16 @@ export default function CustomerGroupsPage() {
                                 ]}
                                 {...register('paymentType')}
                             />
-                            <Input label="Default Discount %" type="number" step="0.01" {...register('defaultDiscountPercent')} />
+                            <Input disabled={isView} label="Default Discount %" type="number" step="0.01" {...register('defaultDiscountPercent')} />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <Input label="Default Credit Days" type="number" {...register('creditDays')} />
-                            <Input label="Default Credit Limit (LKR)" type="number" step="0.01" {...register('defaultCreditLimit')} />
+                            <Input disabled={isView} label="Default Credit Days" type="number" {...register('creditDays')} />
+                            <Input disabled={isView} label="Default Credit Limit (LKR)" type="number" step="0.01" {...register('defaultCreditLimit')} />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <Input label="Priority" type="number" {...register('priority')} />
+                            <Input disabled={isView} label="Priority" type="number" {...register('priority')} />
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
                                 <input type="color" className="w-full h-10 border border-gray-300 rounded-lg cursor-pointer" {...register('color')} />
@@ -207,15 +209,15 @@ export default function CustomerGroupsPage() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <input type="checkbox" id="groupActive" {...register('isActive')} />
+                            <input type="checkbox" disabled={isView} id="groupActive" {...register('isActive')} />
                             <label htmlFor="groupActive" className="text-sm text-gray-700">Active</label>
                         </div>
                     </div>
                     <div className="flex justify-end gap-2 px-6 py-4 border-t bg-gray-50">
                         <Button variant="outline" type="button" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-                        <Button type="submit" variant="primary" loading={createMutation.isPending || updateMutation.isPending}>
+                        {!isView && (<Button type="submit" variant="primary" loading={createMutation.isPending || updateMutation.isPending}>
                             {editing ? 'Update' : 'Create'}
-                        </Button>
+                        </Button>)}
                     </div>
                 </form>
             </Modal>

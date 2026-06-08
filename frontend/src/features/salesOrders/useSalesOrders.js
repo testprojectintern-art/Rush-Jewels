@@ -20,6 +20,11 @@ export const useCreateSalesOrder = () => {
         mutationFn: salesOrdersApi.create,
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['salesOrders'] });
+            qc.invalidateQueries({ queryKey: ['invoices'] });
+            qc.invalidateQueries({ queryKey: ['invoicesAging'] });
+            qc.invalidateQueries({ queryKey: ['stock'] });
+            qc.invalidateQueries({ queryKey: ['dashboard'] });
+            qc.invalidateQueries({ queryKey: ['pos-sessions'] });
             toast.success('Order created');
         },
         onError: (err) => toast.error(err.response?.data?.message || 'Failed to create order'),

@@ -21,7 +21,7 @@ export default function GrnsPage() {
     // Form state for new GRN (direct)
     const [supplierId, setSupplierId] = useState('');
     const [warehouseId, setWarehouseId] = useState('');
-    const [items, setItems] = useState([{ productId: '', receivedQuantity: 1, unitPrice: 0 }]);
+    const [items, setItems] = useState([{ productId: '', receivedQuantity: 1, unitPrice: 0, discountPercent: 0, discountAmount: 0, freeQuantity: 0 }]);
 
     const { data, isLoading } = useQuery({
         queryKey: ['grns', filters],
@@ -44,7 +44,7 @@ export default function GrnsPage() {
             queryClient.invalidateQueries({ queryKey: ['grns'] });
             toast.success('Goods received successfully');
             setIsFormOpen(false);
-            setItems([{ productId: '', receivedQuantity: 1, unitPrice: 0 }]);
+            setItems([{ productId: '', receivedQuantity: 1, unitPrice: 0, discountPercent: 0, discountAmount: 0, freeQuantity: 0 }]);
         }
     });
 
@@ -88,15 +88,34 @@ export default function GrnsPage() {
         }
     ];
 
-    const addLine = () => setItems([...items, { productId: '', receivedQuantity: 1, unitPrice: 0 }]);
+    const addLine = () => setItems([...items, { productId: '', receivedQuantity: 1, unitPrice: 0, discountPercent: 0, discountAmount: 0, freeQuantity: 0 }]);
     const removeLine = (idx) => setItems(items.filter((_, i) => i !== idx));
     const updateLine = (idx, f, v) => {
         const newItems = [...items];
         newItems[idx] = { ...newItems[idx], [f]: v };
+        
         if (f === 'productId' && v) {
             const p = productsData?.data?.find(x => x._id === v);
-            if (p) newItems[idx].unitPrice = p.basePrice || 0;
+            if (p) {
+                newItems[idx].unitPrice = p.basePrice || 0;
+                const lineTotal = (+newItems[idx].receivedQuantity || 0) * (+p.basePrice || 0);
+                if (+newItems[idx].discountPercent > 0) {
+                    newItems[idx].discountAmount = ((lineTotal * (+newItems[idx].discountPercent)) / 100).toFixed(2);
+                }
+            }
+        } else if (f === 'receivedQuantity' || f === 'unitPrice') {
+            const lineTotal = (+newItems[idx].receivedQuantity || 0) * (+newItems[idx].unitPrice || 0);
+            if (+newItems[idx].discountPercent > 0) {
+                newItems[idx].discountAmount = ((lineTotal * (+newItems[idx].discountPercent)) / 100).toFixed(2);
+            }
+        } else if (f === 'discountPercent') {
+            const lineTotal = (+newItems[idx].receivedQuantity || 0) * (+newItems[idx].unitPrice || 0);
+            newItems[idx].discountAmount = v ? ((lineTotal * (+v)) / 100).toFixed(2) : '';
+        } else if (f === 'discountAmount') {
+            const lineTotal = (+newItems[idx].receivedQuantity || 0) * (+newItems[idx].unitPrice || 0);
+            newItems[idx].discountPercent = v && lineTotal > 0 ? (((+v) / lineTotal) * 100).toFixed(2) : '';
         }
+
         setItems(newItems);
     };
 
@@ -107,7 +126,15 @@ export default function GrnsPage() {
 
         createMutation.mutate({
             supplierId, warehouseId,
-            items: validItems.map(i => ({ ...i, receivedQuantity: +i.receivedQuantity, acceptedQuantity: +i.receivedQuantity, unitPrice: +i.unitPrice }))
+            items: validItems.map(i => ({ 
+                ...i, 
+                receivedQuantity: +i.receivedQuantity, 
+                acceptedQuantity: +i.receivedQuantity, 
+                unitPrice: +i.unitPrice,
+                discountPercent: +i.discountPercent || 0,
+                discountAmount: +i.discountAmount || 0,
+                freeQuantity: +i.freeQuantity || 0
+            }))
         });
     };
 
@@ -156,14 +183,21 @@ export default function GrnsPage() {
                         </div>
                         <div className="space-y-2 max-h-[300px] overflow-y-auto">
                             {items.map((item, idx) => (
-                                <div key={idx} className="grid grid-cols-5 gap-2 border p-2 rounded items-end">
-                                    <div className="col-span-2">
-                                        <Select placeholder="Product..." options={(productsData?.data || []).map(p => ({ value: p._id, label: p.name }))}
-                                            value={item.productId} onChange={(e) => updateLine(idx, 'productId', e.target.value)} />
+                                <div key={idx} className="border p-3 rounded space-y-2">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex-1 mr-2">
+                                            <Select placeholder="Product..." options={(productsData?.data || []).map(p => ({ value: p._id, label: p.name }))}
+                                                value={item.productId} onChange={(e) => updateLine(idx, 'productId', e.target.value)} />
+                                        </div>
+                                        <Button variant="outline" size="sm" onClick={() => removeLine(idx)} className="text-red-600 mt-1">Remove</Button>
                                     </div>
-                                    <Input type="number" label="Qty" value={item.receivedQuantity} onChange={(e) => updateLine(idx, 'receivedQuantity', e.target.value)} />
-                                    <Input type="number" label="Unit Price" value={item.unitPrice} onChange={(e) => updateLine(idx, 'unitPrice', e.target.value)} />
-                                    <Button variant="outline" size="sm" onClick={() => removeLine(idx)} className="text-red-600 mb-1">Remove</Button>
+                                    <div className="grid grid-cols-5 gap-2 items-end">
+                                        <Input type="number" label="Qty" value={item.receivedQuantity} onChange={(e) => updateLine(idx, 'receivedQuantity', e.target.value)} />
+                                        <Input type="number" label="Unit Price" value={item.unitPrice} onChange={(e) => updateLine(idx, 'unitPrice', e.target.value)} />
+                                        <Input type="number" label="Free Qty" value={item.freeQuantity} onChange={(e) => updateLine(idx, 'freeQuantity', e.target.value)} />
+                                        <Input type="number" label="Disc(%)" value={item.discountPercent} onChange={(e) => updateLine(idx, 'discountPercent', e.target.value)} />
+                                        <Input type="number" label="Disc(Rs)" value={item.discountAmount} onChange={(e) => updateLine(idx, 'discountAmount', e.target.value)} />
+                                    </div>
                                 </div>
                             ))}
                         </div>

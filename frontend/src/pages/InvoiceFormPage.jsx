@@ -26,7 +26,9 @@ export default function InvoiceFormPage() {
     const [notes, setNotes] = useState('');
     const [paymentInstructions, setPaymentInstructions] = useState('');
     const [shippingCost, setShippingCost] = useState(0);
-    const [items, setItems] = useState([{ productName: '', quantity: 1, unitPrice: 0, taxRate: 18, taxable: true }]);
+    const [discountType, setDiscountType] = useState('percentage');
+    const [discountValue, setDiscountValue] = useState(0);
+    const [items, setItems] = useState([{ productName: '', quantity: 1, unitPrice: 0 }]);
 
     const { data: customersData } = useQuery({
         queryKey: ['customers', 'active'],
@@ -55,8 +57,6 @@ export default function InvoiceFormPage() {
                 newItems[idx].productName = p.name;
                 newItems[idx].productCode = p.productCode;
                 newItems[idx].unitPrice = p.basePrice;
-                newItems[idx].taxRate = p.tax?.taxRate || 0;
-                newItems[idx].taxable = p.tax?.taxable ?? true;
                 newItems[idx].unitOfMeasure = p.unitOfMeasure;
             }
         }
@@ -64,17 +64,16 @@ export default function InvoiceFormPage() {
     };
 
     const totals = useMemo(() => {
-        let sub = 0, tax = 0;
+        let sub = 0;
         items.forEach((i) => {
             const q = +i.quantity || 0;
             const p = +i.unitPrice || 0;
-            const lSub = q * p;
-            const lTax = i.taxable ? lSub * (+i.taxRate || 0) / 100 : 0;
-            sub += lSub; tax += lTax;
+            sub += q * p;
         });
-        const grand = sub + tax + (+shippingCost || 0);
-        return { sub: +sub.toFixed(2), tax: +tax.toFixed(2), grand: +grand.toFixed(2) };
-    }, [items, shippingCost]);
+        const discAmount = discountType === 'percentage' ? (sub * (+discountValue || 0) / 100) : (+discountValue || 0);
+        const grand = sub - discAmount + (+shippingCost || 0);
+        return { sub: +sub.toFixed(2), discAmount: +discAmount.toFixed(2), grand: +grand.toFixed(2) };
+    }, [items, shippingCost, discountType, discountValue]);
 
     const fmt = (n) => new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', minimumFractionDigits: 2 }).format(n || 0);
 
@@ -98,9 +97,8 @@ export default function InvoiceFormPage() {
                     quantity: +i.quantity,
                     unitOfMeasure: i.unitOfMeasure || undefined,
                     unitPrice: +i.unitPrice,
-                    taxRate: +i.taxRate || 0,
-                    taxable: i.taxable,
                 })),
+                orderDiscount: discountValue > 0 ? { type: discountType, value: +discountValue } : undefined,
                 shippingCost: +shippingCost || 0,
                 notes: notes || undefined,
                 paymentInstructions: paymentInstructions || undefined,
@@ -142,15 +140,13 @@ export default function InvoiceFormPage() {
                     <Card className="p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-semibold text-gray-700">Line Items</h3>
-                            <Button type="button" variant="outline" size="sm" onClick={addItem}>
+                            <Button type="button" variant="outline" size="sm" onClick={() => setItems([...items, { productName: '', quantity: 1, unitPrice: 0 }])}>
                                 <Plus size={14} className="mr-1" /> Add Item
                             </Button>
                         </div>
                         <div className="space-y-3">
                             {items.map((item, idx) => {
-                                const lSub = (+item.quantity || 0) * (+item.unitPrice || 0);
-                                const lTax = item.taxable ? lSub * (+item.taxRate || 0) / 100 : 0;
-                                const lTot = lSub + lTax;
+                                const lTot = (+item.quantity || 0) * (+item.unitPrice || 0);
                                 return (
                                     <div key={idx} className="border rounded-lg p-3">
                                         <div className="flex gap-2 mb-2">
@@ -165,13 +161,11 @@ export default function InvoiceFormPage() {
                                         </div>
                                         <Input label="Description / Name" required
                                             value={item.productName} onChange={(e) => updateItem(idx, 'productName', e.target.value)} />
-                                        <div className="grid grid-cols-4 gap-2 mt-2">
+                                        <div className="grid grid-cols-3 gap-2 mt-2">
                                             <Input label="Qty" type="number" step="0.01" min="0.01"
                                                 value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', e.target.value)} />
                                             <Input label="Unit Price" type="number" step="0.01" min="0"
                                                 value={item.unitPrice} onChange={(e) => updateItem(idx, 'unitPrice', e.target.value)} />
-                                            <Input label="Tax %" type="number" step="0.01" min="0"
-                                                value={item.taxRate} onChange={(e) => updateItem(idx, 'taxRate', e.target.value)} />
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">Total</label>
                                                 <p className="px-3 py-2 bg-gray-50 rounded-lg text-sm font-medium">{fmt(lTot)}</p>
@@ -197,7 +191,19 @@ export default function InvoiceFormPage() {
                         <h3 className="text-sm font-semibold text-gray-700 mb-4">Summary</h3>
                         <div className="space-y-3 text-sm">
                             <div className="flex justify-between"><span className="text-gray-600">Subtotal</span><span>{fmt(totals.sub)}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-600">Tax</span><span>{fmt(totals.tax)}</span></div>
+                            
+                            <div className="flex items-center justify-between gap-2">
+                                <span className="text-gray-600">Discount</span>
+                                <div className="flex items-center gap-1">
+                                    <select value={discountType} onChange={(e) => setDiscountType(e.target.value)} className="border rounded px-1 py-1 text-xs">
+                                        <option value="percentage">%</option>
+                                        <option value="fixed">Rs</option>
+                                    </select>
+                                    <input type="number" step="0.01" min="0" value={discountValue} onChange={(e) => setDiscountValue(e.target.value)}
+                                        className="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-right" />
+                                </div>
+                            </div>
+                            {totals.discAmount > 0 && <div className="flex justify-between text-xs text-red-600"><span>Discount Amount</span><span>-{fmt(totals.discAmount)}</span></div>}
                             <div className="flex items-center justify-between gap-2">
                                 <span className="text-gray-600">Shipping</span>
                                 <input type="number" step="0.01" min="0" value={shippingCost} onChange={(e) => setShippingCost(e.target.value)}

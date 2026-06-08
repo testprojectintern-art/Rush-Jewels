@@ -40,6 +40,7 @@ export const productFormSchema = z.object({
         barcode: z.string().optional().or(z.literal('')),
         attributeName: z.string().optional().or(z.literal('')),
         attributeValue: z.string().optional().or(z.literal('')),
+        purchasePrice: z.coerce.number().min(0).optional(),
         price: z.coerce.number().min(0),
         stock: z.coerce.number().optional(),
     })).optional(),

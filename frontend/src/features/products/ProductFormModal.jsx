@@ -158,15 +158,15 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
             type: data.type,
             unitOfMeasure: data.unitOfMeasure,
             basePrice: data.basePrice,
+            purchasePrice: data.buyingPrice || 0,
             mrp: data.mrp || undefined,
             costs: {
                 ...(product?.costs || {}),
                 standardCost: data.buyingPrice || 0,
             },
             tax: {
-                taxable: data.taxable,
-                taxRate: data.taxRate || 0,
-                hsCode: data.hsCode || undefined,
+                taxable: false,
+                taxRate: 0,
             },
             stockLevels: {
                 minimumLevel: data.minimumLevel || 0,
@@ -363,7 +363,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => appendVariation({ name: '', sku: '', price: watch('basePrice') || 0, stock: 0 })}
+                                    onClick={() => appendVariation({ name: '', sku: '', price: watch('basePrice') || 0, purchasePrice: watch('buyingPrice') || 0, stock: 0 })}
                                 >
                                     + Add Variation
                                 </Button>
@@ -388,9 +388,10 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                                                 <Input label="Variation Name (e.g. Red, XL)" required error={errors.variations?.[index]?.name?.message} {...register(`variations.${index}.name`)} />
                                                 <Input label="SKU" error={errors.variations?.[index]?.sku?.message} {...register(`variations.${index}.sku`)} />
                                             </div>
-                                            <div className="grid grid-cols-3 gap-4">
+                                            <div className="grid grid-cols-4 gap-4">
                                                 <Input label="Barcode" error={errors.variations?.[index]?.barcode?.message} {...register(`variations.${index}.barcode`)} />
-                                                <Input label="Price" type="number" step="0.01" error={errors.variations?.[index]?.price?.message} {...register(`variations.${index}.price`)} />
+                                                <Input label="Purchase Price" type="number" step="0.01" error={errors.variations?.[index]?.purchasePrice?.message} {...register(`variations.${index}.purchasePrice`)} />
+                                                <Input label="Sell Price" type="number" step="0.01" error={errors.variations?.[index]?.price?.message} {...register(`variations.${index}.price`)} />
                                                 <Input label="Initial Stock" type="number" error={errors.variations?.[index]?.stock?.message} {...register(`variations.${index}.stock`)} />
                                             </div>
                                         </div>
@@ -509,20 +510,6 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                                     error={errors.mrp?.message}
                                     {...register('mrp')}
                                 />
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <input type="checkbox" id="taxable" {...register('taxable')} />
-                                <label htmlFor="taxable" className="text-sm text-gray-700">Taxable (VAT applicable)</label>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <Input
-                                    label="Tax Rate (%)"
-                                    type="number"
-                                    step="0.01"
-                                    error={errors.taxRate?.message}
-                                    {...register('taxRate')}
-                                />
-                                <Input label="HS Code" error={errors.hsCode?.message} {...register('hsCode')} />
                             </div>
                         </div>
                     )}

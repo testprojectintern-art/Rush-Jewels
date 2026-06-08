@@ -16,6 +16,10 @@ const grnLineItemSchema = new mongoose.Schema({
     unitOfMeasure: String,
     unitPrice: { type: Number, required: true },
 
+    discountPercent: { type: Number, default: 0 },
+    discountAmount: { type: Number, default: 0 },
+    freeQuantity: { type: Number, default: 0 },
+
     batchNumber: String,
     manufactureDate: Date,
     expiryDate: Date,
@@ -84,12 +88,19 @@ grnSchema.pre('save', async function () {
         this.grnNumber = `GRN-${seq}`;
     }
 
-    this.totalReceivedValue = +this.items.reduce(
-        (s, i) => s + (i.receivedQuantity * i.unitPrice), 0
-    ).toFixed(2);
-    this.totalAcceptedValue = +this.items.reduce(
-        (s, i) => s + ((i.acceptedQuantity || i.receivedQuantity) * i.unitPrice), 0
-    ).toFixed(2);
+    this.totalReceivedValue = +this.items.reduce((s, i) => {
+        const qty = i.receivedQuantity || 0;
+        const lineTotal = qty * i.unitPrice;
+        const discount = i.discountAmount || (lineTotal * (i.discountPercent || 0) / 100);
+        return s + Math.max(0, lineTotal - discount);
+    }, 0).toFixed(2);
+    
+    this.totalAcceptedValue = +this.items.reduce((s, i) => {
+        const qty = i.acceptedQuantity || i.receivedQuantity || 0;
+        const lineTotal = qty * i.unitPrice;
+        const discount = i.discountAmount || (lineTotal * (i.discountPercent || 0) / 100);
+        return s + Math.max(0, lineTotal - discount);
+    }, 0).toFixed(2);
 });
 
 grnSchema.pre(/^find/, function (next) {

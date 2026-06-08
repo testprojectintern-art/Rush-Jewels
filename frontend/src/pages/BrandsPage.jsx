@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Award } from 'lucide-react';
+import { Eye, Plus, Edit, Trash2, Award } from 'lucide-react';
 
 import PageHeader from '../components/ui/PageHeader';
 import Card from '../components/ui/Card';
@@ -25,6 +25,7 @@ export default function BrandsPage() {
     const qc = useQueryClient();
 
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isView, setIsView] = useState(false);
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
 
@@ -61,7 +62,8 @@ export default function BrandsPage() {
         defaultValues: { isOwnBrand: true, isActive: true },
     });
 
-    const openForm = (brand = null) => {
+    const openForm = (brand = null, viewMode = false) => {
+        setIsView(viewMode);
         setEditing(brand);
         if (brand) {
             reset({
@@ -84,8 +86,7 @@ export default function BrandsPage() {
             } else {
                 await createMutation.mutateAsync(formData);
             }
-            setIsFormOpen(false);
-            setEditing(null);
+            setIsFormOpen(false); setEditing(null); setIsView(false);
         } catch { }
     };
 
@@ -111,6 +112,7 @@ export default function BrandsPage() {
             render: (r) =>
                 canManage && (
                     <div className="flex gap-1">
+                        <button onClick={() => openForm(r, true)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="View"><Eye size={16} /></button>
                         <button onClick={() => openForm(r)} className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded">
                             <Edit size={16} />
                         </button>
@@ -147,33 +149,33 @@ export default function BrandsPage() {
 
             <Modal
                 isOpen={isFormOpen}
-                onClose={() => { setIsFormOpen(false); setEditing(null); }}
+                onClose={() => { setIsFormOpen(false); setEditing(null); setIsView(false); }}
                 title={editing ? 'Edit Brand' : 'New Brand'}
                 size="md"
             >
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="p-6 space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                            <Input label="Name" required error={errors.name?.message} {...register('name')} />
-                            <Input label="Code" error={errors.code?.message} {...register('code')} />
+                            <Input disabled={isView} label="Name" required error={errors.name?.message} {...register('name')} />
+                            <Input disabled={isView} label="Code" error={errors.code?.message} {...register('code')} />
                         </div>
-                        <Textarea label="Description" rows={2} error={errors.description?.message} {...register('description')} />
+                        <Textarea disabled={isView} label="Description" rows={2} error={errors.description?.message} {...register('description')} />
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
-                                <input type="checkbox" id="isOwnBrand" {...register('isOwnBrand')} />
+                                <input type="checkbox" disabled={isView} id="isOwnBrand" {...register('isOwnBrand')} />
                                 <label htmlFor="isOwnBrand" className="text-sm text-gray-700">Own brand (we manufacture)</label>
                             </div>
                             <div className="flex items-center gap-2">
-                                <input type="checkbox" id="isActiveB" {...register('isActive')} />
+                                <input type="checkbox" disabled={isView} id="isActiveB" {...register('isActive')} />
                                 <label htmlFor="isActiveB" className="text-sm text-gray-700">Active</label>
                             </div>
                         </div>
                     </div>
                     <div className="flex justify-end gap-2 px-6 py-4 border-t bg-gray-50">
                         <Button variant="outline" type="button" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-                        <Button type="submit" variant="primary" loading={createMutation.isPending || updateMutation.isPending}>
+                        {!isView && (<Button type="submit" variant="primary" loading={createMutation.isPending || updateMutation.isPending}>
                             {editing ? 'Update' : 'Create'}
-                        </Button>
+                        </Button>)}
                     </div>
                 </form>
             </Modal>

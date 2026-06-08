@@ -48,6 +48,9 @@ export const createGrn = asyncHandler(async (req, res) => {
                     acceptedQuantity: accepted,
                     rejectedQuantity: item.rejectedQuantity || 0,
                     damagedQuantity: item.damagedQuantity || 0,
+                    discountPercent: item.discountPercent || 0,
+                    discountAmount: item.discountAmount || 0,
+                    freeQuantity: item.freeQuantity || 0,
                     unitOfMeasure: item.unitOfMeasure || poLine?.unitOfMeasure || '',
                     unitPrice: item.unitPrice || poLine?.unitPrice || 0,
                     batchNumber: item.batchNumber || null,
@@ -76,14 +79,19 @@ export const createGrn = asyncHandler(async (req, res) => {
 
             // Increase stock for each accepted item
             for (const grnItem of grn.items) {
-                const qtyToStock = grnItem.acceptedQuantity;
+                const qtyToStock = grnItem.acceptedQuantity + (grnItem.freeQuantity || 0);
                 if (qtyToStock <= 0) continue;
+
+                const lineTotal = grnItem.acceptedQuantity * grnItem.unitPrice;
+                const discount = grnItem.discountAmount || (lineTotal * (grnItem.discountPercent || 0) / 100);
+                const effectiveTotalCost = Math.max(0, lineTotal - discount);
+                const effectiveCostPerUnit = effectiveTotalCost / qtyToStock;
 
                 const result = await increaseStock({
                     productId: grnItem.productId,
                     warehouseId,
                     quantity: qtyToStock,
-                    costPerUnit: grnItem.unitPrice,
+                    costPerUnit: effectiveCostPerUnit,
                     movementType: 'purchase_receipt',
                     batchNumber: grnItem.batchNumber || null,
                     sourceDocument: {
@@ -190,12 +198,13 @@ export const cancelGrn = asyncHandler(async (req, res) => {
 
             // 1. Decrease stock for each accepted item in the GRN
             for (const grnItem of grn.items) {
-                if (grnItem.acceptedQuantity <= 0) continue;
+                const qtyToStock = grnItem.acceptedQuantity + (grnItem.freeQuantity || 0);
+                if (qtyToStock <= 0) continue;
 
                 await decreaseStock({
                     productId: grnItem.productId,
                     warehouseId: grn.warehouseId,
-                    quantity: grnItem.acceptedQuantity,
+                    quantity: qtyToStock,
                     movementType: 'adjustment_out', // Or 'grn_cancellation'
                     batchNumber: grnItem.batchNumber || null,
                     sourceDocument: {

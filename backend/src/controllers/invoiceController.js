@@ -152,6 +152,7 @@ export const generateInvoiceFromOrders = async ({
             code: customer.customerCode,
             taxRegistrationNumber: customer.taxRegistrationNumber,
             contactName: customer.primaryContact?.name,
+            phone: customer.primaryContact?.phone,
         },
         billingAddress: customer.billingAddress,
         shippingAddress: orders[0].shippingAddress || customer.billingAddress,
@@ -166,6 +167,7 @@ export const generateInvoiceFromOrders = async ({
             creditDays: customer.paymentTerms?.creditDays || 0,
         },
         items: invoiceItems,
+        orderDiscount: orders[0].orderDiscount,
         notes,
         status,
         createdBy,
@@ -219,6 +221,7 @@ export const getInvoices = asyncHandler(async (req, res) => {
         startDate, endDate,
         page = 1, limit = 20,
         sortBy = 'invoiceDate', sortOrder = 'desc',
+        salesOrderId
     } = req.query;
 
     const filter = {};
@@ -230,6 +233,7 @@ export const getInvoices = asyncHandler(async (req, res) => {
         ];
     }
     if (customerId) filter.customerId = customerId;
+    if (salesOrderId) filter.salesOrderIds = salesOrderId;
     if (paymentStatus) {
         // Support comma-separated values: "unpaid,partially_paid,overdue"
         const statuses = paymentStatus.split(',').map((s) => s.trim()).filter(Boolean);

@@ -51,6 +51,7 @@ const invoiceSchema = new mongoose.Schema({
         code: String,
         taxRegistrationNumber: String,
         contactName: String,
+        phone: String,
     },
 
     // Addresses (snapshot)
@@ -77,6 +78,11 @@ const invoiceSchema = new mongoose.Schema({
     // Totals
     subtotal: { type: Number, default: 0 },
     totalDiscount: { type: Number, default: 0 },
+    orderDiscount: {
+        type: { type: String, enum: ['percentage', 'fixed'] },
+        value: Number,
+        amount: Number,
+    },
     totalTax: { type: Number, default: 0 },
     shippingCost: { type: Number, default: 0 },
     otherCharges: { type: Number, default: 0 },
@@ -168,8 +174,16 @@ invoiceSchema.pre('save', async function () {
     this.totalDiscount = +this.items.reduce((s, i) => s + i.lineDiscount, 0).toFixed(2);
     this.totalTax = +this.items.reduce((s, i) => s + i.lineTax, 0).toFixed(2);
 
+    let orderLevelDiscount = 0;
+    if (this.orderDiscount?.type === 'percentage') {
+        orderLevelDiscount = +((this.subtotal - this.totalDiscount) * (this.orderDiscount.value || 0) / 100).toFixed(2);
+    } else if (this.orderDiscount?.type === 'fixed') {
+        orderLevelDiscount = this.orderDiscount.value || 0;
+    }
+    if (this.orderDiscount) this.orderDiscount.amount = orderLevelDiscount;
+
     this.grandTotal = +(
-        this.subtotal - this.totalDiscount + this.totalTax
+        this.subtotal - this.totalDiscount - orderLevelDiscount + this.totalTax
         + (this.shippingCost || 0) + (this.otherCharges || 0)
     ).toFixed(2);
 

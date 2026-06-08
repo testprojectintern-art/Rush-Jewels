@@ -20,7 +20,9 @@ export const useCreateInvoice = () => {
         mutationFn: invoicesApi.create,
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['invoices'] });
+            qc.invalidateQueries({ queryKey: ['invoicesAging'] });
             qc.invalidateQueries({ queryKey: ['customers'] });
+            qc.invalidateQueries({ queryKey: ['dashboard'] });
             toast.success('Invoice created');
         },
         onError: (err) => toast.error(err.response?.data?.message || 'Failed'),
@@ -33,8 +35,10 @@ export const useGenerateFromSO = () => {
         mutationFn: invoicesApi.createFromSalesOrder,
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['invoices'] });
+            qc.invalidateQueries({ queryKey: ['invoicesAging'] });
             qc.invalidateQueries({ queryKey: ['salesOrders'] });
             qc.invalidateQueries({ queryKey: ['customers'] });
+            qc.invalidateQueries({ queryKey: ['dashboard'] });
             toast.success('Invoice generated from sales order');
         },
         onError: (err) => toast.error(err.response?.data?.message || 'Failed'),
@@ -47,7 +51,9 @@ export const useChangeInvoiceStatus = () => {
         mutationFn: ({ id, status, reason }) => invoicesApi.changeStatus(id, status, reason),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['invoices'] });
+            qc.invalidateQueries({ queryKey: ['invoicesAging'] });
             qc.invalidateQueries({ queryKey: ['invoice'] });
+            qc.invalidateQueries({ queryKey: ['dashboard'] });
             toast.success('Status updated');
         },
         onError: (err) => toast.error(err.response?.data?.message || 'Failed'),

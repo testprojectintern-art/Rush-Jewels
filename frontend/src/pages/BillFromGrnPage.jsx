@@ -22,6 +22,18 @@ export default function BillFromGrnPage() {
     const [supplierInvoice, setSupplierInvoice] = useState('');
     const [billDate, setBillDate] = useState(new Date().toISOString().split('T')[0]);
     const [notes, setNotes] = useState('');
+    const [globalDiscountPercent, setGlobalDiscountPercent] = useState(0);
+    const [globalDiscountAmount, setGlobalDiscountAmount] = useState(0);
+
+    const handleDiscountChange = (field, value) => {
+        if (field === 'percent') {
+            setGlobalDiscountPercent(value);
+            setGlobalDiscountAmount(value ? ((totalAmount * (+value)) / 100).toFixed(2) : '');
+        } else {
+            setGlobalDiscountAmount(value);
+            setGlobalDiscountPercent(value && totalAmount > 0 ? (((+value) / totalAmount) * 100).toFixed(2) : '');
+        }
+    };
 
     const { data } = useQuery({
         queryKey: ['grns', poId],
@@ -33,6 +45,8 @@ export default function BillFromGrnPage() {
     const grns = data?.data || [];
     const selectedGrns = grns.filter((g) => selectedIds.includes(g._id));
     const totalAmount = selectedGrns.reduce((s, g) => s + (g.totalAcceptedValue || 0), 0);
+    const globalDiscount = +globalDiscountAmount || (totalAmount * (+globalDiscountPercent || 0) / 100);
+    const finalAmount = Math.max(0, totalAmount - globalDiscount);
 
     const fmt = (n) => new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', minimumFractionDigits: 2 }).format(n || 0);
 
@@ -46,6 +60,8 @@ export default function BillFromGrnPage() {
                 supplierInvoiceNumber: supplierInvoice || undefined,
                 billDate,
                 notes: notes || undefined,
+                globalDiscountPercent: +globalDiscountPercent || 0,
+                globalDiscountAmount: +globalDiscountAmount || 0,
             });
             navigate(`/bills/${r.data._id}`);
         } catch { }
@@ -100,9 +116,27 @@ export default function BillFromGrnPage() {
                                 value={supplierInvoice} onChange={(e) => setSupplierInvoice(e.target.value)} />
                             <Input label="Bill Date" type="date" value={billDate} onChange={(e) => setBillDate(e.target.value)} />
                             <Textarea label="Notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
-                            <div className="pt-3 border-t flex justify-between">
-                                <span className="text-gray-600">Total</span>
-                                <span className="font-bold text-primary-600">{fmt(totalAmount)}</span>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <Input type="number" step="0.01" min="0" max="100" label="Bill Discount (%)" value={globalDiscountPercent} onChange={(e) => handleDiscountChange('percent', e.target.value)} />
+                                <Input type="number" step="0.01" min="0" label="Bill Discount (Rs)" value={globalDiscountAmount} onChange={(e) => handleDiscountChange('amount', e.target.value)} />
+                            </div>
+
+                            <div className="pt-3 border-t space-y-1">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">Subtotal</span>
+                                    <span>{fmt(totalAmount)}</span>
+                                </div>
+                                {globalDiscount > 0 && (
+                                    <div className="flex justify-between text-sm text-green-600">
+                                        <span>Discount</span>
+                                        <span>-{fmt(globalDiscount)}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between font-bold text-base mt-2">
+                                    <span className="text-gray-700">Grand Total</span>
+                                    <span className="text-primary-600">{fmt(finalAmount)}</span>
+                                </div>
                             </div>
                             <Button variant="primary" fullWidth onClick={handleSubmit} loading={mutation.isPending}
                                 disabled={selectedIds.length === 0}>

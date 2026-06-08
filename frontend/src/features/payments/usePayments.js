@@ -15,8 +15,10 @@ export const useCreatePayment = () => {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['payments'] });
             qc.invalidateQueries({ queryKey: ['invoices'] });
+            qc.invalidateQueries({ queryKey: ['invoicesAging'] });
             qc.invalidateQueries({ queryKey: ['bills'] });
             qc.invalidateQueries({ queryKey: ['customers'] });
+            qc.invalidateQueries({ queryKey: ['dashboard'] });
             toast.success('Payment recorded');
         },
         onError: (err) => toast.error(err.response?.data?.message || 'Failed'),
@@ -30,6 +32,7 @@ export const useDeletePayment = () => {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['payments'] });
             qc.invalidateQueries({ queryKey: ['invoices'] });
+            qc.invalidateQueries({ queryKey: ['invoicesAging'] });
             qc.invalidateQueries({ queryKey: ['bills'] });
             qc.invalidateQueries({ queryKey: ['bank-accounts'] });
             qc.invalidateQueries({ queryKey: ['cheques'] });

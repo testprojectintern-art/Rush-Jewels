@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Edit, Trash2, Calendar } from 'lucide-react';
+import { Eye, Plus, Edit, Trash2, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import PageHeader from '../components/ui/PageHeader';
@@ -63,7 +63,7 @@ export default function HolidaysPage() {
             <Card>
                 <div className="p-4 border-b">
                     <div className="w-32">
-                        <Input type="number" value={year} onChange={(e) => setYear(e.target.value)} />
+                        <Input disabled={isView} type="number" value={year} onChange={(e) => setYear(e.target.value)} />
                     </div>
                 </div>
                 {holidays.length === 0
@@ -73,11 +73,11 @@ export default function HolidaysPage() {
 
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? 'Edit Holiday' : 'New Holiday'} size="md">
                 <div className="p-6 space-y-4">
-                    <Input label="Name" required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+                    <Input disabled={isView} label="Name" required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
                     <div className="grid grid-cols-2 gap-4">
-                        <Input label="Date" required type="date" value={form.date}
+                        <Input disabled={isView} label="Date" required type="date" value={form.date}
                             onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} />
-                        <Select label="Type"
+                        <Select disabled={isView} label="Type"
                             options={[
                                 { value: 'public', label: 'Public' },
                                 { value: 'national', label: 'National' },

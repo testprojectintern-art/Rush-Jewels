@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Edit, Trash2, Package } from 'lucide-react';
+import { Eye, Plus, Search, Edit, Trash2, Package } from 'lucide-react';
 
 import PageHeader from '../components/ui/PageHeader';
 import Card from '../components/ui/Card';
@@ -34,6 +34,7 @@ export default function ProductsPage() {
         limit: 10,
     });
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isView, setIsView] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [deletingProduct, setDeletingProduct] = useState(null);
 
@@ -86,9 +87,14 @@ export default function ProductsPage() {
             render: (row) => row.brandId?.name || '—',
         },
         {
+            key: 'purchasePrice',
+            label: 'Purchase Price',
+            render: (row) => <span className="font-medium">{formatPrice(row.purchasePrice || row.costs?.standardCost)}</span>,
+        },
+        {
             key: 'basePrice',
-            label: 'Price',
-            render: (row) => <span className="font-medium">{formatPrice(row.basePrice)}</span>,
+            label: 'Sell Price',
+            render: (row) => <span className="font-medium text-primary-600">{formatPrice(row.basePrice)}</span>,
         },
         {
             key: 'profit',
@@ -118,6 +124,7 @@ export default function ProductsPage() {
                 <div className="flex gap-1">
                     {canManage && (
                         <>
+                            <button onClick={(e) => { e.stopPropagation(); setEditingProduct(row); setIsView(true); setIsFormOpen(true); }} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="View"><Eye size={16} /></button>
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -154,7 +161,7 @@ export default function ProductsPage() {
 
     const handleClose = () => {
         setIsFormOpen(false);
-        setEditingProduct(null);
+        setEditingProduct(null); setIsView(false);
     };
 
     return (
@@ -186,7 +193,7 @@ export default function ProductsPage() {
                         />
                     </div>
                     <div className="w-48">
-                        <Select
+                        <Select disabled={isView} 
                             placeholder="All Categories"
                             options={categoryOptions}
                             value={filters.categoryId}
@@ -194,7 +201,7 @@ export default function ProductsPage() {
                         />
                     </div>
                     <div className="w-40">
-                        <Select
+                        <Select disabled={isView} 
                             placeholder="All Statuses"
                             options={[
                                 { value: 'active', label: 'Active' },

@@ -14,6 +14,7 @@ import { useAdminVerify } from '../features/auth/useAdminVerify';
 
 import { useRef } from 'react';
 import PrintableInvoice from '../components/print/PrintableInvoice';
+import ThermalReceipt from '../components/print/ThermalReceipt';
 import { useQuery } from '@tanstack/react-query';
 import { paymentsApi } from '../features/payments/paymentsApi';
 
@@ -28,6 +29,7 @@ export default function InvoiceDetailPage() {
     const { user } = useAuthStore();
     const [action, setAction] = useState(null);
     const [reason, setReason] = useState('');
+    const [printFormat, setPrintFormat] = useState('a4');
 
     const { data, isLoading } = useInvoice(id);
     const changeStatus = useChangeInvoiceStatus();
@@ -80,8 +82,12 @@ export default function InvoiceDetailPage() {
 
     const payments = paymentsData?.data || [];
 
-    const handlePrint = () => {
-        window.print();
+    const handlePrint = (format) => {
+        setPrintFormat(format);
+        // Small delay to let React render the correct component before printing
+        setTimeout(() => {
+            window.print();
+        }, 100);
     };
 
     // Hard-code your company info for now (we'll move to settings later)
@@ -107,8 +113,8 @@ export default function InvoiceDetailPage() {
                         <Button variant="outline" onClick={() => navigate('/invoices')}>
                             <ArrowLeft size={16} className="mr-1.5" /> Back
                         </Button>
-                        <Button variant="outline" onClick={handlePrint}>
-                            <Printer size={16} className="mr-1.5" /> Print
+                        <Button variant="outline" onClick={() => handlePrint('thermal')} className="text-gray-700">
+                            <Receipt size={16} className="mr-1.5" /> POS Receipt
                         </Button>
                         {inv.balanceDue > 0 && inv.paymentStatus !== 'cancelled' && (
                             <Button variant="outline" onClick={() => navigate(`/payments/new?invoiceId=${inv._id}`)}>
@@ -173,7 +179,6 @@ export default function InvoiceDetailPage() {
                                     <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Item</th>
                                     <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Qty</th>
                                     <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Price</th>
-                                    <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Tax</th>
                                     <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Total</th>
                                 </tr>
                             </thead>
@@ -187,7 +192,6 @@ export default function InvoiceDetailPage() {
                                         </td>
                                         <td className="px-4 py-3 text-right text-sm">{item.quantity} {item.unitOfMeasure}</td>
                                         <td className="px-4 py-3 text-right text-sm">{fmt(item.unitPrice)}</td>
-                                        <td className="px-4 py-3 text-right text-sm">{fmt(item.lineTax)}</td>
                                         <td className="px-4 py-3 text-right text-sm font-medium">{fmt(item.lineTotal)}</td>
                                     </tr>
                                 ))}
@@ -249,9 +253,13 @@ export default function InvoiceDetailPage() {
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between"><span className="text-gray-600">Subtotal</span><span>{fmt(inv.subtotal)}</span></div>
                             {inv.totalDiscount > 0 && (
-                                <div className="flex justify-between"><span className="text-gray-600">Discount</span><span className="text-red-600">-{fmt(inv.totalDiscount)}</span></div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">
+                                        Discount {inv.orderDiscount?.type === 'percentage' ? `(${inv.orderDiscount.value}%)` : ''}
+                                    </span>
+                                    <span className="text-red-600">-{fmt(inv.totalDiscount)}</span>
+                                </div>
                             )}
-                            <div className="flex justify-between"><span className="text-gray-600">Tax</span><span>{fmt(inv.totalTax)}</span></div>
                             {inv.shippingCost > 0 && (
                                 <div className="flex justify-between"><span className="text-gray-600">Shipping</span><span>{fmt(inv.shippingCost)}</span></div>
                             )}
@@ -327,12 +335,21 @@ export default function InvoiceDetailPage() {
             />
 
             <div className="hidden print:block">
-                <PrintableInvoice
-                    ref={printRef}
-                    companyInfo={companyInfo}
-                    invoice={inv}
-                    payments={payments}
-                />
+                {printFormat === 'a4' ? (
+                    <PrintableInvoice
+                        ref={printRef}
+                        companyInfo={companyInfo}
+                        invoice={inv}
+                        payments={payments}
+                    />
+                ) : (
+                    <ThermalReceipt
+                        ref={printRef}
+                        companyInfo={companyInfo}
+                        invoice={inv}
+                        payments={payments}
+                    />
+                )}
             </div>
 
             <AdminVerificationModal

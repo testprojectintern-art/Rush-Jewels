@@ -15,6 +15,26 @@ export default function SalesByCustomerReportPage() {
     const [startDate, setStartDate] = useState(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10));
     const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
 
+    const applyPreset = (preset) => {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        if (preset === 'today') {
+            setStartDate(todayStr);
+            setEndDate(todayStr);
+        } else if (preset === 'yesterday') {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yestStr = yesterday.toISOString().slice(0, 10);
+            setStartDate(yestStr);
+            setEndDate(yestStr);
+        } else {
+            const end = new Date();
+            const start = new Date();
+            start.setDate(end.getDate() - preset);
+            setStartDate(start.toISOString().slice(0, 10));
+            setEndDate(end.toISOString().slice(0, 10));
+        }
+    };
+
     const { data, isLoading } = useSalesByCustomer({ startDate, endDate, limit: 100 });
     const customers = data?.data || [];
 
@@ -78,9 +98,15 @@ export default function SalesByCustomerReportPage() {
                 } />
 
             <Card className="p-4 mb-4">
-                <div className="flex gap-3">
+                <div className="flex flex-wrap items-end gap-3">
                     <div className="w-40"><Input label="From" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></div>
                     <div className="w-40"><Input label="To" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} /></div>
+                    <div className="flex flex-wrap gap-1 ml-auto">
+                        <Button variant="outline" size="sm" onClick={() => applyPreset('today')}>Today</Button>
+                        <Button variant="outline" size="sm" onClick={() => applyPreset('yesterday')}>Yesterday</Button>
+                        <Button variant="outline" size="sm" onClick={() => applyPreset(7)}>Last 7d</Button>
+                        <Button variant="outline" size="sm" onClick={() => applyPreset(30)}>Last 30d</Button>
+                    </div>
                 </div>
             </Card>
 

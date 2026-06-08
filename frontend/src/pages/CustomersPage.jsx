@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Edit, Trash2, Users, AlertTriangle, Ban, CheckCircle } from 'lucide-react';
+import { Eye, Plus, Search, Edit, Trash2, Users, AlertTriangle, Ban, CheckCircle } from 'lucide-react';
 
 import PageHeader from '../components/ui/PageHeader';
 import Card from '../components/ui/Card';
@@ -35,6 +35,7 @@ export default function CustomersPage() {
         page: 1, limit: 10,
     });
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isView, setIsView] = useState(false);
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
     const [togglingHold, setTogglingHold] = useState(null);
@@ -172,8 +173,7 @@ export default function CustomersPage() {
     };
 
     const handleClose = () => {
-        setIsFormOpen(false);
-        setEditing(null);
+        setIsFormOpen(false); setEditing(null); setIsView(false);
     };
 
     return (
@@ -203,7 +203,7 @@ export default function CustomersPage() {
                         />
                     </div>
                     <div className="w-48">
-                        <Select
+                        <Select disabled={isView} 
                             placeholder="All Groups"
                             options={groupOptions}
                             value={filters.customerGroupId}
@@ -211,7 +211,7 @@ export default function CustomersPage() {
                         />
                     </div>
                     <div className="w-40">
-                        <Select
+                        <Select disabled={isView} 
                             placeholder="All Statuses"
                             options={[
                                 { value: 'active', label: 'Active' },

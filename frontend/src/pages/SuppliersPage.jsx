@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Truck } from 'lucide-react';
+import { Eye, Plus, Edit, Trash2, Search, Truck } from 'lucide-react';
 
 import PageHeader from '../components/ui/PageHeader';
 import Card from '../components/ui/Card';
@@ -38,6 +38,7 @@ export default function SuppliersPage() {
         page: 1, limit: 10,
     });
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isView, setIsView] = useState(false);
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
 
@@ -133,13 +134,13 @@ export default function SuppliersPage() {
                             value={filters.search} onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value, page: 1 }))} />
                     </div>
                     <div className="w-48">
-                        <Select placeholder="All Categories"
+                        <Select disabled={isView} placeholder="All Categories"
                             options={Object.entries(categoryLabels).map(([v, l]) => ({ value: v, label: l }))}
                             value={filters.category}
                             onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value, page: 1 }))} />
                     </div>
                     <div className="w-40">
-                        <Select placeholder="All Statuses"
+                        <Select disabled={isView} placeholder="All Statuses"
                             options={[
                                 { value: 'active', label: 'Active' }, { value: 'on_hold', label: 'On Hold' },
                                 { value: 'inactive', label: 'Inactive' }, { value: 'blacklisted', label: 'Blacklisted' },
@@ -165,7 +166,7 @@ export default function SuppliersPage() {
                 )}
             </Card>
 
-            <SupplierFormModal isOpen={isFormOpen} onClose={() => { setIsFormOpen(false); setEditing(null); }} supplier={editing} />
+            <SupplierFormModal isOpen={isFormOpen} onClose={() => { setIsFormOpen(false); setEditing(null); setIsView(false); }} supplier={editing} />
 
             <ConfirmDialog isOpen={!!deleting} onClose={() => setDeleting(null)}
                 onConfirm={async () => { await deleteMutation.mutateAsync(deleting._id); setDeleting(null); }}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Landmark, CreditCard, PiggyBank, History, Edit2, Trash2 } from 'lucide-react';
+import { Eye, Plus, Search, Landmark, CreditCard, PiggyBank, History, Edit2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import PageHeader from '../components/ui/PageHeader';
@@ -162,7 +162,7 @@ export default function BankAccountsPage() {
 
             <Modal isOpen={isModalOpen} onClose={closeModal} title={editingId ? 'Edit Bank Account' : 'Add Bank Account'} size="md">
                 <div className="p-6 space-y-4">
-                    <Select 
+                    <Select disabled={isView} 
                         label="Account Category" required
                         options={[
                             { value: 'received', label: 'Received Bank Account' },
@@ -172,10 +172,10 @@ export default function BankAccountsPage() {
                         value={formData.category}
                         onChange={(e) => setFormData({...formData, category: e.target.value})}
                     />
-                    <Input label="Bank Name" required placeholder="e.g., Bank of Ceylon" value={formData.bankName} onChange={(e) => setFormData({...formData, bankName: e.target.value})} />
-                    <Input label="Branch Name" placeholder="e.g., Colombo Main" value={formData.branchName} onChange={(e) => setFormData({...formData, branchName: e.target.value})} />
-                    <Input label="Account Name" required placeholder="e.g., Rishan Wholesale Main" value={formData.accountName} onChange={(e) => setFormData({...formData, accountName: e.target.value})} />
-                    <Input label="Account Number" required placeholder="e.g., 0012345678" value={formData.accountNumber} onChange={(e) => setFormData({...formData, accountNumber: e.target.value})} />
+                    <Input disabled={isView} label="Bank Name" required placeholder="e.g., Bank of Ceylon" value={formData.bankName} onChange={(e) => setFormData({...formData, bankName: e.target.value})} />
+                    <Input disabled={isView} label="Branch Name" placeholder="e.g., Colombo Main" value={formData.branchName} onChange={(e) => setFormData({...formData, branchName: e.target.value})} />
+                    <Input disabled={isView} label="Account Name" required placeholder="e.g., Rishan Wholesale Main" value={formData.accountName} onChange={(e) => setFormData({...formData, accountName: e.target.value})} />
+                    <Input disabled={isView} label="Account Number" required placeholder="e.g., 0012345678" value={formData.accountNumber} onChange={(e) => setFormData({...formData, accountNumber: e.target.value})} />
                     
                     <div className="pt-4 flex gap-2">
                         <Button 

@@ -77,6 +77,7 @@ const productSchema = new mongoose.Schema(
                 attributeName: String, // e.g., Color
                 attributeValue: String, // e.g., Red
                 price: { type: Number, min: 0 },
+                purchasePrice: { type: Number, min: 0, default: 0 },
                 stock: { type: Number, default: 0 },
             },
         ],
@@ -99,6 +100,11 @@ const productSchema = new mongoose.Schema(
         basePrice: {
             type: Number,
             required: [true, 'Base price is required'],
+            min: 0,
+        },
+        purchasePrice: {
+            type: Number,
+            default: 0,
             min: 0,
         },
         mrp: {

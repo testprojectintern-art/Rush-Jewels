@@ -46,7 +46,7 @@ export const createBill = asyncHandler(async (req, res) => {
  * Generate a bill from one or more GRNs
  */
 export const createFromGrn = asyncHandler(async (req, res) => {
-    const { grnIds, supplierInvoiceNumber, billDate, notes } = req.body;
+    const { grnIds, supplierInvoiceNumber, billDate, notes, globalDiscountPercent, globalDiscountAmount } = req.body;
 
     const grns = await GoodsReceiptNote.find({ _id: { $in: grnIds } })
         .populate('supplierId')
@@ -73,6 +73,8 @@ export const createFromGrn = asyncHandler(async (req, res) => {
                 quantity: gi.acceptedQuantity,
                 unitOfMeasure: gi.unitOfMeasure,
                 unitPrice: gi.unitPrice,
+                discountPercent: gi.discountPercent || 0,
+                discountAmount: gi.discountAmount || 0,
                 taxRate: 18, // default; adjust as needed
                 taxable: true,
                 grnLineItemId: gi._id,
@@ -103,6 +105,8 @@ export const createFromGrn = asyncHandler(async (req, res) => {
             type: supplier.paymentTerms?.type || 'credit',
             creditDays: supplier.paymentTerms?.creditDays || 0,
         },
+        globalDiscountPercent: globalDiscountPercent || 0,
+        globalDiscountAmount: globalDiscountAmount || 0,
         items: billItems,
         notes,
         approvedBy: req.user._id,

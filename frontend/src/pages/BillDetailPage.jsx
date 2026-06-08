@@ -158,6 +158,7 @@ export default function BillDetailPage() {
                         <h3 className="text-sm font-semibold text-gray-700 mb-4">Summary</h3>
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between"><span className="text-gray-600">Subtotal</span><span>{fmt(bill.subtotal)}</span></div>
+                            {bill.totalDiscount > 0 && <div className="flex justify-between"><span className="text-gray-600">Discount</span><span className="text-green-600">-{fmt(bill.totalDiscount)}</span></div>}
                             <div className="flex justify-between"><span className="text-gray-600">Tax</span><span>{fmt(bill.totalTax)}</span></div>
                             {bill.shippingCost > 0 && <div className="flex justify-between"><span className="text-gray-600">Shipping</span><span>{fmt(bill.shippingCost)}</span></div>}
                             <div className="flex justify-between pt-3 border-t"><span className="font-semibold">Total</span><span className="font-bold">{fmt(bill.grandTotal)}</span></div>

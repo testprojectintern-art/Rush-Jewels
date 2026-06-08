@@ -26,6 +26,9 @@ import bomRoutes from './routes/bomRoutes.js';
 import productionOrderRoutes from './routes/productionOrderRoutes.js';
 import customerReturnRoutes from './routes/customerReturnRoutes.js';
 import creditNoteRoutes from './routes/creditNoteRoutes.js';
+import expenseRoutes from './routes/expenseRoutes.js';
+import posSessionRoutes from './routes/posSessionRoutes.js';
+import financialReportRoutes from './routes/financialReportRoutes.js';
 import damageRoutes from './routes/damageRoutes.js';
 import supplierReturnRoutes from './routes/supplierReturnRoutes.js';
 import repairRoutes from './routes/repairRoutes.js';
@@ -34,6 +37,7 @@ import payrollRoutes from './routes/payrollRoutes.js';
 import chequeRoutes from './routes/chequeRoutes.js';
 import bankRoutes from './routes/bankRoutes.js';
 import fundTransferRoutes from './routes/fundTransferRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
 
 import reportsRoutes from './routes/reportsRoutes.js';
 
@@ -95,6 +99,9 @@ app.use('/api/boms', bomRoutes);
 app.use('/api/production-orders', productionOrderRoutes);
 app.use('/api/customer-returns', customerReturnRoutes);
 app.use('/api/credit-notes', creditNoteRoutes);
+app.use('/api/expenses', expenseRoutes);
+app.use('/api/pos-sessions', posSessionRoutes);
+app.use('/api/financial-reports', financialReportRoutes);
 app.use('/api/damages', damageRoutes);
 app.use('/api/supplier-returns', supplierReturnRoutes);
 app.use('/api/repairs', repairRoutes);
@@ -103,6 +110,8 @@ app.use('/api/payroll', payrollRoutes);
 app.use('/api/cheques', chequeRoutes);
 app.use('/api/bank-accounts', bankRoutes);
 app.use('/api/fund-transfers', fundTransferRoutes);
+app.use('/api/settings', settingsRoutes);
+
 app.use('/api/reports', reportsRoutes);
 
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Edit, Trash2, Warehouse, Star, Search } from 'lucide-react';
+import { Eye, Plus, Edit, Trash2, Warehouse, Star, Search } from 'lucide-react';
 
 import PageHeader from '../components/ui/PageHeader';
 import Card from '../components/ui/Card';
@@ -28,6 +28,7 @@ export default function WarehousesPage() {
 
     const [filters, setFilters] = useState({ search: '', type: '' });
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isView, setIsView] = useState(false);
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
 
@@ -119,7 +120,7 @@ export default function WarehousesPage() {
                         />
                     </div>
                     <div className="w-48">
-                        <Select
+                        <Select disabled={isView} 
                             placeholder="All Types"
                             options={[
                                 { value: 'main', label: 'Main' },
@@ -153,7 +154,7 @@ export default function WarehousesPage() {
 
             <WarehouseFormModal
                 isOpen={isFormOpen}
-                onClose={() => { setIsFormOpen(false); setEditing(null); }}
+                onClose={() => { setIsFormOpen(false); setEditing(null); setIsView(false); }}
                 warehouse={editing}
             />
 

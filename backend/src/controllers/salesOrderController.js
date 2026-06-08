@@ -191,13 +191,49 @@ export const createSalesOrder = asyncHandler(async (req, res) => {
 
             await order.save({ session });
 
-            // AUTO-INVOICE for POS
+            // AUTO-INVOICE AND PAYMENT for POS
             if (order.source === 'pos' && order.status === 'approved') {
-                await generateInvoiceFromOrders({
+                const invoice = await generateInvoiceFromOrders({
                     salesOrderIds: [order._id],
                     createdBy: req.user._id,
                     session,
                 });
+                
+                // Fetch Payment model dynamically to avoid circular dependencies if any
+                const Payment = (await import('../models/Payment.js')).default;
+                const PosSession = (await import('../models/PosSession.js')).default;
+                
+                const payment = new Payment({
+                    direction: 'received',
+                    customerId: order.customerId,
+                    partyName: order.customerSnapshot.name,
+                    amount: invoice.grandTotal,
+                    method: 'cash',
+                    allocations: [{
+                        documentType: 'invoice',
+                        documentId: invoice._id,
+                        documentNumber: invoice.invoiceNumber,
+                        amount: invoice.grandTotal
+                    }],
+                    status: 'cleared',
+                    receivedBy: req.user._id,
+                    createdBy: req.user._id
+                });
+                await payment.save({ session });
+                
+                // Update Invoice payment status
+                invoice.amountPaid = invoice.grandTotal;
+                invoice.balanceDue = 0;
+                invoice.paymentStatus = 'paid';
+                invoice.fullyPaidAt = new Date();
+                await invoice.save({ session });
+                
+                // Update PosSession cashSales
+                const activeSession = await PosSession.findOne({ userId: req.user._id, status: 'open' }).session(session);
+                if (activeSession) {
+                    activeSession.cashSales += invoice.grandTotal;
+                    await activeSession.save({ session });
+                }
             }
         });
     } catch (err) {

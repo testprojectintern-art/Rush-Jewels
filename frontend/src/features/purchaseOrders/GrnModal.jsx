@@ -35,6 +35,9 @@ export default function GrnModal({ isOpen, onClose, purchaseOrder }) {
                     acceptedQuantity: i.orderedQuantity - (i.receivedQuantity || 0),
                     rejectedQuantity: 0,
                     rejectionReason: '',
+                    discountPercent: 0,
+                    discountAmount: 0,
+                    freeQuantity: 0,
                     unitPrice: i.unitPrice,
                     batchNumber: '',
                     expiryDate: '',
@@ -53,12 +56,24 @@ export default function GrnModal({ isOpen, onClose, purchaseOrder }) {
         const newItems = [...items];
         newItems[idx] = { ...newItems[idx], [field]: value };
 
-        // Auto-sync accepted = received - rejected
+        const received = +newItems[idx].receivedQuantity || 0;
+        const rejected = +newItems[idx].rejectedQuantity || 0;
+        const accepted = Math.max(0, received - rejected);
+        
         if (field === 'receivedQuantity' || field === 'rejectedQuantity') {
-            const received = +newItems[idx].receivedQuantity || 0;
-            const rejected = +newItems[idx].rejectedQuantity || 0;
-            newItems[idx].acceptedQuantity = Math.max(0, received - rejected);
+            newItems[idx].acceptedQuantity = accepted;
+            const lineTotal = accepted * (+newItems[idx].unitPrice || 0);
+            if (+newItems[idx].discountPercent > 0) {
+                newItems[idx].discountAmount = ((lineTotal * (+newItems[idx].discountPercent)) / 100).toFixed(2);
+            }
+        } else if (field === 'discountPercent') {
+            const lineTotal = accepted * (+newItems[idx].unitPrice || 0);
+            newItems[idx].discountAmount = value ? ((lineTotal * (+value)) / 100).toFixed(2) : '';
+        } else if (field === 'discountAmount') {
+            const lineTotal = accepted * (+newItems[idx].unitPrice || 0);
+            newItems[idx].discountPercent = value && lineTotal > 0 ? (((+value) / lineTotal) * 100).toFixed(2) : '';
         }
+
         setItems(newItems);
     };
 
@@ -82,6 +97,9 @@ export default function GrnModal({ isOpen, onClose, purchaseOrder }) {
                     acceptedQuantity: +i.acceptedQuantity,
                     rejectedQuantity: +i.rejectedQuantity || 0,
                     rejectionReason: i.rejectionReason || undefined,
+                    discountPercent: +i.discountPercent || 0,
+                    discountAmount: +i.discountAmount || 0,
+                    freeQuantity: +i.freeQuantity || 0,
                     unitPrice: +i.unitPrice,
                     batchNumber: i.batchNumber || undefined,
                     expiryDate: i.expiryDate || undefined,
@@ -133,6 +151,14 @@ export default function GrnModal({ isOpen, onClose, purchaseOrder }) {
                                         <Input label="Accepted" type="number" value={item.acceptedQuantity} disabled className="bg-gray-50" />
                                         <Input label="Batch #" value={item.batchNumber} onChange={(e) => updateItem(idx, 'batchNumber', e.target.value)} />
                                         <Input label="Expiry" type="date" value={item.expiryDate} onChange={(e) => updateItem(idx, 'expiryDate', e.target.value)} />
+                                    </div>
+                                    <div className="grid grid-cols-5 gap-2 mt-2 pt-2 border-t border-gray-100">
+                                        <Input label="Free Qty" type="number" step="0.01" min="0"
+                                            value={item.freeQuantity} onChange={(e) => updateItem(idx, 'freeQuantity', e.target.value)} />
+                                        <Input label="Discount (%)" type="number" step="0.01" min="0" max="100"
+                                            value={item.discountPercent} onChange={(e) => updateItem(idx, 'discountPercent', e.target.value)} />
+                                        <Input label="Discount (Rs)" type="number" step="0.01" min="0"
+                                            value={item.discountAmount} onChange={(e) => updateItem(idx, 'discountAmount', e.target.value)} />
                                     </div>
                                     {+item.rejectedQuantity > 0 && (
                                         <div className="mt-2">

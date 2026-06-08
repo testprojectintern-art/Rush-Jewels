@@ -56,6 +56,8 @@ const billSchema = new mongoose.Schema({
 
     subtotal: { type: Number, default: 0 },
     totalDiscount: { type: Number, default: 0 },
+    globalDiscountPercent: { type: Number, default: 0 },
+    globalDiscountAmount: { type: Number, default: 0 },
     totalTax: { type: Number, default: 0 },
     shippingCost: { type: Number, default: 0 },
     otherCharges: { type: Number, default: 0 },
@@ -126,7 +128,11 @@ billSchema.pre('save', async function () {
     });
 
     this.subtotal = +this.items.reduce((s, i) => s + i.lineSubtotal, 0).toFixed(2);
-    this.totalDiscount = +this.items.reduce((s, i) => s + i.lineDiscount, 0).toFixed(2);
+    
+    const lineDiscounts = this.items.reduce((s, i) => s + i.lineDiscount, 0);
+    const globalDisc = this.globalDiscountAmount || (this.subtotal * (this.globalDiscountPercent || 0) / 100);
+    this.totalDiscount = +(lineDiscounts + globalDisc).toFixed(2);
+    
     this.totalTax = +this.items.reduce((s, i) => s + i.lineTax, 0).toFixed(2);
 
     this.grandTotal = +(

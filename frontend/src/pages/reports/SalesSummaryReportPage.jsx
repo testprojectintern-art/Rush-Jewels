@@ -32,12 +32,24 @@ export default function SalesSummaryReportPage() {
     const fmt = (n) => new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', minimumFractionDigits: 2 }).format(n || 0);
     const fmtShort = (n) => n >= 1000000 ? `${(n / 1000000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(0)}k` : n;
 
-    const applyPreset = (days) => {
-        const end = new Date();
-        const start = new Date();
-        start.setDate(end.getDate() - days);
-        setStartDate(start.toISOString().slice(0, 10));
-        setEndDate(end.toISOString().slice(0, 10));
+    const applyPreset = (preset) => {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        if (preset === 'today') {
+            setStartDate(todayStr);
+            setEndDate(todayStr);
+        } else if (preset === 'yesterday') {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yestStr = yesterday.toISOString().slice(0, 10);
+            setStartDate(yestStr);
+            setEndDate(yestStr);
+        } else {
+            const end = new Date();
+            const start = new Date();
+            start.setDate(end.getDate() - preset);
+            setStartDate(start.toISOString().slice(0, 10));
+            setEndDate(end.toISOString().slice(0, 10));
+        }
     };
 
     return (
@@ -60,7 +72,9 @@ export default function SalesSummaryReportPage() {
                             options={[{ value: 'day', label: 'Day' }, { value: 'week', label: 'Week' }, { value: 'month', label: 'Month' }]}
                             value={groupBy} onChange={(e) => setGroupBy(e.target.value)} />
                     </div>
-                    <div className="flex gap-1 ml-auto">
+                    <div className="flex flex-wrap gap-1 ml-auto">
+                        <Button variant="outline" size="sm" onClick={() => applyPreset('today')}>Today</Button>
+                        <Button variant="outline" size="sm" onClick={() => applyPreset('yesterday')}>Yesterday</Button>
                         <Button variant="outline" size="sm" onClick={() => applyPreset(7)}>Last 7d</Button>
                         <Button variant="outline" size="sm" onClick={() => applyPreset(30)}>Last 30d</Button>
                         <Button variant="outline" size="sm" onClick={() => applyPreset(90)}>Last 90d</Button>

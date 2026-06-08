@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Edit, Trash2, Building2 } from 'lucide-react';
+import { Eye, Plus, Edit, Trash2, Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import PageHeader from '../components/ui/PageHeader';
@@ -88,16 +88,16 @@ export default function DepartmentsPage() {
                 title={editing ? 'Edit Department' : 'New Department'} size="md">
                 <div className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <Input label="Code" required value={form.code}
+                        <Input disabled={isView} label="Code" required value={form.code}
                             onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))} />
-                        <Input label="Name" required value={form.name}
+                        <Input disabled={isView} label="Name" required value={form.name}
                             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
                     </div>
-                    <Select label="Parent Department (optional)" placeholder="None"
+                    <Select disabled={isView} label="Parent Department (optional)" placeholder="None"
                         options={parentOptions.filter((o) => !editing || o.value !== editing._id)}
                         value={form.parentDepartmentId}
                         onChange={(e) => setForm((f) => ({ ...f, parentDepartmentId: e.target.value }))} />
-                    <Textarea label="Description" rows={2} value={form.description}
+                    <Textarea disabled={isView} label="Description" rows={2} value={form.description}
                         onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
                 </div>
                 <div className="flex justify-end gap-2 px-6 py-4 border-t bg-gray-50">

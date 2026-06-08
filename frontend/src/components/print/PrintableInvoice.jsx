@@ -1,7 +1,8 @@
 import { forwardRef } from 'react';
+import { useCompanySettings } from '../../features/settings/useSettings';
 
 const fmt = (n) => new Intl.NumberFormat('en-LK', {
-    style: 'currency', currency: 'LKR', minimumFractionDigits: 2,
+    style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2
 }).format(n || 0);
 
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-LK', {
@@ -9,15 +10,26 @@ const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-LK', {
 }) : '—';
 
 /**
- * Printable invoice — renders inside a hidden div.
- * Designed for A4 portrait at 96dpi (~794×1123 px).
- *
+ * Printable A4 Invoice Component
  * companyInfo: { name, address, taxNumber, phone, email, logo }
  * invoice: full populated invoice doc
  * payments: array of payments allocated to this invoice
  */
-const PrintableInvoice = forwardRef(({ companyInfo, invoice, payments = [] }, ref) => {
+const PrintableInvoice = forwardRef(({ invoice, payments = [], companyInfo: propCompanyInfo }, ref) => {
+    const { data: settingsRes } = useCompanySettings();
+
     if (!invoice) return null;
+
+    const s = settingsRes?.data || {};
+    const companyInfo = propCompanyInfo?.name ? propCompanyInfo : {
+        name: s.companyName || 'YOUR COMPANY NAME',
+        address: s.address || 'YOUR STREET, CITY',
+        phone: s.phone || '+94 11 XXX XXXX',
+        taxNumber: s.taxRegistrationNumber,
+        email: s.email,
+        website: s.website,
+        logo: s.logoUrl
+    };
 
     const customer = invoice.customerSnapshot || {};
     const billingAddr = invoice.billingAddress || {};
@@ -34,6 +46,9 @@ const PrintableInvoice = forwardRef(({ companyInfo, invoice, payments = [] }, re
 
     return (
         <div ref={ref} className="print-container bg-white text-black p-10 max-w-[800px] mx-auto">
+            <style type="text/css" media="print">
+                {`@page { size: A4 portrait; margin: 0; }`}
+            </style>
             {/* Header */}
             <div className="flex justify-between items-start mb-8 pb-4 border-b-2 border-gray-800">
                 <div>
@@ -58,8 +73,9 @@ const PrintableInvoice = forwardRef(({ companyInfo, invoice, payments = [] }, re
             <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
                     <p className="text-xs uppercase font-semibold text-gray-500 mb-1">Bill To</p>
-                    <p className="font-semibold">{customer.name}</p>
-                    {customer.code && <p className="text-sm text-gray-600">{customer.code}</p>}
+                    {customer.name && <p className="font-bold">{customer.name}</p>}
+                    {customer.code && <p className="text-sm">Code: {customer.code}</p>}
+                    {customer.phone && <p className="text-sm">Phone: {customer.phone}</p>}
                     {billingAddr.line1 && <p className="text-sm">{billingAddr.line1}</p>}
                     {billingAddr.line2 && <p className="text-sm">{billingAddr.line2}</p>}
                     {(billingAddr.city || billingAddr.state) && (

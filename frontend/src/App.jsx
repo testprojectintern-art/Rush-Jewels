@@ -50,6 +50,7 @@ import ProductionOrderDetailPage from './pages/ProductionOrderDetailPage';
 import UsersPage from './pages/UsersPage';
 import RolesPage from './pages/RolesPage';
 import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 import ReturnsPage from './pages/ReturnsPage';
 import ReturnFormPage from './pages/ReturnFormPage';
 import ReturnDetailPage from './pages/ReturnDetailPage';
@@ -75,6 +76,7 @@ import PayrollDetailPage from './pages/PayrollDetailPage';
 import PayslipDetailPage from './pages/PayslipDetailPage';
 
 import ReportsPage from './pages/ReportsPage';
+import FinancialReportPage from './pages/FinancialReportPage';
 import SalesSummaryReportPage from './pages/reports/SalesSummaryReportPage';
 import SalesByProductReportPage from './pages/reports/SalesByProductReportPage';
 import SalesByCustomerReportPage from './pages/reports/SalesByCustomerReportPage';
@@ -89,12 +91,21 @@ import HrReportsPage from './pages/reports/HrReportsPage';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
+import ReceiptPrintPage from './pages/ReceiptPrintPage';
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+      <Route path="/receipt/:id" element={
+          <ProtectedRoute allowedRoles={['admin', 'manager', 'accountant', 'sales_manager', 'sales_rep', 'warehouse_staff', 'production_staff', 'inventory_admin', 'staff']}>
+            <ReceiptPrintPage />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/price-checker"
         element={
@@ -181,6 +192,7 @@ function App() {
         <Route path="/payroll/:payrollId/payslip/:employeeId" element={<PayslipDetailPage />} />
 
         <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/reports/financial" element={<FinancialReportPage />} />
         <Route path="/reports/sales" element={<SalesSummaryReportPage />} />
         <Route path="/reports/sales-by-product" element={<SalesByProductReportPage />} />
         <Route path="/reports/sales-by-customer" element={<SalesByCustomerReportPage />} />
@@ -197,8 +209,9 @@ function App() {
           element={<ProtectedRoute allowedRoles={['admin']}><UsersPage /></ProtectedRoute>} />
         <Route path="/roles"
           element={<ProtectedRoute allowedRoles={['admin']}><RolesPage /></ProtectedRoute>} />
+
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/settings" element={<ProfilePage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />
