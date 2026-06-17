@@ -28,7 +28,12 @@ export default function InvoiceFormPage() {
     const [shippingCost, setShippingCost] = useState(0);
     const [discountType, setDiscountType] = useState('percentage');
     const [discountValue, setDiscountValue] = useState(0);
-    const [items, setItems] = useState([{ productName: '', quantity: 1, unitPrice: 0 }]);
+    const [items, setItems] = useState([{ productName: '', quantity: 1, unitPrice: 0, serialNumbers: [] }]);
+
+    // Watch selling options
+    const [giftWrap, setGiftWrap] = useState(false);
+    const [giftWrapFee, setGiftWrapFee] = useState(250);
+    const [engravingText, setEngravingText] = useState('');
 
     const { data: customersData } = useQuery({
         queryKey: ['customers', 'active'],
@@ -46,7 +51,7 @@ export default function InvoiceFormPage() {
         value: p._id, label: `${p.name} — ${p.productCode}`,
     }));
 
-    const addItem = () => setItems([...items, { productName: '', quantity: 1, unitPrice: 0, taxRate: 18, taxable: true }]);
+    const addItem = () => setItems([...items, { productName: '', quantity: 1, unitPrice: 0, taxRate: 18, taxable: true, serialNumbers: [] }]);
     const removeItem = (idx) => setItems(items.filter((_, i) => i !== idx));
     const updateItem = (idx, field, value) => {
         const newItems = [...items];
@@ -58,6 +63,7 @@ export default function InvoiceFormPage() {
                 newItems[idx].productCode = p.productCode;
                 newItems[idx].unitPrice = p.basePrice;
                 newItems[idx].unitOfMeasure = p.unitOfMeasure;
+                newItems[idx].serialNumbers = [];
             }
         }
         setItems(newItems);
@@ -71,9 +77,10 @@ export default function InvoiceFormPage() {
             sub += q * p;
         });
         const discAmount = discountType === 'percentage' ? (sub * (+discountValue || 0) / 100) : (+discountValue || 0);
-        const grand = sub - discAmount + (+shippingCost || 0);
+        const giftWrapAddon = giftWrap ? parseFloat(giftWrapFee) || 0 : 0;
+        const grand = sub - discAmount + (+shippingCost || 0) + giftWrapAddon;
         return { sub: +sub.toFixed(2), discAmount: +discAmount.toFixed(2), grand: +grand.toFixed(2) };
-    }, [items, shippingCost, discountType, discountValue]);
+    }, [items, shippingCost, discountType, discountValue, giftWrap, giftWrapFee]);
 
     const fmt = (n) => new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', minimumFractionDigits: 2 }).format(n || 0);
 
@@ -97,9 +104,13 @@ export default function InvoiceFormPage() {
                     quantity: +i.quantity,
                     unitOfMeasure: i.unitOfMeasure || undefined,
                     unitPrice: +i.unitPrice,
+                    serialNumbers: i.serialNumbers || []
                 })),
                 orderDiscount: discountValue > 0 ? { type: discountType, value: +discountValue } : undefined,
                 shippingCost: +shippingCost || 0,
+                giftWrap,
+                giftWrapFee: giftWrap ? parseFloat(giftWrapFee) || 0 : 0,
+                engravingText,
                 notes: notes || undefined,
                 paymentInstructions: paymentInstructions || undefined,
                 status: 'approved',
@@ -171,6 +182,25 @@ export default function InvoiceFormPage() {
                                                 <p className="px-3 py-2 bg-gray-50 rounded-lg text-sm font-medium">{fmt(lTot)}</p>
                                             </div>
                                         </div>
+
+                                        {/* Serial number inputs for watch items */}
+                                        <div className="space-y-1.5 mt-3">
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase block">Watch Serial Numbers:</label>
+                                            {Array.from({ length: Math.max(1, parseInt(item.quantity) || 1) }).map((_, sIdx) => (
+                                                <input
+                                                    key={sIdx}
+                                                    type="text"
+                                                    placeholder={`Serial Number #${sIdx + 1}`}
+                                                    value={item.serialNumbers?.[sIdx] || ''}
+                                                    onChange={(e) => {
+                                                        const updatedSerials = [...(item.serialNumbers || [])];
+                                                        updatedSerials[sIdx] = e.target.value.toUpperCase();
+                                                        updateItem(idx, 'serialNumbers', updatedSerials);
+                                                    }}
+                                                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary-500 font-mono uppercase bg-white"
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -209,6 +239,43 @@ export default function InvoiceFormPage() {
                                 <input type="number" step="0.01" min="0" value={shippingCost} onChange={(e) => setShippingCost(e.target.value)}
                                     className="w-28 px-2 py-1 border border-gray-300 rounded text-sm text-right" />
                             </div>
+
+                            {/* Gift Options Box */}
+                            <div className="border-t pt-3 space-y-3 mt-3 text-xs">
+                                <div className="flex items-center justify-between">
+                                    <label className="flex items-center gap-1.5 font-semibold text-gray-700 cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={giftWrap} 
+                                            onChange={(e) => setGiftWrap(e.target.checked)}
+                                            className="rounded text-primary-600 focus:ring-primary-500 h-4 w-4"
+                                        />
+                                        Add Gift Wrapping
+                                    </label>
+                                    {giftWrap && (
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-[10px] text-gray-400 font-medium">Fee:</span>
+                                            <input 
+                                                type="number" 
+                                                value={giftWrapFee} 
+                                                onChange={(e) => setGiftWrapFee(e.target.value)}
+                                                className="w-14 text-right font-bold border rounded px-1.5 py-0.5 text-xs focus:ring-1 focus:ring-primary-500"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Back-Case Engraving Text:</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="E.g. Happy Anniversary Mom"
+                                        value={engravingText}
+                                        onChange={(e) => setEngravingText(e.target.value)}
+                                        className="w-full px-2.5 py-1.5 border rounded-lg text-xs focus:ring-1 focus:ring-primary-500 bg-white"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="flex justify-between pt-3 border-t font-bold">
                                 <span>Total</span><span className="text-primary-600">{fmt(totals.grand)}</span>
                             </div>

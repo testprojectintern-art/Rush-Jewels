@@ -33,6 +33,7 @@ const invoiceLineItemSchema = new mongoose.Schema({
     salesOrderLineId: mongoose.Schema.Types.ObjectId,
 
     notes: String,
+    serialNumbers: [{ type: String, uppercase: true, trim: true }],
 }, { _id: true });
 
 const invoiceSchema = new mongoose.Schema({
@@ -139,6 +140,10 @@ const invoiceSchema = new mongoose.Schema({
     cashReceived: { type: Number },
     changeReturned: { type: Number },
 
+    giftWrap: { type: Boolean, default: false },
+    giftWrapFee: { type: Number, default: 0 },
+    engravingText: { type: String, trim: true, default: '' },
+
     notes: String,
     internalNotes: String,
     paymentInstructions: String,
@@ -188,6 +193,7 @@ invoiceSchema.pre('save', async function () {
     this.grandTotal = +(
         this.subtotal - this.totalDiscount - orderLevelDiscount + this.totalTax
         + (this.shippingCost || 0) + (this.otherCharges || 0)
+        + (this.giftWrap ? this.giftWrapFee : 0)
     ).toFixed(2);
 
     this.balanceDue = +(this.grandTotal - (this.amountPaid || 0)).toFixed(2);

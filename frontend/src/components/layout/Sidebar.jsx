@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { useFilterStore } from '../../store/filterStore';
 import {
     LayoutDashboard, BarChart3, Package, ShoppingCart, Users, Settings,
     FolderTree, Award, UserCircle, Tags, Warehouse, Boxes, Truck,
     ShoppingBag, FileText, Receipt, Wallet, Workflow, Factory, ShieldCheck,
     RotateCcw, Wrench, AlertTriangle, FileMinus, X, Users as UsersIcon, Building2, Clock, Calendar as CalendarIcon, Plane, Calculator, DollarSign,
-    Landmark, FileCheck, PackageCheck, ArrowRightLeft, ChevronDown, ChevronRight, Plus, PanelLeftClose
+    Landmark, FileCheck, PackageCheck, ArrowRightLeft, ChevronDown, ChevronRight, Plus, PanelLeftClose, Search
 } from 'lucide-react';
 
 // Role hierarchy constants
@@ -143,7 +145,10 @@ export default function Sidebar({ userRole, isOpen, onClose }) {
     const sidebarRef = useRef(null);
     const location = useLocation();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const [expandedItems, setExpandedItems] = useState({});
+    const [searchQuery, setSearchQuery] = useState('');
+    const { selectedMonth, selectedYear, setMonth, setYear } = useFilterStore();
 
     const toggleExpand = (id) => {
         setExpandedItems(prev => ({
@@ -181,6 +186,28 @@ export default function Sidebar({ userRole, isOpen, onClose }) {
             return item;
         })
         .filter(item => !item.children || item.children.length > 0);
+
+    const filteredVisibleItems = visibleItems.map(item => {
+        if (!searchQuery.trim()) return item;
+
+        const matchesParent = item.label.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        if (item.children) {
+            const matchingChildren = item.children.filter(child =>
+                child.label.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            if (matchesParent || matchingChildren.length > 0) {
+                return {
+                    ...item,
+                    children: matchesParent ? item.children : matchingChildren
+                };
+            }
+            return null;
+        }
+
+        return matchesParent ? item : null;
+    }).filter(Boolean);
 
     const [isNewMenuOpen, setIsNewMenuOpen] = useState(false);
     const newMenuRef = useRef(null);
@@ -279,11 +306,76 @@ export default function Sidebar({ userRole, isOpen, onClose }) {
                         )}
                     </div>
 
+                    {/* ── Search Bar ── */}
+                    <div className="px-6 mb-3 flex-shrink-0">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Search menu items..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-gray-50 border border-gray-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl pl-9 pr-4 py-2 text-xs font-semibold text-gray-700 placeholder-gray-400 focus:outline-none transition-all"
+                            />
+                            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        </div>
+                    </div>
+
+                    {/* ── Global Date Filter ── */}
+                    <div className="px-6 mb-4 flex-shrink-0 space-y-1.5 border-b pb-4 border-gray-50">
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                            <CalendarIcon size={12} className="text-gray-400" />
+                            <span>System Period Filter</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <select
+                                    value={selectedYear}
+                                    onChange={(e) => {
+                                        setYear(e.target.value);
+                                        queryClient.invalidateQueries();
+                                    }}
+                                    className="w-full text-[11px] font-bold text-gray-750 border border-gray-150 rounded-xl px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50 hover:bg-gray-50 transition-colors"
+                                >
+                                    <option value="all">All Years</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026">2026</option>
+                                    <option value="2027">2027</option>
+                                </select>
+                            </div>
+                            <div>
+                                <select
+                                    value={selectedMonth}
+                                    onChange={(e) => {
+                                        setMonth(e.target.value);
+                                        queryClient.invalidateQueries();
+                                    }}
+                                    disabled={selectedYear === 'all'}
+                                    className="w-full text-[11px] font-bold text-gray-750 border border-gray-150 rounded-xl px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:bg-gray-100"
+                                >
+                                    <option value="all">All Months</option>
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* ── Scrollable nav ── */}
                     <nav className="flex-1 overflow-y-auto py-2 px-4 custom-scrollbar space-y-1">
-                        {visibleItems.map((item) => {
+                        {filteredVisibleItems.map((item) => {
                             const Icon = item.icon;
-                            const isExpanded = expandedItems[item.id];
+                            const isExpanded = searchQuery.trim() ? true : expandedItems[item.id];
                             const isActive = location.pathname === item.path || isChildActive(item);
                             const hasChildren = item.children && item.children.length > 0;
 

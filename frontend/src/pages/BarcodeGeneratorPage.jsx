@@ -37,6 +37,14 @@ export default function BarcodeGeneratorPage() {
         widthVal = 38;
         heightVal = 25;
         isRoll = true;
+    } else if (printFormat === 'roll_strap_70_12') {
+        widthVal = 70;
+        heightVal = 12;
+        isRoll = true;
+    } else if (printFormat === 'roll_strap_80_15') {
+        widthVal = 80;
+        heightVal = 15;
+        isRoll = true;
     } else if (printFormat === 'roll_custom') {
         widthVal = customWidth;
         heightVal = customHeight;
@@ -184,6 +192,8 @@ export default function BarcodeGeneratorPage() {
                                         <option value="roll_30_25">Label Roll (30mm x 25mm) - Recommended</option>
                                         <option value="roll_50_30">Label Roll (50mm x 30mm) - Standard</option>
                                         <option value="roll_38_25">Label Roll (38mm x 25mm) - Small</option>
+                                        <option value="roll_strap_70_12">Watch Strap Tag (70mm x 12mm)</option>
+                                        <option value="roll_strap_80_15">Watch Strap Tag (80mm x 15mm)</option>
                                         <option value="roll_custom">Custom Label Roll (Specify size)</option>
                                         <option value="a4_3col">A4 Sticker Sheet (3 Columns)</option>
                                     </select>
@@ -294,12 +304,16 @@ export default function BarcodeGeneratorPage() {
                         <h3 className="text-sm font-semibold text-gray-700 mb-4">Print Preview (Grid View)</h3>
                         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 border p-4 bg-gray-50 rounded-xl max-h-[300px] overflow-y-auto">
                              {printedLabels.map((p, idx) => (
-                                <div key={idx} className="barcode-card-preview bg-white border rounded shadow-sm p-3 text-center flex flex-col justify-between items-center h-[120px] select-none">
-                                    <div className="w-full">
+                                <div key={idx} className={`barcode-card-preview bg-white border rounded shadow-sm p-3 text-center flex select-none ${
+                                    printFormat.startsWith('roll_strap') 
+                                        ? 'flex-row justify-between items-center h-[70px] col-span-2' 
+                                        : 'flex-col justify-between items-center h-[120px]'
+                                }`}>
+                                    <div className={printFormat.startsWith('roll_strap') ? 'text-left w-[45%]' : 'w-full'}>
                                         <p className="barcode-name text-[10px] font-bold text-gray-900 truncate uppercase leading-tight">{p.name}</p>
                                         <p className="barcode-price text-[9px] font-bold text-indigo-700 leading-none mt-0.5">{fmt(p.basePrice)}</p>
                                     </div>
-                                    <div className="flex flex-col items-center my-1 w-full">
+                                    <div className={`flex flex-col items-center my-1 ${printFormat.startsWith('roll_strap') ? 'w-[50%]' : 'w-full'}`}>
                                         {/* Simulated barcode bars (Vector SVG) */}
                                         <div className="h-8 w-full max-w-[90px] overflow-hidden opacity-85">
                                             <svg 
@@ -336,7 +350,9 @@ export default function BarcodeGeneratorPage() {
                                         </div>
                                         <span className="barcode-text text-[8px] font-mono tracking-widest mt-0.5 text-gray-700">{p.barcode}</span>
                                     </div>
-                                    <p className="barcode-subtext text-[7px] text-gray-400 font-mono tracking-tighter uppercase">Hoorawa Watch Pvt Ltd</p>
+                                    {!printFormat.startsWith('roll_strap') && (
+                                        <p className="barcode-subtext text-[7px] text-gray-400 font-mono tracking-tighter uppercase">Hoorawa Watch Pvt Ltd</p>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -348,7 +364,7 @@ export default function BarcodeGeneratorPage() {
             <div className="print-label-sheet hidden print:block">
                 <div className="label-grid">
                     {printedLabels.map((p, idx) => (
-                        <div key={idx} className="label-item">
+                        <div key={idx} className={`label-item ${printFormat.startsWith('roll_strap') ? 'strap-tag' : ''}`}>
                             <div className="label-header">
                                 <span className="label-title">{p.name}</span>
                                 <span className="label-price">{fmt(p.basePrice)}</span>
@@ -389,7 +405,9 @@ export default function BarcodeGeneratorPage() {
                                  </div>
                                  <span className="label-code-text">{p.barcode}</span>
                              </div>
-                            <div className="label-footer">Hoorawa Watch Pvt Ltd</div>
+                            {!printFormat.startsWith('roll_strap') && (
+                                <div className="label-footer">Hoorawa Watch Pvt Ltd</div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -515,6 +533,40 @@ export default function BarcodeGeneratorPage() {
                         letter-spacing: ${widthVal < 35 ? '0.1px' : '0.3px'};
                         color: #777;
                         text-transform: uppercase;
+                    }
+                    .label-item.strap-tag {
+                        flex-direction: row !important;
+                        justify-content: space-between !important;
+                        align-items: center !important;
+                        padding: 0.2mm 2.5mm !important;
+                    }
+                    .label-item.strap-tag .label-header {
+                        width: 45% !important;
+                        align-items: flex-start !important;
+                        text-align: left !important;
+                        line-height: 1.0 !important;
+                    }
+                    .label-item.strap-tag .label-title {
+                        font-size: 6pt !important;
+                        text-align: left !important;
+                    }
+                    .label-item.strap-tag .label-price {
+                        font-size: 6.5pt !important;
+                        margin-top: 0.5mm !important;
+                    }
+                    .label-item.strap-tag .label-barcode-container {
+                        width: 50% !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        align-items: center !important;
+                    }
+                    .label-item.strap-tag .simulated-barcode {
+                        height: 5.2mm !important;
+                        width: 95% !important;
+                    }
+                    .label-item.strap-tag .label-code-text {
+                        font-size: 5pt !important;
+                        margin-top: 0.1mm !important;
                     }
                 }
             `}</style>

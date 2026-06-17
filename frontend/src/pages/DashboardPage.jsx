@@ -73,6 +73,31 @@ function BusinessOverview() {
 
     return (
         <div>
+            {/* Low Stock Top Banner */}
+            {k.stock?.lowStockCount > 0 && (
+                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="flex items-start gap-3">
+                        <div className="p-2 bg-red-100 text-red-700 rounded-lg shrink-0 mt-0.5 animate-pulse">
+                            <AlertTriangle size={20} />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-red-800">Critical Stock Warning!</h4>
+                            <p className="text-sm text-gray-700 mt-0.5">
+                                There are <span className="font-semibold text-red-800">{k.stock.lowStockCount} items</span> running below their minimum reorder levels. Please refill these items to prevent stockouts.
+                            </p>
+                        </div>
+                    </div>
+                    <Button 
+                        variant="danger" 
+                        size="sm" 
+                        onClick={() => navigate('/reports/inventory/low-stock')}
+                        className="shrink-0"
+                    >
+                        Reorder / View Details <ArrowRight size={14} className="ml-1.5" />
+                    </Button>
+                </div>
+            )}
+
             {/* Primary KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
                 <KpiCard label="Revenue" value={fmtShort(k.revenue?.thisMonth)}

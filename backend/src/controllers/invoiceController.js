@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Invoice from '../models/Invoice.js';
 import Customer from '../models/Customer.js';
 import SalesOrder from '../models/SalesOrder.js';
+import SerialNumber from '../models/SerialNumber.js';
 
 /**
  * Helper: recalculate customer credit balance
@@ -62,6 +63,23 @@ export const createInvoice = asyncHandler(async (req, res) => {
         finalDueDate = d;
     }
 
+    // Validate serial numbers if provided
+    for (const item of items) {
+        if (item.serialNumbers && item.serialNumbers.length > 0) {
+            if (item.serialNumbers.length !== Number(item.quantity)) {
+                res.status(400);
+                throw new Error(`Quantity (${item.quantity}) for product does not match the number of serial numbers supplied (${item.serialNumbers.length})`);
+            }
+            for (const sn of item.serialNumbers) {
+                const snObj = await SerialNumber.findOne({ serialNumber: sn.toUpperCase().trim(), productId: item.productId });
+                if (!snObj || snObj.status !== 'in_stock') {
+                    res.status(400);
+                    throw new Error(`Serial number '${sn}' is not in stock or does not match this product`);
+                }
+            }
+        }
+    }
+
     const invoice = new Invoice({
         customerId: customer._id,
         customerSnapshot: {
@@ -84,6 +102,23 @@ export const createInvoice = asyncHandler(async (req, res) => {
     });
 
     await invoice.save();
+
+    // Mark serial numbers as sold
+    for (const item of invoice.items) {
+        if (item.serialNumbers && item.serialNumbers.length > 0) {
+            for (const sn of item.serialNumbers) {
+                await SerialNumber.updateOne(
+                    { serialNumber: sn.toUpperCase().trim() },
+                    { 
+                        status: 'sold', 
+                        invoiceId: invoice._id,
+                        warrantyExpiryDate: new Date(new Date(invoice.invoiceDate).setFullYear(new Date(invoice.invoiceDate).getFullYear() + 1))
+                    }
+                );
+            }
+        }
+    }
+
     await updateCustomerBalance(customer._id);
 
     const populated = await Invoice.findById(invoice._id)
@@ -136,6 +171,7 @@ export const generateInvoiceFromOrders = async ({
                 taxRate: orderItem.taxRate,
                 taxable: orderItem.taxable,
                 salesOrderLineId: orderItem._id,
+                serialNumbers: orderItem.serialNumbers || [],
             });
         });
     });
@@ -168,12 +204,32 @@ export const generateInvoiceFromOrders = async ({
         },
         items: invoiceItems,
         orderDiscount: orders[0].orderDiscount,
+        giftWrap: orders[0].giftWrap || false,
+        giftWrapFee: orders[0].giftWrapFee || 0,
+        engravingText: orders[0].engravingText || '',
         notes,
         status,
         createdBy,
     });
 
     await invoice.save({ session: session || undefined });
+
+    // Mark serial numbers as sold
+    for (const item of invoice.items) {
+        if (item.serialNumbers && item.serialNumbers.length > 0) {
+            for (const sn of item.serialNumbers) {
+                await SerialNumber.updateOne(
+                    { serialNumber: sn.toUpperCase().trim() },
+                    { 
+                        status: 'sold', 
+                        invoiceId: invoice._id,
+                        warrantyExpiryDate: new Date(new Date(invoice.invoiceDate).setFullYear(new Date(invoice.invoiceDate).getFullYear() + 1))
+                    },
+                    { session }
+                );
+            }
+        }
+    }
 
     // Update sales orders to "invoiced"
     for (const order of orders) {
@@ -406,11 +462,17 @@ export const changeInvoiceStatus = asyncHandler(async (req, res) => {
     invoice.updatedBy = req.user._id;
 
     if (status === 'sent') invoice.sentAt = new Date();
-    if (status === 'cancelled') {
+    if (status === 'cancelled' || status === 'void') {
         invoice.cancelledBy = req.user._id;
         invoice.cancelledAt = new Date();
         invoice.cancellationReason = reason;
         invoice.paymentStatus = 'cancelled';
+        
+        // Return serial numbers back to in_stock
+        await SerialNumber.updateMany(
+            { invoiceId: invoice._id },
+            { $set: { status: 'in_stock', invoiceId: null, warrantyExpiryDate: null } }
+        );
     }
 
     await invoice.save();

@@ -187,7 +187,7 @@ export default function PettyCashPage() {
 
             {/* Balances Card */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <Card className="p-6 border-l-4 border-l-indigo-600 flex justify-between items-center bg-gradient-to-r from-indigo-50/20 to-white">
+                <Card className="p-6 border-l-4 border-l-indigo-600 flex justify-between items-center bg-gradient-to-r from-indigo-50/20 to-white dark:from-indigo-950/25 dark:to-slate-900 border border-gray-100 dark:border-slate-800">
                     <div>
                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Current Petty Cash Balance</p>
                         <h2 className="text-2xl font-black text-gray-900 mt-1">{fmt(pettyCash.balance)}</h2>
@@ -195,7 +195,7 @@ export default function PettyCashPage() {
                     <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><Wallet size={24} /></div>
                 </Card>
 
-                <Card className="p-6 border-l-4 border-l-green-600 flex justify-between items-center bg-gradient-to-r from-green-50/20 to-white">
+                <Card className="p-6 border-l-4 border-l-green-600 flex justify-between items-center bg-gradient-to-r from-green-50/20 to-white dark:from-emerald-950/25 dark:to-slate-900 border border-gray-100 dark:border-slate-800">
                     <div>
                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Cash-In (Top-ups)</p>
                         <h2 className="text-xl font-bold text-gray-900 mt-1">{fmt(pettyCash.totalFunds)}</h2>
@@ -203,7 +203,7 @@ export default function PettyCashPage() {
                     <div className="p-3 bg-green-50 text-green-600 rounded-xl"><ArrowUpRight size={24} /></div>
                 </Card>
 
-                <Card className="p-6 border-l-4 border-l-rose-600 flex justify-between items-center bg-gradient-to-r from-rose-50/20 to-white">
+                <Card className="p-6 border-l-4 border-l-rose-600 flex justify-between items-center bg-gradient-to-r from-rose-50/20 to-white dark:from-rose-950/25 dark:to-slate-900 border border-gray-100 dark:border-slate-800">
                     <div>
                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Cash-Out (Expenses)</p>
                         <h2 className="text-xl font-bold text-gray-900 mt-1">{fmt(pettyCash.totalExpenses)}</h2>

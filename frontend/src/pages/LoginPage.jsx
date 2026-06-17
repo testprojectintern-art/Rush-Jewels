@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Eye, EyeOff, Package } from 'lucide-react';
+import { Eye, EyeOff, Package, Sun, Moon } from 'lucide-react';
 
 import { authApi } from '../features/auth/authApi';
 import { loginSchema } from '../features/auth/authSchemas';
@@ -17,6 +17,20 @@ export default function LoginPage() {
     const navigate = useNavigate();
     const { login, isAuthenticated } = useAuthStore();
     const [showPassword, setShowPassword] = useState(false);
+
+    const [isDark, setIsDark] = useState(() => {
+        return document.documentElement.classList.contains('dark') || localStorage.getItem('theme') === 'dark';
+    });
+
+    useEffect(() => {
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+    }, [isDark]);
 
     const {
         register,
@@ -59,7 +73,17 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 to-gray-100 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-primary-50 to-gray-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4 relative">
+            
+            {/* Theme Toggle Button */}
+            <button
+                type="button"
+                onClick={() => setIsDark(!isDark)}
+                className="absolute top-6 right-6 p-2.5 rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 shadow-sm transition-all duration-200"
+                title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+                {isDark ? <Sun size={18} className="text-amber-500" /> : <Moon size={18} className="text-indigo-600" />}
+            </button>
             <div className="w-full max-w-md">
                 {/* Logo/Brand */}
                 <div className="text-center mb-8">

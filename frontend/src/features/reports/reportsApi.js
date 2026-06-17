@@ -43,3 +43,10 @@ export const hrReportsApi = {
     leavePatterns: async (params = {}) => (await api.get('/reports/hr/leave-patterns', { params })).data,
     payrollSummary: async (params = {}) => (await api.get('/reports/hr/payroll-summary', { params })).data,
 };
+
+export const watchReportsApi = {
+    agingStock: async (params = {}) => (await api.get('/reports/watch/aging-stock', { params })).data,
+    brandProfitability: async (params = {}) => (await api.get('/reports/watch/brand-profitability', { params })).data,
+    aovAndBundles: async (params = {}) => (await api.get('/reports/watch/aov-bundles', { params })).data,
+    seasonality: async (params = {}) => (await api.get('/reports/watch/seasonality', { params })).data,
+};

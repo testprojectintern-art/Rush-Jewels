@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
 import GoodsReceiptNote from '../models/GoodsReceiptNote.js';
 import PurchaseOrder from '../models/PurchaseOrder.js';
+import SerialNumber from '../models/SerialNumber.js';
 import { increaseStock, decreaseStock } from '../services/stockService.js';
 
 /**
@@ -59,6 +60,7 @@ export const createGrn = asyncHandler(async (req, res) => {
                     rejectionReason: item.rejectionReason,
                     notes: item.notes,
                     qcStatus: item.rejectionReason || item.rejectedQuantity > 0 ? 'failed' : 'not_required',
+                    serialNumbers: item.serialNumbers || [],
                 };
             });
 
@@ -106,6 +108,19 @@ export const createGrn = asyncHandler(async (req, res) => {
 
                 // Link the movement
                 grnItem.stockMovementId = result.movement._id;
+
+                // Create Serial Numbers if provided
+                if (grnItem.serialNumbers && grnItem.serialNumbers.length > 0) {
+                    for (const sn of grnItem.serialNumbers) {
+                        await SerialNumber.create([{
+                            serialNumber: sn.toUpperCase().trim(),
+                            productId: grnItem.productId,
+                            warehouseId,
+                            status: 'in_stock',
+                            grnId: grn._id
+                        }], { session });
+                    }
+                }
             }
 
             await grn.save({ session });
@@ -195,6 +210,15 @@ export const cancelGrn = asyncHandler(async (req, res) => {
             const grn = await GoodsReceiptNote.findById(req.params.id).session(session);
             if (!grn) throw new Error('GRN not found');
             if (grn.status === 'cancelled') throw new Error('GRN already cancelled');
+
+            // Check if any serial numbers from this GRN were already sold
+            const soldSerialsCount = await SerialNumber.countDocuments({ grnId: grn._id, status: 'sold' }).session(session);
+            if (soldSerialsCount > 0) {
+                throw new Error('Cannot cancel GRN because some serial numbers from this shipment have already been sold');
+            }
+
+            // Delete serial numbers registered by this GRN
+            await SerialNumber.deleteMany({ grnId: grn._id }).session(session);
 
             // 1. Decrease stock for each accepted item in the GRN
             for (const grnItem of grn.items) {

@@ -17,3 +17,10 @@ export const useUpdateCompanySettings = () => {
         },
     });
 };
+
+export const useDbStats = () => {
+    return useQuery({
+        queryKey: ['db-stats'],
+        queryFn: settingsApi.getDbStats,
+    });
+};

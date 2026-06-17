@@ -61,6 +61,7 @@ import CreditNoteDetailPage from './pages/CreditNoteDetailPage';
 import SupplierReturnDetailPage from './pages/SupplierReturnDetailPage';
 import RepairsPage from './pages/RepairsPage';
 import RepairDetailPage from './pages/RepairDetailPage';
+import WarrantyClaimsPage from './pages/WarrantyClaimsPage';
 import PosPage from './pages/PosPage';
 import PosSessionsPage from './pages/PosSessionsPage';
 
@@ -98,6 +99,8 @@ import PettyCashPage from './pages/PettyCashPage';
 import TargetsProgressPage from './pages/TargetsProgressPage';
 import NetProfitReportPage from './pages/reports/NetProfitReportPage';
 import BulkSmsPage from './pages/BulkSmsPage';
+import WatchAnalyticsPage from './pages/reports/WatchAnalyticsPage';
+import PublicWarrantyCheckPage from './pages/PublicWarrantyCheckPage';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
@@ -108,6 +111,7 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      <Route path="/public-warranty-check" element={<PublicWarrantyCheckPage />} />
 
       <Route path="/receipt/:id" element={
           <ProtectedRoute allowedRoles={['admin', 'manager', 'accountant', 'cashier']}>
@@ -192,6 +196,7 @@ function App() {
         <Route path="/supplier-returns/:id" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><SupplierReturnDetailPage /></ProtectedRoute>} />
         <Route path="/repairs" element={<RepairsPage />} />
         <Route path="/repairs/:id" element={<RepairDetailPage />} />
+        <Route path="/warranty-claims" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'employee', 'cashier']}><WarrantyClaimsPage /></ProtectedRoute>} />
         <Route path="/employees" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><EmployeesPage /></ProtectedRoute>} />
         <Route path="/employees/new" element={<ProtectedRoute allowedRoles={['admin','manager']}><EmployeeFormPage /></ProtectedRoute>} />
         <Route path="/employees/:id" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><EmployeeDetailPage /></ProtectedRoute>} />
@@ -223,6 +228,7 @@ function App() {
         <Route path="/reports/financial" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><FinancialSnapshotPage /></ProtectedRoute>} />
         <Route path="/reports/net-profit-analysis" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><NetProfitReportPage /></ProtectedRoute>} />
         <Route path="/reports/hr" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><HrReportsPage /></ProtectedRoute>} />
+        <Route path="/reports/watch-analytics" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><WatchAnalyticsPage /></ProtectedRoute>} />
 
         <Route path="/users"
           element={<ProtectedRoute allowedRoles={['admin', 'manager']}><UsersPage /></ProtectedRoute>} />

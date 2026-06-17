@@ -55,6 +55,13 @@ const reportGroups = [
             { title: 'HR Reports', description: 'Headcount, attendance, leave patterns, payroll summary', path: '/reports/hr', icon: Users },
         ],
     },
+    {
+        category: 'Watch Shop Analytics',
+        color: 'text-indigo-600', bg: 'bg-indigo-50',
+        reports: [
+            { title: 'Watch & Retail Insights', description: 'Stock aging, brand margins, AOV bundles, and seasonal velocity', path: '/reports/watch-analytics', icon: TrendingUp },
+        ],
+    },
 ];
 
 export default function ReportsPage() {

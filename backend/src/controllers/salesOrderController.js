@@ -4,6 +4,7 @@ import SalesOrder from '../models/SalesOrder.js';
 import Customer from '../models/Customer.js';
 import Product from '../models/Product.js';
 import Warehouse from '../models/Warehouse.js';
+import SerialNumber from '../models/SerialNumber.js';
 import {
     decreaseStock, increaseStock,
 } from '../services/stockService.js';
@@ -83,6 +84,7 @@ export const createSalesOrder = asyncHandler(async (req, res) => {
             taxRate: item.taxRate ?? (product.tax?.taxRate || 0),
             taxable: item.taxable ?? (product.tax?.taxable ?? false),
             notes: item.notes,
+            serialNumbers: item.serialNumbers || [],
         });
     }
 
@@ -167,6 +169,26 @@ export const createSalesOrder = asyncHandler(async (req, res) => {
 
             // Deduct stock if approved (common for POS)
             if (order.status === 'approved') {
+                // Validate serial numbers if provided
+                for (const item of order.items) {
+                    if (item.serialNumbers && item.serialNumbers.length > 0) {
+                        if (item.serialNumbers.length !== Number(item.orderedQuantity)) {
+                            throw new Error(`Quantity (${item.orderedQuantity}) for product "${item.productName}" does not match the number of serial numbers supplied (${item.serialNumbers.length})`);
+                        }
+                        for (const sn of item.serialNumbers) {
+                            const snObj = await SerialNumber.findOne({ 
+                                serialNumber: sn.toUpperCase().trim(), 
+                                productId: item.productId,
+                                status: 'in_stock' 
+                            }).session(session);
+                            
+                            if (!snObj) {
+                                throw new Error(`Serial number '${sn}' is not in stock or does not match product "${item.productName}"`);
+                            }
+                        }
+                    }
+                }
+
                 for (const item of order.items) {
                     const stockItem = await StockItem.findOne({
                         productId: item.productId,
@@ -577,6 +599,26 @@ export const changeSalesOrderStatus = asyncHandler(async (req, res) => {
         await session.withTransaction(async () => {
             // ─── APPROVE: deduct stock immediately from warehouse ───────────────
             if (status === 'approved' && order.status !== 'approved') {
+                // Validate serial numbers if provided
+                for (const item of order.items) {
+                    if (item.serialNumbers && item.serialNumbers.length > 0) {
+                        if (item.serialNumbers.length !== Number(item.orderedQuantity)) {
+                            throw new Error(`Quantity (${item.orderedQuantity}) for product "${item.productName}" does not match the number of serial numbers supplied (${item.serialNumbers.length})`);
+                        }
+                        for (const sn of item.serialNumbers) {
+                            const snObj = await SerialNumber.findOne({ 
+                                serialNumber: sn.toUpperCase().trim(), 
+                                productId: item.productId,
+                                status: 'in_stock' 
+                            }).session(session);
+                            
+                            if (!snObj) {
+                                throw new Error(`Serial number '${sn}' is not in stock or does not match product "${item.productName}"`);
+                            }
+                        }
+                    }
+                }
+
                 for (const item of order.items) {
                     // Check that stock exists and is sufficient
                     const stockItem = await StockItem.findOne({

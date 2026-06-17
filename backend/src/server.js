@@ -42,6 +42,9 @@ import installmentRoutes from './routes/installmentRoutes.js';
 import targetRoutes from './routes/targetRoutes.js';
 import pettyCashRoutes from './routes/pettyCashRoutes.js';
 import reportsRoutes from './routes/reportsRoutes.js';
+import warrantyClaimRoutes from './routes/warrantyClaimRoutes.js';
+import publicRoutes from './routes/publicRoutes.js';
+import { initSmsScheduler } from './utils/smsScheduler.js';
 
 import { seedDefaults } from './utils/seedDefaults.js';
 
@@ -52,7 +55,10 @@ import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 dotenv.config();
 
 
-connectDB().then(() => seedDefaults());
+connectDB().then(() => {
+    seedDefaults();
+    initSmsScheduler();
+});
 
 const app = express();
 
@@ -116,8 +122,9 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/installments', installmentRoutes);
 app.use('/api/targets', targetRoutes);
 app.use('/api/petty-cash', pettyCashRoutes);
-
+app.use('/api/warranty-claims', warrantyClaimRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/public', publicRoutes);
 
 
 // Health check endpoint

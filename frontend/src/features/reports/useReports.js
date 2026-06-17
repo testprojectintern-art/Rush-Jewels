@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi, salesReportsApi, inventoryReportsApi } from './reportsApi';
 import {
-    productionReportsApi, returnsReportsApi, financialReportsApi, hrReportsApi,
+    productionReportsApi, returnsReportsApi, financialReportsApi, hrReportsApi, watchReportsApi,
 } from './reportsApi';
 
 // Production
@@ -79,4 +79,21 @@ export const useLowStockReport = () => useQuery({
 export const useNetProfitAnalysis = (params = {}) => useQuery({
     queryKey: ['netProfitAnalysis', params],
     queryFn: () => financialReportsApi.netProfit(params),
+});
+
+export const useWatchAgingStock = (params = {}) => useQuery({
+    queryKey: ['watchAgingStock', params],
+    queryFn: () => watchReportsApi.agingStock(params),
+});
+export const useWatchBrandProfitability = (params = {}) => useQuery({
+    queryKey: ['watchBrandProfitability', params],
+    queryFn: () => watchReportsApi.brandProfitability(params),
+});
+export const useWatchAovBundles = (params = {}) => useQuery({
+    queryKey: ['watchAovBundles', params],
+    queryFn: () => watchReportsApi.aovAndBundles(params),
+});
+export const useWatchSeasonality = (params = {}) => useQuery({
+    queryKey: ['watchSeasonality', params],
+    queryFn: () => watchReportsApi.seasonality(params),
 });

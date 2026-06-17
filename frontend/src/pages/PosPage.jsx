@@ -70,6 +70,14 @@ export default function PosPage() {
     const [calculatorCashReceived, setCalculatorCashReceived] = useState('');
     const [calculatorChangeReturned, setCalculatorChangeReturned] = useState(0);
 
+    // Trade-in watch discount states
+    const [tradeInDiscount, setTradeInDiscount] = useState(0);
+    const [tradeInInfo, setTradeInInfo] = useState(null);
+    const [isTradeInModalOpen, setIsTradeInModalOpen] = useState(false);
+    const [tradeInBrand, setTradeInBrand] = useState('');
+    const [tradeInOriginalPrice, setTradeInOriginalPrice] = useState('');
+    const [tradeInCondition, setTradeInCondition] = useState('good');
+
     // New payment checkout states
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [selectedBankAccountId, setSelectedBankAccountId] = useState('');
@@ -78,6 +86,11 @@ export default function PosPage() {
     const [downPayment, setDownPayment] = useState('');
     const [numberOfInstallments, setNumberOfInstallments] = useState(3);
     const [installmentInterval, setInstallmentInterval] = useState('monthly');
+
+    // Watch selling options
+    const [giftWrap, setGiftWrap] = useState(false);
+    const [giftWrapFee, setGiftWrapFee] = useState(250);
+    const [engravingText, setEngravingText] = useState('');
 
     // Fetch bank accounts for checkout payments
     const { data: bankAccountsRes } = useQuery({
@@ -323,15 +336,16 @@ export default function PosPage() {
         });
         const orderDiscPercentAmount = subtotal * (+orderDiscountPercent || 0) / 100;
         const orderDiscFixed = +orderDiscountAmount || 0;
-        const totalDiscount = orderDiscPercentAmount + orderDiscFixed;
-        const grandTotal = subtotal - totalDiscount;
+        const totalDiscount = orderDiscPercentAmount + orderDiscFixed + (tradeInDiscount || 0);
+        const giftWrapAddon = giftWrap ? parseFloat(giftWrapFee) || 0 : 0;
+        const grandTotal = Math.max(0, subtotal - totalDiscount + giftWrapAddon);
         return {
             subtotal: +subtotal.toFixed(2),
             orderDiscount: +totalDiscount.toFixed(2),
             grandTotal: +grandTotal.toFixed(2),
             itemCount: cart.reduce((s, i) => s + i.qty, 0),
         };
-    }, [cart, orderDiscountPercent, orderDiscountAmount]);
+    }, [cart, orderDiscountPercent, orderDiscountAmount, giftWrap, giftWrapFee, tradeInDiscount]);
 
     const fmt = (n) => new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', minimumFractionDigits: 2 }).format(n || 0);
 
@@ -381,9 +395,16 @@ export default function PosPage() {
                 orderedQuantity: i.qty,
                 unitPrice: i.price,
                 discountPercent: 0,
+                serialNumbers: i.serialNumbers || [],
             })),
-            orderDiscount: (orderDiscountPercent > 0 || orderDiscountAmount > 0)
+            orderDiscount: (orderDiscountPercent > 0 || orderDiscountAmount > 0 || tradeInDiscount > 0)
                 ? { type: 'fixed', value: totals.orderDiscount }
+                : undefined,
+            giftWrap: saveAsDraft ? undefined : giftWrap,
+            giftWrapFee: saveAsDraft ? undefined : (giftWrap ? parseFloat(giftWrapFee) || 0 : 0),
+            engravingText: saveAsDraft ? undefined : engravingText,
+            notes: tradeInInfo 
+                ? `[Trade-in watch applied: Brand: ${tradeInInfo.brand}, Condition: ${tradeInInfo.condition.toUpperCase()}, Original Price: LKR ${tradeInInfo.originalPrice.toLocaleString()}, Credit discount: LKR ${tradeInInfo.credit.toLocaleString()}]`
                 : undefined,
             status: saveAsDraft ? 'draft' : 'approved',
             cashReceived: saveAsDraft ? undefined : (cashAmt || 0),
@@ -422,6 +443,15 @@ export default function PosPage() {
                 setCustomerPhone('');
                 setOrderDiscountPercent(0);
                 setOrderDiscountAmount(0);
+                setTradeInDiscount(0);
+                setTradeInInfo(null);
+                setTradeInBrand('');
+                setTradeInOriginalPrice('');
+
+                // Reset gift wrapping fields
+                setGiftWrap(false);
+                setGiftWrapFee(250);
+                setEngravingText('');
 
                 // Reset payment states
                 setPaymentMethod('cash');
@@ -815,9 +845,31 @@ export default function PosPage() {
                                         </div>
                                         <p className="text-sm font-black text-gray-900">{fmt(item.qty * item.price)}</p>
                                     </div>
-                                    <div className="flex justify-between items-center mt-2 text-[10px] text-gray-400 font-medium">
+                                    <div className="flex justify-between items-center mt-2 text-[10px] text-gray-400 font-medium border-b pb-2 mb-2">
                                         <span>{fmt(item.price)} {item.unitOfMeasure ? `/ ${item.unitOfMeasure}` : ''}</span>
                                         <span className="bg-gray-100 px-1.5 py-0.5 rounded-full">{item.available} in stock</span>
+                                    </div>
+
+                                    {/* Serial number inputs for watch items */}
+                                    <div className="space-y-1.5 mt-2">
+                                        <label className="text-[9px] font-bold text-gray-500 uppercase block">Watch Serial Numbers:</label>
+                                        {Array.from({ length: item.qty }).map((_, idx) => (
+                                            <input
+                                                key={idx}
+                                                type="text"
+                                                placeholder={`Serial Number #${idx + 1}`}
+                                                value={item.serialNumbers?.[idx] || ''}
+                                                onChange={(e) => {
+                                                    const updatedSerials = [...(item.serialNumbers || [])];
+                                                    updatedSerials[idx] = e.target.value.toUpperCase();
+                                                    setCart(prev => prev.map(i => i.productId === item.productId 
+                                                        ? { ...i, serialNumbers: updatedSerials } 
+                                                        : i
+                                                    ));
+                                                }}
+                                                className="w-full px-2 py-1 border border-gray-200 rounded text-[10px] outline-none focus:ring-1 focus:ring-primary-500 font-mono uppercase bg-white"
+                                            />
+                                        ))}
                                     </div>
                                 </div>
                             ))
@@ -847,12 +899,71 @@ export default function PosPage() {
                                         className="w-16 text-right font-bold focus:outline-none text-xs bg-transparent border-0 p-0 focus:ring-0" />
                                 </div>
                             </div>
-                            {totals.orderDiscount > 0 && (
-                                <div className="flex justify-between text-xs font-bold text-red-600">
-                                    <span>Total Discount</span><span>-{fmt(totals.orderDiscount)}</span>
-                                </div>
-                            )}
+                            
+                            {/* Trade-in Section */}
+                            <div className="flex justify-between items-center text-xs mt-2 border-t pt-2 border-dashed">
+                                <span className="font-bold text-gray-700">Trade-in Credit</span>
+                                {tradeInDiscount > 0 ? (
+                                    <div className="flex items-center gap-1.5 font-bold text-green-600">
+                                        <span>-{fmt(tradeInDiscount)}</span>
+                                        <button 
+                                            type="button"
+                                            onClick={() => {
+                                                setTradeInDiscount(0);
+                                                setTradeInInfo(null);
+                                            }}
+                                            className="text-red-500 hover:text-red-700 font-extrabold text-[10px] bg-red-50 hover:bg-red-100 rounded px-1"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button 
+                                        type="button"
+                                        onClick={() => setIsTradeInModalOpen(true)}
+                                        className="text-indigo-600 hover:text-indigo-800 font-bold hover:underline"
+                                    >
+                                        + Add Trade-in
+                                    </button>
+                                )}
+                            </div>
 
+                            {/* Gift Options Box */}
+                            <div className="bg-white border border-gray-200 rounded-lg p-2.5 shadow-xs space-y-2 text-[11px] mt-2">
+                                <div className="flex items-center justify-between">
+                                    <label className="flex items-center gap-1 font-bold text-gray-700 cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={giftWrap} 
+                                            onChange={(e) => setGiftWrap(e.target.checked)}
+                                            className="rounded text-primary-600 focus:ring-primary-500 h-3 w-3"
+                                        />
+                                        Add Gift Wrapping
+                                    </label>
+                                    {giftWrap && (
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-[9px] text-gray-400">Fee:</span>
+                                            <input 
+                                                type="number" 
+                                                value={giftWrapFee} 
+                                                onChange={(e) => setGiftWrapFee(e.target.value)}
+                                                className="w-10 text-right font-bold border rounded px-1 py-0.5 text-[10px]"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div>
+                                    <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Engraving Text:</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="E.g. Happy Birthday Dad"
+                                        value={engravingText}
+                                        onChange={(e) => setEngravingText(e.target.value)}
+                                        className="w-full px-2 py-1 border rounded text-[10px] outline-none focus:ring-1 focus:ring-primary-500 bg-white"
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         <div className="flex justify-between pt-3 border-t border-gray-200">
@@ -1174,6 +1285,106 @@ export default function PosPage() {
                             }}
                         >
                             {createOrder.isPending ? 'Checking out...' : 'Confirm & Pay'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Trade-in Valuation Modal */}
+            <Modal
+                isOpen={isTradeInModalOpen}
+                onClose={() => setIsTradeInModalOpen(false)}
+                title="Trade-in Watch Valuation Calculator"
+            >
+                <div className="space-y-4 p-2">
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Watch Brand</label>
+                        <input
+                            type="text"
+                            placeholder="E.g. Seiko, Citizen, Casio"
+                            value={tradeInBrand}
+                            onChange={(e) => setTradeInBrand(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:border-indigo-500 outline-none text-sm font-semibold"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Estimated Original/Retail Price (LKR)</label>
+                        <input
+                            type="number"
+                            placeholder="E.g. 50000"
+                            value={tradeInOriginalPrice}
+                            onChange={(e) => setTradeInOriginalPrice(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:border-indigo-500 outline-none text-sm font-bold"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Watch Condition</label>
+                        <select
+                            value={tradeInCondition}
+                            onChange={(e) => setTradeInCondition(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:border-indigo-500 outline-none text-sm font-semibold bg-white"
+                        >
+                            <option value="new">New / Mint (50% value)</option>
+                            <option value="good">Good Condition (35% value)</option>
+                            <option value="fair">Fair / Normal Wear (20% value)</option>
+                            <option value="poor">Poor / Heavily Damaged (10% value)</option>
+                        </select>
+                    </div>
+
+                    {tradeInOriginalPrice > 0 && (
+                        <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl text-center space-y-1">
+                            <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Calculated Trade-in Credit</p>
+                            <p className="text-2xl font-black text-indigo-750">
+                                {fmt(
+                                    Math.round(
+                                        parseFloat(tradeInOriginalPrice) * (
+                                            tradeInCondition === 'new' ? 0.50 :
+                                            tradeInCondition === 'good' ? 0.35 :
+                                            tradeInCondition === 'fair' ? 0.20 : 0.10
+                                        )
+                                    )
+                                )}
+                            </p>
+                            <p className="text-[10px] text-indigo-650 font-medium">
+                                Based on {tradeInCondition.toUpperCase()} condition rate.
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="flex gap-3 pt-2">
+                        <Button
+                            variant="outline"
+                            className="flex-1 py-2.5 text-xs"
+                            onClick={() => setIsTradeInModalOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            className="flex-1 py-2.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+                            disabled={!tradeInBrand.trim() || !tradeInOriginalPrice || parseFloat(tradeInOriginalPrice) <= 0}
+                            onClick={() => {
+                                const origPrice = parseFloat(tradeInOriginalPrice) || 0;
+                                const rate = 
+                                    tradeInCondition === 'new' ? 0.50 :
+                                    tradeInCondition === 'good' ? 0.35 :
+                                    tradeInCondition === 'fair' ? 0.20 : 0.10;
+                                const credit = Math.round(origPrice * rate);
+
+                                setTradeInDiscount(credit);
+                                setTradeInInfo({
+                                    brand: tradeInBrand,
+                                    originalPrice: origPrice,
+                                    condition: tradeInCondition,
+                                    credit
+                                });
+                                setIsTradeInModalOpen(false);
+                                toast.success(`Trade-in applied: LKR ${credit.toLocaleString()}`);
+                            }}
+                        >
+                            Apply Credit
                         </Button>
                     </div>
                 </div>

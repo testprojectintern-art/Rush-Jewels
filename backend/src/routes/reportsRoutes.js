@@ -17,10 +17,14 @@ import {
 } from '../controllers/reports/returnsReportsController.js';
 import { getFinancialSnapshot } from '../controllers/reports/financialReportsController.js';
 import { getNetProfitAnalysis } from '../controllers/reports/netProfitController.js';
-import {
-    getHeadcountReport, getAttendanceReport, getLeavePatternsReport, getPayrollSummaryReport,
-} from '../controllers/reports/hrReportsController.js';
+import { getHeadcountReport, getAttendanceReport, getLeavePatternsReport, getPayrollSummaryReport } from '../controllers/reports/hrReportsController.js';
 import { getPredictiveAnalytics } from '../controllers/reports/aiPredictiveController.js';
+import { 
+    getInventoryAging, 
+    getBrandProfitability, 
+    getAovAndBundles, 
+    getSeasonalVelocity 
+} from '../controllers/reports/watchAnalyticsController.js';
 
 const router = express.Router();
 router.use(protect);
@@ -65,5 +69,11 @@ router.get('/inventory/valuation', fullAccess, getStockValuation);
 router.get('/inventory/movement', fullAccess, getStockMovement);
 router.get('/inventory/slow-fast-movers', fullAccess, getSlowFastMovers);
 router.get('/inventory/low-stock', fullAccess, getLowStockReport);
+
+// Watch Shop Analytics Reports
+router.get('/watch/aging-stock', fullAccess, getInventoryAging);
+router.get('/watch/brand-profitability', fullAccess, getBrandProfitability);
+router.get('/watch/aov-bundles', fullAccess, getAovAndBundles);
+router.get('/watch/seasonality', fullAccess, getSeasonalVelocity);
 
 export default router;

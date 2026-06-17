@@ -143,6 +143,9 @@ const customerSchema = new mongoose.Schema(
         notes: { type: String, trim: true, maxlength: 2000 },
         internalNotes: { type: String, trim: true, maxlength: 2000 },
 
+        birthday: Date,
+        anniversaryDate: Date,
+
         createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         deletedAt: { type: Date, default: null },

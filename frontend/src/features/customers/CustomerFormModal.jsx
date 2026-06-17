@@ -58,6 +58,8 @@ export default function CustomerFormModal({ isOpen, onClose, customer = null }) 
             creditDays: 0,
             creditLimit: 0,
             defaultDiscountPercent: 0,
+            birthday: '',
+            anniversaryDate: '',
             shippingAddresses: [{ ...emptyAddress, isDefault: true }],
             contacts: [],
             billingAddress: { ...emptyAddress, isDefault: true },
@@ -105,6 +107,8 @@ export default function CustomerFormModal({ isOpen, onClose, customer = null }) 
                 defaultDiscountPercent: customer.defaultDiscountPercent || 0,
                 status: customer.status || 'active',
                 notes: customer.notes || '',
+                birthday: customer.birthday ? new Date(customer.birthday).toISOString().split('T')[0] : '',
+                anniversaryDate: customer.anniversaryDate ? new Date(customer.anniversaryDate).toISOString().split('T')[0] : '',
             });
         } else if (isOpen && !customer) {
             reset({
@@ -115,6 +119,8 @@ export default function CustomerFormModal({ isOpen, onClose, customer = null }) 
                 creditDays: 0,
                 creditLimit: 0,
                 defaultDiscountPercent: 0,
+                birthday: '',
+                anniversaryDate: '',
                 shippingAddresses: [{ ...emptyAddress, isDefault: true }],
                 contacts: [],
                 billingAddress: { ...emptyAddress, isDefault: true },
@@ -148,6 +154,8 @@ export default function CustomerFormModal({ isOpen, onClose, customer = null }) 
             defaultDiscountPercent: data.defaultDiscountPercent || 0,
             status: data.status,
             notes: data.notes || undefined,
+            birthday: data.birthday || undefined,
+            anniversaryDate: data.anniversaryDate || undefined,
         };
 
         try {
@@ -290,6 +298,21 @@ export default function CustomerFormModal({ isOpen, onClose, customer = null }) 
                                     <Input label="Phone" {...register('primaryContact.phone')} />
                                     <Input label="Mobile" {...register('primaryContact.mobile')} />
                                 </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <Input
+                                    label="Birthday"
+                                    type="date"
+                                    error={errors.birthday?.message}
+                                    {...register('birthday')}
+                                />
+                                <Input
+                                    label="Anniversary Date"
+                                    type="date"
+                                    error={errors.anniversaryDate?.message}
+                                    {...register('anniversaryDate')}
+                                />
                             </div>
 
                             <Textarea label="Notes" rows={3} {...register('notes')} />

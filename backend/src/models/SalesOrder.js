@@ -60,6 +60,7 @@ const lineItemSchema = new mongoose.Schema(
         },
 
         notes: { type: String, trim: true },
+        serialNumbers: [{ type: String, uppercase: true, trim: true }],
     },
     { _id: true }
 );
@@ -190,6 +191,10 @@ const salesOrderSchema = new mongoose.Schema(
         cashReceived: { type: Number },
         changeReturned: { type: Number },
 
+        giftWrap: { type: Boolean, default: false },
+        giftWrapFee: { type: Number, default: 0 },
+        engravingText: { type: String, trim: true, default: '' },
+
         createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         deletedAt: { type: Date, default: null },
@@ -247,6 +252,7 @@ salesOrderSchema.pre('save', async function () {
         + (this.shippingCost || 0)
         + (this.otherCharges || 0)
         + (this.roundingAdjustment || 0)
+        + (this.giftWrap ? this.giftWrapFee : 0)
     ).toFixed(2);
 
     if (this.paymentTerms?.type === 'credit' && this.paymentTerms.creditDays && !this.paymentTerms.dueDate) {

@@ -227,8 +227,8 @@ export default function BulkSmsPage() {
                     </Card>
 
                     {/* Quick Tips */}
-                    <Card className="p-6 bg-gradient-to-br from-indigo-50/20 to-white">
-                        <h3 className="text-sm font-bold text-indigo-700 flex items-center gap-1.5 mb-2">
+                    <Card className="p-6 bg-gradient-to-br from-indigo-50/20 to-white dark:from-indigo-950/25 dark:to-slate-900 border border-gray-100 dark:border-slate-800">
+                        <h3 className="text-sm font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5 mb-2">
                             <Sparkles size={16} /> Campaign Best Practices
                         </h3>
                         <ul className="text-xs text-gray-500 space-y-2 list-disc list-inside">

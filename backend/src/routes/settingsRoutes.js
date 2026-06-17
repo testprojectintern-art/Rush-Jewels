@@ -1,5 +1,5 @@
 import express from 'express';
-import { getCompanySettings, updateCompanySettings } from '../controllers/settingsController.js';
+import { getCompanySettings, updateCompanySettings, getDbStats } from '../controllers/settingsController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -8,5 +8,9 @@ const router = express.Router();
 router.route('/company')
     .get(protect, getCompanySettings)
     .put(protect, authorize('admin', 'manager'), updateCompanySettings);
+
+// DB stats (restricted to admin users only)
+router.route('/db-stats')
+    .get(protect, authorize('admin'), getDbStats);
 
 export default router;

@@ -54,6 +54,9 @@ export const customerFormSchema = z.object({
     creditLimit: z.coerce.number().min(0).optional(),
     defaultDiscountPercent: z.coerce.number().min(0).max(100).optional(),
 
+    birthday: z.string().optional().or(z.literal('')),
+    anniversaryDate: z.string().optional().or(z.literal('')),
+
     status: z.enum(['active', 'inactive', 'blacklisted', 'on_hold', 'prospect']),
     notes: z.string().max(2000).optional().or(z.literal('')),
 });

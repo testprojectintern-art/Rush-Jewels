@@ -31,6 +31,7 @@ const grnLineItemSchema = new mongoose.Schema({
     },
     rejectionReason: String,
     notes: String,
+    serialNumbers: [{ type: String, uppercase: true, trim: true }],
 
     stockMovementId: { type: mongoose.Schema.Types.ObjectId, ref: 'StockMovement' },
 }, { _id: true });
