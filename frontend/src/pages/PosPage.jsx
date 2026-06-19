@@ -711,11 +711,18 @@ export default function PosPage() {
                                             key={p._id}
                                             onClick={() => addToCart(p)}
                                             disabled={outOfStock}
-                                            className={`text-left bg-white border rounded-xl p-3 flex items-center justify-between transition-all ${outOfStock
+                                            className={`text-left bg-white border rounded-xl p-3 flex items-center gap-3 transition-all ${outOfStock
                                                 ? 'opacity-50 cursor-not-allowed'
                                                 : 'hover:shadow-md hover:border-gray-300 active:scale-[0.99]'
                                                 } ${inCart > 0 ? 'border-primary-500 bg-primary-50/50 ring-1 ring-primary-500' : ''}`}
                                         >
+                                            <div className="w-12 h-12 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
+                                                {p.image ? (
+                                                    <img src={p.image} alt={p.name} className="w-full h-full object-contain" />
+                                                ) : (
+                                                    <Package size={20} className="text-gray-400" />
+                                                )}
+                                            </div>
                                             <div className="min-w-0 flex-1 pr-4">
                                                 <div className="flex items-center gap-2 mb-0.5">
                                                     <span className="font-bold text-sm text-gray-800 truncate">{p.name}</span>
@@ -759,19 +766,28 @@ export default function PosPage() {
                                             key={p._id}
                                             onClick={() => addToCart(p)}
                                             disabled={outOfStock}
-                                            className={`relative text-left bg-white border rounded-xl p-3 flex flex-col justify-between transition-all min-h-[96px] ${outOfStock
+                                            className={`relative text-left bg-white border rounded-xl p-3 flex flex-col justify-between transition-all min-h-[160px] ${outOfStock
                                                 ? 'opacity-50 cursor-not-allowed'
                                                 : 'hover:shadow-md active:scale-95 hover:border-primary-300'
                                                 } ${inCart > 0 ? 'border-primary-500 bg-primary-50/50 ring-1 ring-primary-500' : ''}`}>
-                                            <div>
-                                                <p className="text-xs font-bold text-gray-800 line-clamp-2 mb-0.5 leading-snug">{p.name}</p>
-                                                <p className="text-[10px] text-gray-400 font-mono">{p.productCode}</p>
+                                            <div className="w-full h-20 rounded-lg border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden mb-2">
+                                                {p.image ? (
+                                                    <img src={p.image} alt={p.name} className="w-full h-full object-contain" />
+                                                ) : (
+                                                    <Package size={24} className="text-gray-300" />
+                                                )}
                                             </div>
-                                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
-                                                <p className="text-xs font-extrabold text-primary-600">{fmt(p.basePrice)}</p>
-                                                <span className={`text-[10px] font-bold ${outOfStock ? 'text-red-500' : available <= 5 ? 'text-amber-500' : 'text-green-600'}`}>
-                                                    {outOfStock ? 'Out' : `${available} Left`}
-                                                </span>
+                                            <div className="flex-1 flex flex-col justify-between">
+                                                <div>
+                                                    <p className="text-xs font-bold text-gray-800 line-clamp-2 mb-0.5 leading-snug">{p.name}</p>
+                                                    <p className="text-[10px] text-gray-400 font-mono">{p.productCode}</p>
+                                                </div>
+                                                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                                                    <p className="text-xs font-extrabold text-primary-600">{fmt(p.basePrice)}</p>
+                                                    <span className={`text-[10px] font-bold ${outOfStock ? 'text-red-500' : available <= 5 ? 'text-amber-500' : 'text-green-600'}`}>
+                                                        {outOfStock ? 'Out' : `${available} Left`}
+                                                    </span>
+                                                </div>
                                             </div>
                                             {inCart > 0 && (
                                                 <div className="absolute top-1.5 right-1.5">

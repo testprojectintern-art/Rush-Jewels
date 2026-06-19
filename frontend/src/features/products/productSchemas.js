@@ -36,6 +36,7 @@ export const productFormSchema = z.object({
     allowBackorder: z.boolean().optional(),
     status: z.enum(['active', 'inactive', 'draft', 'discontinued']),
     notes: z.string().max(1000).optional().or(z.literal('')),
+    image: z.string().optional().or(z.literal('')),
     productNature: z.enum(['single', 'variable', 'combo']).optional(),
     variations: z.array(z.object({
         sku: z.string().optional().or(z.literal('')),

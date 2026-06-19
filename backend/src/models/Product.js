@@ -171,6 +171,7 @@ const productSchema = new mongoose.Schema(
         },
 
         notes: { type: String, trim: true, maxlength: 1000 },
+        image: { type: String },
 
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,

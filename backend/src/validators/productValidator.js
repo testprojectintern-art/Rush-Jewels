@@ -87,6 +87,7 @@ export const createProductSchema = z.object({
     }).optional(),
     status: z.enum(['active', 'inactive', 'draft', 'discontinued']).optional(),
     notes: z.string().max(1000).optional(),
+    image: z.string().optional(),
 });
 
 export const updateProductSchema = createProductSchema.partial();

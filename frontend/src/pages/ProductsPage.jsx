@@ -70,9 +70,18 @@ export default function ProductsPage() {
             key: 'name',
             label: 'Product',
             render: (row) => (
-                <div>
-                    <p className="font-medium text-gray-900">{row.name}</p>
-                    {row.sku && <p className="text-xs text-gray-500">SKU: {row.sku}</p>}
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
+                        {row.image ? (
+                            <img src={row.image} alt={row.name} className="w-full h-full object-contain" />
+                        ) : (
+                            <Package size={20} className="text-gray-400" />
+                        )}
+                    </div>
+                    <div className="min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{row.name}</p>
+                        {row.sku && <p className="text-xs text-gray-500">SKU: {row.sku}</p>}
+                    </div>
                 </div>
             ),
         },

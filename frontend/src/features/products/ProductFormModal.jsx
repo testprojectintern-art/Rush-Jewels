@@ -22,6 +22,7 @@ const tabs = [
 
 export default function ProductFormModal({ isOpen, onClose, product = null }) {
     const [activeTab, setActiveTab] = useState('basic');
+    const [imageUrlInput, setImageUrlInput] = useState('');
     const isEdit = !!product;
 
     const { data: categoriesData } = useCategories();
@@ -58,6 +59,10 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
             tierPricing: [],
             categoryName: '',
             brandName: '',
+            image: '',
+            canBeSold: true,
+            canBePurchased: true,
+            canBeManufactured: false,
         },
     });
 
@@ -75,6 +80,67 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
         control,
         name: 'comboItems',
     });
+
+    const parseImageUrl = (url) => {
+        if (!url) return '';
+        const driveRegex = /\/d\/([a-zA-Z0-9_-]{25,})|id=([a-zA-Z0-9_-]{25,})/;
+        const match = url.match(driveRegex);
+        if (match) {
+            const fileId = match[1] || match[2];
+            if (fileId) {
+                return `https://lh3.googleusercontent.com/d/${fileId}`;
+            }
+        }
+        return url;
+    };
+
+    const handleUrlChange = (e) => {
+        const val = e.target.value;
+        setImageUrlInput(val);
+        const parsed = parseImageUrl(val);
+        setValue('image', parsed);
+    };
+
+    const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 400;
+                const MAX_HEIGHT = 400;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                setValue('image', dataUrl);
+                setImageUrlInput('');
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
 
     // When opening in edit mode, populate form
     useEffect(() => {
@@ -123,7 +189,13 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                     priceContribution: item.priceContribution
                 })) || [],
                 notes: product.notes || '',
+                image: product.image || '',
             });
+            if (product.image && product.image.startsWith('http')) {
+                setImageUrlInput(product.image);
+            } else {
+                setImageUrlInput('');
+            }
         } else if (isOpen && !product) {
             // Reset to defaults when creating new
             reset({
@@ -145,7 +217,12 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                 comboItems: [],
                 categoryName: '',
                 brandName: '',
+                image: '',
+                canBeSold: true,
+                canBePurchased: true,
+                canBeManufactured: false,
             });
+            setImageUrlInput('');
         }
         setActiveTab('basic');
     }, [isOpen, product, reset]);
@@ -196,6 +273,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
             },
             status: data.status,
             notes: data.notes || undefined,
+            image: data.image || undefined,
             tierPricing: data.tierPricing || [],
             productNature: data.productNature,
             variations: data.productNature === 'variable' ? data.variations : [],
@@ -353,6 +431,77 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                                     <input type="checkbox" {...register('canBeManufactured')} />
                                     Can be manufactured
                                 </label>
+                            </div>
+                            {/* Product Image Input */}
+                            <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-gray-100/50 dark:bg-gray-800/40 space-y-4">
+                                <label className="block text-sm font-bold text-gray-800">Product Image (Watch Photo)</label>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {/* Preview Panel */}
+                                    <div className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg p-2 flex flex-col items-center justify-center min-h-[160px] relative overflow-hidden group">
+                                        {watch('image') ? (
+                                            <>
+                                                <img 
+                                                    src={watch('image')} 
+                                                    alt="Product Preview" 
+                                                    className="max-h-[144px] w-full object-contain rounded"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setValue('image', '');
+                                                        setImageUrlInput('');
+                                                    }}
+                                                    className="absolute inset-0 bg-black/40 text-white font-semibold flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 rounded"
+                                                >
+                                                    Remove Image
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <div className="text-center text-gray-500 p-4">
+                                                <svg className="w-10 h-10 mx-auto mb-2 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                <span className="text-xs font-semibold">No Image Selected</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Input Methods */}
+                                    <div className="md:col-span-2 flex flex-col justify-center space-y-3">
+                                        {/* Upload Method */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-700 mb-1">Option A: Upload Image File</label>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                                className="block w-full text-sm text-gray-500 dark:text-gray-400
+                                                    file:mr-4 file:py-2 file:px-4
+                                                    file:rounded-full file:border-0
+                                                    file:text-sm file:font-semibold
+                                                    file:bg-primary-50 file:text-primary-700
+                                                    hover:file:bg-primary-100 file:cursor-pointer"
+                                            />
+                                            <p className="text-[10px] text-gray-500 mt-1">Accepts PNG, JPG. Auto-compresses for fast loading.</p>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <span className="h-[1px] bg-gray-300 dark:bg-gray-700 flex-1"></span>
+                                            <span className="text-[10px] font-bold text-gray-500 uppercase">OR</span>
+                                            <span className="h-[1px] bg-gray-300 dark:bg-gray-700 flex-1"></span>
+                                        </div>
+
+                                        {/* URL Method */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-700 mb-1">Option B: Paste Image URL / Google Drive Share Link</label>
+                                            <input
+                                                type="text"
+                                                placeholder="https://example.com/watch.jpg or Google Drive Link"
+                                                value={imageUrlInput}
+                                                onChange={handleUrlChange}
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <Textarea label="Description" rows={3} error={errors.description?.message} {...register('description')} />
                             <Textarea label="Internal Notes" rows={2} error={errors.notes?.message} {...register('notes')} />
