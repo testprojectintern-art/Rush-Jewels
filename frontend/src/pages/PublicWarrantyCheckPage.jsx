@@ -52,7 +52,7 @@ export default function PublicWarrantyCheckPage() {
                     <div className="inline-flex items-center justify-center w-14 h-14 bg-indigo-650/15 border border-indigo-500/20 text-indigo-400 rounded-2xl mb-4">
                         <Watch size={30} className="animate-pulse" />
                     </div>
-                    <h1 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">Hoorawa Watch Portal</h1>
+                    <h1 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">Rush Jewels Portal</h1>
                     <p className="text-xs text-slate-450 mt-1.5 font-medium">Verify watch authenticity & check active warranty status</p>
                 </div>
 
@@ -102,7 +102,7 @@ export default function PublicWarrantyCheckPage() {
                                     </div>
                                     <div>
                                         <p className="text-xs font-bold text-emerald-400">Watch Verified Authentic</p>
-                                        <p className="text-[10px] text-slate-400 mt-0.5">Officially cataloged in Hoorawa inventory</p>
+                                        <p className="text-[10px] text-slate-400 mt-0.5">Officially cataloged in Rush Jewels inventory</p>
                                     </div>
                                 </div>
 
@@ -168,7 +168,7 @@ export default function PublicWarrantyCheckPage() {
             
             {/* Footer */}
             <p className="text-[10px] text-slate-650 font-medium mt-8 relative z-10">
-                &copy; {new Date().getFullYear()} Hoorawa Watch Pvt Ltd. All rights reserved.
+                &copy; {new Date().getFullYear()} Rush Jewels. All rights reserved.
             </p>
         </div>
     );

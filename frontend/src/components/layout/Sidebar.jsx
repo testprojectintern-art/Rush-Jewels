@@ -260,7 +260,7 @@ export default function Sidebar({ userRole, isOpen, onClose }) {
                                 <Package className="w-6 h-6 text-white" />
                             </div>
                             <div className="flex items-center gap-2">
-                                <h2 className="font-bold text-gray-900 text-xl tracking-tight">Hoorawa POS</h2>
+                                <h2 className="font-bold text-gray-900 text-xl tracking-tight">Rush Jewels</h2>
                             </div>
                         </div>
                         <button
