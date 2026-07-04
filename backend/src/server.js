@@ -64,8 +64,20 @@ const app = express();
 
 // Security & parsing middleware
 app.use(helmet());
+
+// CORS - allow Netlify frontend + localhost dev
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+
 app.use(cors({
-    origin: true, // Allow all origins in dev, or use the logic below
+    origin: (origin, callback) => {
+        // Allow requests with no origin (e.g. Render health checks, curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        callback(new Error(`CORS: Origin ${origin} not allowed`));
+    },
     credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
