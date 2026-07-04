@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Eye, EyeOff, Package, Sun, Moon, Watch, Clock, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Sun, Moon, Gem, Sparkles, Star, Crown } from 'lucide-react';
 
 import { authApi } from '../features/auth/authApi';
 import { loginSchema } from '../features/auth/authSchemas';
@@ -74,85 +74,106 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 font-sans">
-            
-            {/* Left Side: Premium watch image cover panel (Visible only on md screens and up) */}
+
+            {/* ── Left Side: Luxury Jewelry Cover Panel ── */}
             <div className="hidden lg:flex lg:w-7/12 xl:w-8/12 relative overflow-hidden bg-slate-900">
+
                 {/* Background Image */}
-                <div 
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[10s] hover:scale-105"
-                    style={{ backgroundImage: 'url("/luxury_watch_login.png")' }}
+                <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[12s] hover:scale-105"
+                    style={{ backgroundImage: 'url("/luxury_jewelry_login.png")' }}
                 />
-                
-                {/* Modern Dark Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-900/70 to-transparent opacity-90" />
-                
+
+                {/* Rich Dark Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-purple-950/60 to-rose-950/30 opacity-90" />
+
+                {/* Shimmer accent lines */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rose-400/60 to-transparent" />
+                <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
+
                 {/* Content Overlay */}
                 <div className="relative z-10 flex flex-col justify-between w-full h-full p-12 text-white">
+
                     {/* Top: Branding */}
                     <div className="flex items-center space-x-3">
-                        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 backdrop-blur-md">
-                            <Watch className="w-6 h-6 text-amber-500" />
+                        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-400/30 backdrop-blur-md shadow-lg shadow-rose-500/10">
+                            <Gem className="w-6 h-6 text-rose-300" />
                         </div>
                         <div>
-                            <span className="text-xl font-bold tracking-wider bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500 bg-clip-text text-transparent">
-                                HOORAWA
+                            <span className="text-xl font-bold tracking-widest bg-gradient-to-r from-rose-200 via-amber-200 to-yellow-300 bg-clip-text text-transparent">
+                                RUSH JEWELS
                             </span>
                             <span className="block text-[10px] tracking-widest text-slate-400 uppercase font-mono">
-                                POS & DISTRIBUTION
+                                POS &amp; Management System
                             </span>
                         </div>
                     </div>
 
-                    {/* Middle: Floating Premium Feature Cards */}
+                    {/* Middle: Feature Cards */}
                     <div className="max-w-md space-y-6">
-                        <div className="space-y-2">
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2">
+                                <Crown size={16} className="text-amber-400" />
+                                <span className="text-xs font-semibold uppercase tracking-widest text-amber-400/80">Premium Jewellery</span>
+                            </div>
                             <h2 className="text-4xl font-extrabold tracking-tight leading-tight">
-                                Precision in Time,<br />
-                                <span className="bg-gradient-to-r from-amber-300 to-yellow-500 bg-clip-text text-transparent">
-                                    Excellence in Business.
+                                Timeless Elegance,<br />
+                                <span className="bg-gradient-to-r from-rose-300 via-amber-300 to-yellow-400 bg-clip-text text-transparent">
+                                    Precious Excellence.
                                 </span>
                             </h2>
                             <p className="text-slate-300 text-sm leading-relaxed">
-                                Manage inventory, sales tracking, warehouse logistics, and employee attendance under a single unified dashboard built for luxury watch distribution.
+                                Manage your jewellery inventory, sales, customer orders, and staff — all from one powerful, elegant dashboard built for luxury retail.
                             </p>
                         </div>
 
                         {/* Floating Stats Board */}
-                        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-lg space-y-4 shadow-2xl">
-                            <div className="flex items-center space-x-3 text-amber-400">
+                        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-700/60 backdrop-blur-lg space-y-4 shadow-2xl shadow-black/40">
+                            <div className="flex items-center space-x-3 text-rose-400">
                                 <Sparkles size={16} />
-                                <span className="text-xs font-semibold uppercase tracking-wider">System Snapshot</span>
+                                <span className="text-xs font-semibold uppercase tracking-wider">System Highlights</span>
                             </div>
                             <div className="grid grid-cols-2 gap-4 text-left">
                                 <div>
-                                    <span className="block text-2xl font-bold text-white">46+</span>
-                                    <span className="text-[10px] text-slate-400 uppercase font-medium">Premium Brands & Models</span>
+                                    <span className="block text-2xl font-bold text-white">100%</span>
+                                    <span className="text-[10px] text-slate-400 uppercase font-medium">Real-time Stock Tracking</span>
                                 </div>
                                 <div>
-                                    <span className="block text-2xl font-bold text-white">100%</span>
-                                    <span className="text-[10px] text-slate-400 uppercase font-medium">Real-time Stock Control</span>
+                                    <span className="block text-2xl font-bold text-white">Gold &amp; Gems</span>
+                                    <span className="text-[10px] text-slate-400 uppercase font-medium">Full Product Management</span>
+                                </div>
+                                <div>
+                                    <span className="block text-2xl font-bold text-white">POS</span>
+                                    <span className="text-[10px] text-slate-400 uppercase font-medium">Cashier &amp; Sales Point</span>
+                                </div>
+                                <div>
+                                    <span className="block text-2xl font-bold text-white">Reports</span>
+                                    <span className="text-[10px] text-slate-400 uppercase font-medium">Financial &amp; Analytics</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Bottom: Luxury Motto */}
+                    {/* Bottom: Motto */}
                     <div className="flex items-center space-x-2 text-xs text-slate-400 font-mono">
-                        <Clock size={14} className="text-amber-500" />
-                        <span>TIMEPIECE RETAIL & WHOLESALE ENTERPRISE</span>
+                        <Star size={12} className="text-amber-400 fill-amber-400" />
+                        <span>LUXURY JEWELLERY RETAIL &amp; WHOLESALE ENTERPRISE</span>
                     </div>
                 </div>
             </div>
 
-            {/* Right Side: Professional Glassmorphic Login Form */}
-            <div className="w-full lg:w-5/12 xl:w-4/12 flex flex-col justify-between p-8 md:p-12 bg-white dark:bg-slate-950 relative shadow-2xl border-l border-slate-100 dark:border-slate-900">
-                
+            {/* ── Right Side: Login Form ── */}
+            <div className="w-full lg:w-5/12 xl:w-4/12 flex flex-col justify-between p-8 md:p-12 bg-white dark:bg-slate-950 relative shadow-2xl border-l border-slate-100 dark:border-slate-800">
+
+                {/* Top accent line */}
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-rose-500 via-amber-400 to-purple-500 opacity-80" />
+
                 {/* Header Section */}
                 <div className="flex justify-between items-center">
-                    {/* Small brand shown on mobile */}
+                    {/* Small brand on mobile */}
                     <div className="flex lg:hidden items-center space-x-2">
-                        <Watch className="w-6 h-6 text-amber-500" />
-                        <span className="font-bold tracking-wider text-slate-900 dark:text-white">HOORAWA</span>
+                        <Gem className="w-5 h-5 text-rose-500" />
+                        <span className="font-bold tracking-widest text-slate-900 dark:text-white text-sm">RUSH JEWELS</span>
                     </div>
                     <div className="lg:block hidden" />
 
@@ -161,20 +182,32 @@ export default function LoginPage() {
                         type="button"
                         onClick={() => setIsDark(!isDark)}
                         className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-200"
-                        title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                        title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                     >
-                        {isDark ? <Sun size={18} className="text-amber-500" /> : <Moon size={18} className="text-indigo-600" />}
+                        {isDark ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-500" />}
                     </button>
                 </div>
 
                 {/* Form Main Container */}
                 <div className="my-auto max-w-sm w-full mx-auto space-y-8">
+
+                    {/* Brand mark (desktop) */}
+                    <div className="hidden lg:flex items-center space-x-3 mb-2">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500/20 to-amber-500/20 border border-rose-400/30 flex items-center justify-center">
+                            <Gem size={18} className="text-rose-400" />
+                        </div>
+                        <div>
+                            <span className="font-bold tracking-widest text-slate-900 dark:text-white text-sm">RUSH JEWELS</span>
+                            <span className="block text-[9px] tracking-widest text-slate-400 uppercase">Management Portal</span>
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
                         <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            Sign In
+                            Welcome Back
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Enter your credentials to access the Hoorawa POS portal.
+                            Sign in to access the <span className="text-rose-500 font-medium">Rush Jewels</span> POS &amp; Management portal.
                         </p>
                     </div>
 
@@ -183,7 +216,7 @@ export default function LoginPage() {
                             <Input
                                 label="Email Address"
                                 type="email"
-                                placeholder="admin@example.com"
+                                placeholder="admin@rushjewels.com"
                                 required
                                 error={errors.email?.message}
                                 {...register('email')}
@@ -202,7 +235,7 @@ export default function LoginPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3.5 top-[38px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
+                                className="absolute right-3.5 top-[38px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
@@ -213,22 +246,27 @@ export default function LoginPage() {
                             variant="primary"
                             fullWidth
                             loading={loginMutation.isPending}
-                            className="w-full py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 shadow-md shadow-amber-500/10 hover:shadow-lg hover:shadow-amber-500/20 active:scale-[0.98] transition-all duration-200"
+                            className="w-full py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 hover:from-rose-600 hover:via-pink-600 hover:to-amber-600 shadow-md shadow-rose-500/20 hover:shadow-lg hover:shadow-rose-500/30 active:scale-[0.98] transition-all duration-200"
                         >
-                            {loginMutation.isPending ? 'Authenticating...' : 'Secure Sign In'}
+                            {loginMutation.isPending ? 'Authenticating...' : '✦ Secure Sign In'}
                         </Button>
                     </form>
 
                     <div className="text-center">
-                        <a href="#" className="text-xs font-medium text-amber-600 dark:text-amber-500 hover:underline">
+                        <a href="#" className="text-xs font-medium text-rose-500 dark:text-rose-400 hover:underline">
                             Forgot your password? Contact system administrator.
                         </a>
                     </div>
                 </div>
 
                 {/* Footer Section */}
-                <div className="text-center text-xs text-slate-400 dark:text-slate-500">
-                    <p>© 2026 Hoorawa Watch Shop. All rights reserved.</p>
+                <div className="text-center text-xs text-slate-400 dark:text-slate-500 space-y-1">
+                    <div className="flex items-center justify-center space-x-1 text-slate-300 dark:text-slate-600">
+                        <div className="h-px w-8 bg-current" />
+                        <Gem size={10} className="text-rose-400/60" />
+                        <div className="h-px w-8 bg-current" />
+                    </div>
+                    <p>© 2026 Rush Jewels. All rights reserved.</p>
                 </div>
             </div>
         </div>
