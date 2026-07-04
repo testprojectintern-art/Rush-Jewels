@@ -66,10 +66,19 @@ const app = express();
 app.use(helmet());
 
 // CORS - allow Netlify frontend + localhost dev
-const allowedOrigins = (process.env.FRONTEND_URL || '')
+// Always include the production domains as safe defaults
+const defaultOrigins = [
+    'https://rush-jewels.netlify.app',
+    'http://localhost:5173',
+    'http://localhost:5174',
+];
+const envOrigins = (process.env.FRONTEND_URL || '')
     .split(',')
     .map(o => o.trim())
     .filter(Boolean);
+
+// Merge and deduplicate
+const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
 
 app.use(cors({
     origin: (origin, callback) => {
