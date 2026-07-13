@@ -150,34 +150,35 @@ export default function PublicCatalogPage() {
 
             {/* Elegant Glassmorphic Navbar */}
             <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-900 transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                        <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 p-[1px] shadow-md shadow-amber-500/10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
+                    <div className="flex items-center space-x-2 sm:space-x-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                        <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 p-[1px] shadow-md shadow-amber-500/10">
                             <div className="w-full h-full bg-white dark:bg-slate-900 rounded-[11px] flex items-center justify-center">
-                                <Gem className="w-5.5 h-5.5 text-amber-500 animate-pulse" />
+                                <Gem className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 text-amber-500 animate-pulse" />
                             </div>
                         </div>
                         <div>
                             <span 
-                                className="text-xl font-black tracking-wider bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent block"
+                                className="text-base sm:text-xl font-black tracking-wider bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent block"
                                 style={{ fontFamily: "'Playfair Display', serif" }}
                             >
                                 RUSH JEWELS
                             </span>
-                            <span className="block text-[8px] tracking-[0.25em] text-slate-400 dark:text-slate-500 uppercase font-bold">
+                            <span className="hidden sm:block text-[8px] tracking-[0.25em] text-slate-400 dark:text-slate-500 uppercase font-bold">
                                 Luxury Jewelry Collection
                             </span>
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 sm:space-x-4">
                         {/* Warranty Verification Link */}
                         <button
                             onClick={() => navigate('/public-warranty-check')}
-                            className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-650 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 border border-transparent hover:border-slate-200 dark:hover:border-slate-800 transition-all duration-200 flex items-center space-x-1.5 active:scale-95"
+                            title="Verify Warranty"
+                            className="px-2.5 sm:px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-650 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 border border-transparent hover:border-slate-200 dark:hover:border-slate-800 transition-all duration-200 flex items-center space-x-1.5 active:scale-95"
                         >
-                            <ShieldCheck size={14} className="text-amber-500" />
-                            <span>Verify Warranty</span>
+                            <ShieldCheck size={15} className="text-amber-500" />
+                            <span className="hidden md:inline">Verify Warranty</span>
                         </button>
 
                         {/* Theme Toggle */}
@@ -192,10 +193,11 @@ export default function PublicCatalogPage() {
                         {/* Staff Portal CTA Button */}
                         <button
                             onClick={() => navigate('/portal-select')}
-                            className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 shadow-md shadow-amber-500/10 hover:shadow-lg hover:shadow-amber-500/20 active:scale-95 transition-all duration-200 flex items-center space-x-2 border border-amber-400/20"
+                            title="Staff Portal Login"
+                            className="px-2.5 sm:px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 shadow-md shadow-amber-500/10 hover:shadow-lg hover:shadow-amber-500/20 active:scale-95 transition-all duration-200 flex items-center space-x-2 border border-amber-400/20"
                         >
-                            <UserCheck size={14} />
-                            <span>Staff Portal</span>
+                            <UserCheck size={15} />
+                            <span className="hidden sm:inline">Staff Portal</span>
                         </button>
                     </div>
                 </div>
@@ -291,8 +293,8 @@ export default function PublicCatalogPage() {
                 </div>
 
                 {/* Categories Navigation Bar */}
-                <div className="flex flex-wrap items-center gap-2.5 pb-2 border-b border-slate-200/50 dark:border-slate-900/50">
-                    <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mr-2 flex items-center space-x-1">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/50 dark:border-slate-900/50 overflow-x-auto no-scrollbar flex-nowrap md:flex-wrap">
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mr-2 flex items-center space-x-1 flex-shrink-0">
                         <Layers size={10} />
                         <span>Filter Categories:</span>
                     </span>
@@ -300,7 +302,7 @@ export default function PublicCatalogPage() {
                         <button
                             key={cat}
                             onClick={() => setSelectedCategory(cat)}
-                            className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-250 border ${
+                            className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-250 border flex-shrink-0 ${
                                 selectedCategory === cat
                                     ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-500/10'
                                     : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-900 text-slate-500 dark:text-slate-400 hover:border-amber-500/30 hover:text-amber-500'

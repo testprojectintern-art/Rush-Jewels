@@ -361,3 +361,12 @@ html.dark .glass-panel {
   animation: pulse-gradient 20s ease-in-out infinite;
   will-change: opacity;
 }
+
+/* Reusable utility to hide scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
