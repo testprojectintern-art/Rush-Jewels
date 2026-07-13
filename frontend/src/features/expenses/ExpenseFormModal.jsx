@@ -19,6 +19,7 @@ const DEFAULT_CATEGORIES = [
     'Utilities',
     'Rent',
     'Marketing',
+    'Bank',
     'General / Other',
 ];
 
@@ -26,6 +27,7 @@ export default function ExpenseFormModal({ isOpen, onClose }) {
     const queryClient = useQueryClient();
     const [categoryInput, setCategoryInput] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
     const categoryRef = useRef(null);
 
     const { data: categoriesData } = useQuery({
@@ -41,7 +43,7 @@ export default function ExpenseFormModal({ isOpen, onClose }) {
         ? allCategories.filter(c => c.toLowerCase().includes(categoryInput.toLowerCase()))
         : allCategories;
 
-    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
+    const { register, handleSubmit, reset } = useForm({
         defaultValues: {
             date: new Date().toISOString().split('T')[0],
             amount: '',
@@ -49,15 +51,6 @@ export default function ExpenseFormModal({ isOpen, onClose }) {
             description: ''
         }
     });
-
-    useEffect(() => {
-        if (!isOpen) {
-            setCategoryInput('');
-            setShowSuggestions(false);
-        } else {
-            setCategoryInput('');
-        }
-    }, [isOpen]);
 
     // Close suggestions on outside click
     useEffect(() => {
@@ -92,6 +85,35 @@ export default function ExpenseFormModal({ isOpen, onClose }) {
         createMutation.mutate({ ...data, category: categoryInput.trim() });
     };
 
+    const handleKeyDown = (e) => {
+        if (!showSuggestions) return;
+
+        const showAddOption = categoryInput && !allCategories.some(c => c.toLowerCase() === categoryInput.toLowerCase());
+        const totalOptions = filteredSuggestions.length + (showAddOption ? 1 : 0);
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActiveSuggestionIndex((prev) => (prev + 1) % totalOptions);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActiveSuggestionIndex((prev) => (prev - 1 + totalOptions) % totalOptions);
+        } else if (e.key === 'Enter') {
+            if (activeSuggestionIndex >= 0 && activeSuggestionIndex < totalOptions) {
+                e.preventDefault();
+                if (activeSuggestionIndex < filteredSuggestions.length) {
+                    const selectedCat = filteredSuggestions[activeSuggestionIndex];
+                    setCategoryInput(selectedCat);
+                }
+                setShowSuggestions(false);
+                setActiveSuggestionIndex(-1);
+            }
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setShowSuggestions(false);
+            setActiveSuggestionIndex(-1);
+        }
+    };
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Record Expense" size="md">
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -111,17 +133,24 @@ export default function ExpenseFormModal({ isOpen, onClose }) {
                             onChange={(e) => {
                                 setCategoryInput(e.target.value);
                                 setShowSuggestions(true);
+                                setActiveSuggestionIndex(-1);
                             }}
-                            onFocus={() => setShowSuggestions(true)}
+                            onFocus={() => {
+                                setShowSuggestions(true);
+                                setActiveSuggestionIndex(-1);
+                            }}
+                            onKeyDown={handleKeyDown}
                             autoComplete="off"
                         />
                         {showSuggestions && filteredSuggestions.length > 0 && (
                             <div className="absolute left-0 right-0 top-full z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden max-h-52 overflow-y-auto">
-                                {filteredSuggestions.map((cat) => (
+                                {filteredSuggestions.map((cat, idx) => (
                                     <button
                                         key={cat}
                                         type="button"
-                                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-primary-50 transition-colors border-b last:border-0 font-medium text-gray-700"
+                                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-b last:border-0 font-medium text-gray-700 ${
+                                            idx === activeSuggestionIndex ? 'bg-primary-50' : 'hover:bg-primary-50'
+                                        }`}
                                         onMouseDown={(e) => {
                                             e.preventDefault();
                                             setCategoryInput(cat);
@@ -134,7 +163,9 @@ export default function ExpenseFormModal({ isOpen, onClose }) {
                                 {categoryInput && !allCategories.some(c => c.toLowerCase() === categoryInput.toLowerCase()) && (
                                     <button
                                         type="button"
-                                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-green-50 transition-colors text-green-700 font-semibold flex items-center gap-2"
+                                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors text-green-700 font-semibold flex items-center gap-2 ${
+                                            activeSuggestionIndex === filteredSuggestions.length ? 'bg-green-50' : 'hover:bg-green-50'
+                                        }`}
                                         onMouseDown={(e) => {
                                             e.preventDefault();
                                             setShowSuggestions(false);

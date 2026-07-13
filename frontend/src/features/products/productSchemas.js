@@ -25,6 +25,7 @@ export const productFormSchema = z.object({
     callPrice: z.coerce.number().min(0, 'Call Price must be 0 or greater').optional(),
     taxRate: z.coerce.number().min(0).max(100).optional(),
     taxable: z.boolean().optional(),
+    warrantyPeriod: z.coerce.number().min(0).optional().default(12),
     hsCode: z.string().max(20).optional().or(z.literal('')),
     minimumLevel: z.coerce.number().min(0).optional(),
     reorderLevel: z.coerce.number().min(0).optional(),

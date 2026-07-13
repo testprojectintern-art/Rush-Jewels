@@ -54,8 +54,19 @@ const ThermalReceipt = forwardRef(({ invoice, payments = [], companyInfo: propCo
             
             {/* Header section with professional styling */}
             <div className="text-center mb-4">
-                {companyInfo.logo && (
+                {companyInfo.logo ? (
                     <img src={companyInfo.logo} alt="Logo" className="max-w-[120px] mx-auto mb-3 grayscale" />
+                ) : (
+                    <div className="mb-2 flex justify-center">
+                        <svg className="w-14 h-14 text-black" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <circle cx="50" cy="50" r="38" strokeWidth="3.5" />
+                            <circle cx="50" cy="50" r="32" strokeDasharray="3,4" strokeWidth="1.5" />
+                            <path d="M50 50 L50 22" strokeLinecap="round" strokeWidth="3.5" />
+                            <path d="M50 50 L68 50" strokeLinecap="round" strokeWidth="2.5" />
+                            <path d="M88 45 L88 55 M91 47 L91 53" strokeLinecap="round" strokeWidth="2" />
+                            <circle cx="50" cy="50" r="3" fill="currentColor" />
+                        </svg>
+                    </div>
                 )}
                 <h1 className="text-xl font-black mb-1 uppercase tracking-wider">{companyInfo.name}</h1>
                 <div className="text-xs text-gray-800 leading-snug font-medium">

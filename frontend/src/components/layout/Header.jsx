@@ -57,9 +57,18 @@ export default function Header({ onToggleSidebar }) {
                 </button>
                 <div className="hidden md:block">
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Workspace</p>
-                    <h1 className="text-sm font-bold text-gray-900">
-                        Main Branch
-                    </h1>
+                    <button
+                        onClick={() => navigate('/portal-select')}
+                        className="text-sm font-bold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 transition"
+                        title="Switch Portal"
+                    >
+                        {user?.activePortal === 'owner_dashboard' 
+                            ? 'Executive Dashboard' 
+                            : user?.activePortal === 'online_orders' 
+                            ? 'Online Orders POS' 
+                            : 'Main POS & ERP'}
+                        <span className="text-[9px] font-normal text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded hover:bg-gray-200">(Switch)</span>
+                    </button>
                 </div>
             </div>
 

@@ -44,9 +44,9 @@ export const hrReportsApi = {
     payrollSummary: async (params = {}) => (await api.get('/reports/hr/payroll-summary', { params })).data,
 };
 
-export const watchReportsApi = {
-    agingStock: async (params = {}) => (await api.get('/reports/watch/aging-stock', { params })).data,
-    brandProfitability: async (params = {}) => (await api.get('/reports/watch/brand-profitability', { params })).data,
-    aovAndBundles: async (params = {}) => (await api.get('/reports/watch/aov-bundles', { params })).data,
-    seasonality: async (params = {}) => (await api.get('/reports/watch/seasonality', { params })).data,
+export const jewelryReportsApi = {
+    agingStock: async (params = {}) => (await api.get('/reports/jewelry/aging-stock', { params })).data,
+    brandProfitability: async (params = {}) => (await api.get('/reports/jewelry/brand-profitability', { params })).data,
+    aovAndBundles: async (params = {}) => (await api.get('/reports/jewelry/aov-bundles', { params })).data,
+    seasonality: async (params = {}) => (await api.get('/reports/jewelry/seasonality', { params })).data,
 };

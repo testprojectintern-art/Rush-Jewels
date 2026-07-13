@@ -30,6 +30,11 @@ const billLineItemSchema = new mongoose.Schema({
 
 const billSchema = new mongoose.Schema({
     billNumber: { type: String, unique: true, trim: true, uppercase: true },
+    portal: {
+        type: String,
+        enum: ['main', 'online_orders'],
+        default: 'main',
+    },
     supplierInvoiceNumber: { type: String, trim: true }, // supplier's own number
 
     supplierId: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier', required: true },

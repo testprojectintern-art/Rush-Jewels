@@ -1,10 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { settingsApi } from './settingsApi';
+import { useAuthStore } from '../../store/authStore';
 
 export const useCompanySettings = () => {
+    const isAuthenticated = useAuthStore(state => state.isAuthenticated);
     return useQuery({
         queryKey: ['company-settings'],
         queryFn: settingsApi.getCompanySettings,
+        enabled: isAuthenticated,
     });
 };
 

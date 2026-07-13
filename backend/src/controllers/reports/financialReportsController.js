@@ -7,6 +7,7 @@ import Expense from '../../models/Expense.js';
 import CustomerReturn from '../../models/CustomerReturn.js';
 import { updateInvoiceAging } from '../invoiceController.js';
 import { updateBillAging } from '../billController.js';
+import { getPortalFilter } from '../../utils/portalFilter.js';
 
 /**
  * GET /api/reports/financial/snapshot
@@ -16,37 +17,38 @@ export const getFinancialSnapshot = asyncHandler(async (req, res) => {
     await updateInvoiceAging();
     await updateBillAging();
     const { startDate, endDate } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
 
     const [revenue, bills, generalExpenses, collected, paymentsPaid, generalExpensesPaid, arTotal, apTotal, customerReturns] = await Promise.all([
         Invoice.aggregate([
-            { $match: { deletedAt: null, status: { $nin: ['draft', 'void', 'cancelled'] }, invoiceDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, status: { $nin: ['draft', 'void', 'cancelled'] }, invoiceDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: null, total: { $sum: '$grandTotal' } } },
         ]),
         Bill.aggregate([
-            { $match: { deletedAt: null, billDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, billDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: null, total: { $sum: '$grandTotal' } } },
         ]),
         Expense.aggregate([
-            { $match: { deletedAt: null, status: { $ne: 'cancelled' }, date: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, status: { $ne: 'cancelled' }, date: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
         ]),
         Payment.aggregate([
-            { $match: { deletedAt: null, direction: 'received', paymentDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, direction: 'received', paymentDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
         ]),
         Payment.aggregate([
-            { $match: { deletedAt: null, direction: 'paid', paymentDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, direction: 'paid', paymentDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
         ]),
         Expense.aggregate([
-            { $match: { deletedAt: null, status: 'paid', date: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, status: 'paid', date: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
         ]),
         Invoice.aggregate([
-            { $match: { deletedAt: null, paymentStatus: { $in: ['unpaid', 'partially_paid', 'overdue'] } } },
+            { $match: { deletedAt: null, paymentStatus: { $in: ['unpaid', 'partially_paid', 'overdue'] }, ...getPortalFilter(portalHeader) } },
             {
                 $group: {
                     _id: null,
@@ -80,7 +82,7 @@ export const getFinancialSnapshot = asyncHandler(async (req, res) => {
             },
         ]),
         Bill.aggregate([
-            { $match: { deletedAt: null, paymentStatus: { $in: ['unpaid', 'partially_paid', 'overdue'] } } },
+            { $match: { deletedAt: null, paymentStatus: { $in: ['unpaid', 'partially_paid', 'overdue'] }, ...getPortalFilter(portalHeader) } },
             {
                 $group: {
                     _id: null,
@@ -114,7 +116,7 @@ export const getFinancialSnapshot = asyncHandler(async (req, res) => {
             },
         ]),
         CustomerReturn.aggregate([
-            { $match: { deletedAt: null, status: { $in: ['processed', 'completed'] }, requestDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, status: { $in: ['processed', 'completed'] }, requestDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: null, total: { $sum: '$netRefundAmount' } } }
         ])
     ]);

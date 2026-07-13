@@ -13,6 +13,46 @@ import Expense from '../models/Expense.js';
 import { updateInvoiceAging } from './invoiceController.js';
 import { updateBillAging } from './billController.js';
 
+// Helper to filter by active portal context
+const getPortalFilter = (req) => {
+    if (!req.portal || req.portal === 'owner_dashboard') return {};
+    if (req.portal === 'main') {
+        return {
+            $or: [
+                { portal: 'main' },
+                { portal: { $exists: false } },
+                { portal: null }
+            ]
+        };
+    } else {
+        return { portal: req.portal };
+    }
+};
+
+const addPortalMatch = (pipeline, req) => {
+    const filter = getPortalFilter(req);
+    if (Object.keys(filter).length === 0) return pipeline;
+    
+    // Copy the pipeline array and match stages manually to preserve Date objects
+    const copied = pipeline.map(stage => {
+        if (stage.$match) {
+            return { $match: { ...stage.$match, ...filter } };
+        }
+        return stage;
+    });
+
+    const hasMatch = copied.some(stage => stage.$match);
+    if (!hasMatch) {
+        copied.unshift({ $match: filter });
+    }
+    return copied;
+};
+
+const applyCountFilter = (query, req) => {
+    const filter = getPortalFilter(req);
+    return { ...query, ...filter };
+};
+
 /**
  * GET /api/dashboard/kpis
  * Main admin dashboard key metrics
@@ -39,63 +79,64 @@ export const getDashboardKpis = asyncHandler(async (req, res) => {
         currentMonthExpensesPaid, lastMonthExpensesPaid,
         currentMonthReturns, lastMonthReturns
     ] = await Promise.all([
-        Invoice.aggregate([
+        Invoice.aggregate(addPortalMatch([
             { $match: { deletedAt: null, status: { $nin: ['draft', 'void', 'cancelled'] }, invoiceDate: { $gte: startOfMonth, $lt: tomorrow } } },
             { $group: { _id: null, total: { $sum: '$grandTotal' }, count: { $sum: 1 } } },
-        ]),
-        Invoice.aggregate([
+        ], req)),
+        Invoice.aggregate(addPortalMatch([
             { $match: { deletedAt: null, status: { $nin: ['draft', 'void', 'cancelled'] }, invoiceDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
             { $group: { _id: null, total: { $sum: '$grandTotal' }, count: { $sum: 1 } } },
-        ]),
-        Bill.aggregate([
+        ], req)),
+        Bill.aggregate(addPortalMatch([
             { $match: { deletedAt: null, billDate: { $gte: startOfMonth, $lt: tomorrow } } },
             { $group: { _id: null, total: { $sum: '$grandTotal' } } },
-        ]),
-        Bill.aggregate([
+        ], req)),
+        Bill.aggregate(addPortalMatch([
             { $match: { deletedAt: null, billDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
             { $group: { _id: null, total: { $sum: '$grandTotal' } } },
-        ]),
-        Expense.aggregate([
+        ], req)),
+        Expense.aggregate(addPortalMatch([
             { $match: { deletedAt: null, status: { $ne: 'cancelled' }, date: { $gte: startOfMonth, $lt: tomorrow } } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
-        ]),
-        Expense.aggregate([
+        ], req)),
+        Expense.aggregate(addPortalMatch([
             { $match: { deletedAt: null, status: { $ne: 'cancelled' }, date: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
-        ]),
-        Payment.aggregate([
+        ], req)),
+        Payment.aggregate(addPortalMatch([
             { $match: { deletedAt: null, direction: 'received', paymentDate: { $gte: startOfMonth, $lt: tomorrow } } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
-        ]),
-        Payment.aggregate([
+        ], req)),
+        Payment.aggregate(addPortalMatch([
             { $match: { deletedAt: null, direction: 'received', paymentDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
-        ]),
-        Payment.aggregate([
+        ], req)),
+        Payment.aggregate(addPortalMatch([
             { $match: { deletedAt: null, direction: 'paid', paymentDate: { $gte: startOfMonth, $lt: tomorrow } } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
-        ]),
-        Payment.aggregate([
+        ], req)),
+        Payment.aggregate(addPortalMatch([
             { $match: { deletedAt: null, direction: 'paid', paymentDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
-        ]),
-        Expense.aggregate([
+        ], req)),
+        Expense.aggregate(addPortalMatch([
             { $match: { deletedAt: null, status: 'paid', date: { $gte: startOfMonth, $lt: tomorrow } } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
-        ]),
-        Expense.aggregate([
+        ], req)),
+        Expense.aggregate(addPortalMatch([
             { $match: { deletedAt: null, status: 'paid', date: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
             { $group: { _id: null, total: { $sum: '$amount' } } },
-        ]),
-        CustomerReturn.aggregate([
+        ], req)),
+        CustomerReturn.aggregate(addPortalMatch([
             { $match: { deletedAt: null, status: { $in: ['processed', 'completed'] }, requestDate: { $gte: startOfMonth, $lt: tomorrow } } },
             { $group: { _id: null, total: { $sum: '$netRefundAmount' } } },
-        ]),
-        CustomerReturn.aggregate([
+        ], req)),
+        CustomerReturn.aggregate(addPortalMatch([
             { $match: { deletedAt: null, status: { $in: ['processed', 'completed'] }, requestDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
             { $group: { _id: null, total: { $sum: '$netRefundAmount' } } },
-        ]),
+        ], req)),
     ]);
+
 
     const grossRevenueThisMonth = currentMonthInvoices[0]?.total || 0;
     const grossRevenueLastMonth = lastMonthInvoices[0]?.total || 0;
@@ -141,32 +182,41 @@ export const getDashboardKpis = asyncHandler(async (req, res) => {
 
     // Orders metrics
     const [todaysOrders, monthOrders, pendingApproval, pendingDispatch] = await Promise.all([
-        SalesOrder.countDocuments({ deletedAt: null, orderDate: { $gte: today, $lt: tomorrow } }),
-        SalesOrder.countDocuments({ deletedAt: null, orderDate: { $gte: startOfMonth } }),
-        SalesOrder.countDocuments({ deletedAt: null, status: 'draft' }),
-        SalesOrder.countDocuments({ deletedAt: null, status: 'approved' }),
+        SalesOrder.countDocuments(applyCountFilter({ deletedAt: null, orderDate: { $gte: today, $lt: tomorrow } }, req)),
+        SalesOrder.countDocuments(applyCountFilter({ deletedAt: null, orderDate: { $gte: startOfMonth } }, req)),
+        SalesOrder.countDocuments(applyCountFilter({ deletedAt: null, status: 'draft' }, req)),
+        SalesOrder.countDocuments(applyCountFilter({ deletedAt: null, status: 'approved' }, req)),
     ]);
 
     // Outstanding receivables (unpaid + overdue)
     const [arTotal, overdueAr] = await Promise.all([
-        Invoice.aggregate([
+        Invoice.aggregate(addPortalMatch([
             { $match: { deletedAt: null, paymentStatus: { $in: ['unpaid', 'partially_paid', 'overdue'] } } },
             { $group: { _id: null, total: { $sum: '$balanceDue' } } },
-        ]),
-        Invoice.aggregate([
+        ], req)),
+        Invoice.aggregate(addPortalMatch([
             { $match: { deletedAt: null, paymentStatus: 'overdue' } },
             { $group: { _id: null, total: { $sum: '$balanceDue' }, count: { $sum: 1 } } },
-        ]),
+        ], req)),
     ]);
 
     // Outstanding payables
-    const apTotal = await Bill.aggregate([
+    const apTotal = await Bill.aggregate(addPortalMatch([
         { $match: { deletedAt: null, paymentStatus: { $in: ['unpaid', 'partially_paid', 'overdue'] } } },
         { $group: { _id: null, total: { $sum: '$balanceDue' } } },
-    ]);
+    ], req));
 
-    // Stock alerts
+    // Stock alerts (filter by portal: for main, only show main warehouse stock, etc.)
+    const stockFilter = getPortalFilter(req);
+    let warehouseMatch = {};
+    if (stockFilter.portal === 'main') {
+        const Warehouse = (await import('../models/Warehouse.js')).default;
+        const mw = await Warehouse.findOne({ warehouseCode: 'MAIN' });
+        if (mw) warehouseMatch = { warehouseId: mw._id };
+    }
+
     const lowStockProducts = await StockItem.aggregate([
+        { $match: { ...warehouseMatch } },
         {
             $group: {
                 _id: '$productId',
@@ -198,21 +248,21 @@ export const getDashboardKpis = asyncHandler(async (req, res) => {
 
     // Production status
     const [activeProduction, productionThisMonth] = await Promise.all([
-        ProductionOrder.countDocuments({ deletedAt: null, status: 'in_progress' }),
-        ProductionOrder.countDocuments({
+        ProductionOrder.countDocuments(applyCountFilter({ deletedAt: null, status: 'in_progress' }, req)),
+        ProductionOrder.countDocuments(applyCountFilter({
             deletedAt: null,
             status: { $in: ['completed', 'partially_completed'] },
             actualEndDate: { $gte: startOfMonth },
-        }),
+        }, req)),
     ]);
 
     // Returns this month
-    const returnsThisMonth = await CustomerReturn.countDocuments({
+    const returnsThisMonth = await CustomerReturn.countDocuments(applyCountFilter({
         deletedAt: null,
         requestDate: { $gte: startOfMonth },
-    });
+    }, req));
 
-    // Customer stats
+    // Customer stats (Customers are global, so no portal separation required, but let's support it if requested)
     const [totalCustomers, newCustomersThisMonth, customersOnHold] = await Promise.all([
         Customer.countDocuments({ deletedAt: null, status: 'active' }),
         Customer.countDocuments({ deletedAt: null, createdAt: { $gte: startOfMonth } }),
@@ -278,7 +328,7 @@ export const getRevenueChart = asyncHandler(async (req, res) => {
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
 
-    const data = await Invoice.aggregate([
+    const data = await Invoice.aggregate(addPortalMatch([
         { $match: { deletedAt: null, invoiceDate: { $gte: startDate } } },
         {
             $group: {
@@ -291,7 +341,7 @@ export const getRevenueChart = asyncHandler(async (req, res) => {
             },
         },
         { $sort: { '_id.year': 1, '_id.month': 1 } },
-    ]);
+    ], req));
 
     // Fill in missing months with 0
     const result = [];
@@ -323,7 +373,7 @@ export const getTopProducts = asyncHandler(async (req, res) => {
     else if (period === 'year') startDate = new Date(now.getFullYear(), 0, 1);
     else startDate = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const data = await SalesOrder.aggregate([
+    const data = await SalesOrder.aggregate(addPortalMatch([
         {
             $match: {
                 deletedAt: null,
@@ -344,7 +394,7 @@ export const getTopProducts = asyncHandler(async (req, res) => {
         },
         { $sort: { revenue: -1 } },
         { $limit: limit },
-    ]);
+    ], req));
 
     res.json({ success: true, data });
 });
@@ -362,7 +412,7 @@ export const getTopCustomers = asyncHandler(async (req, res) => {
     else if (period === 'year') startDate = new Date(now.getFullYear(), 0, 1);
     else startDate = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const data = await Invoice.aggregate([
+    const data = await Invoice.aggregate(addPortalMatch([
         { $match: { deletedAt: null, invoiceDate: { $gte: startDate } } },
         {
             $group: {
@@ -376,7 +426,7 @@ export const getTopCustomers = asyncHandler(async (req, res) => {
         },
         { $sort: { totalInvoiced: -1 } },
         { $limit: limit },
-    ]);
+    ], req));
 
     res.json({ success: true, data });
 });

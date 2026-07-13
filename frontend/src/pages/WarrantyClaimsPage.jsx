@@ -124,7 +124,7 @@ export default function WarrantyClaimsPage() {
                         <ShieldCheck className="text-primary-600" />
                         Warranty Claims Management
                     </h1>
-                    <p className="text-gray-500 mt-1">Track manufacturer warranty claims, client watch returns, and service statuses.</p>
+                    <p className="text-gray-500 mt-1">Track manufacturer warranty claims, client jewelry returns, and service statuses.</p>
                 </div>
                 <Button onClick={() => setIsCreateOpen(true)} variant="primary" className="flex items-center gap-2">
                     <Plus size={18} /> File Warranty Claim
@@ -265,11 +265,11 @@ export default function WarrantyClaimsPage() {
 
                         <form onSubmit={handleCreateSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Watch Serial Number *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Jewelry Serial Number *</label>
                                 <input
                                     type="text"
                                     required
-                                    placeholder="Enter watch serial / warranty code"
+                                    placeholder="Enter jewelry serial / warranty code"
                                     value={claimForm.serialNumber}
                                     onChange={(e) => setClaimForm(prev => ({ ...prev, serialNumber: e.target.value }))}
                                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm uppercase"
@@ -285,7 +285,7 @@ export default function WarrantyClaimsPage() {
                                         onChange={(e) => setClaimForm(prev => ({ ...prev, productId: e.target.value }))}
                                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm bg-white"
                                     >
-                                        <option value="">Choose Watch model</option>
+                                        <option value="">Choose Jewelry model</option>
                                         {productsRes?.data?.map(p => (
                                             <option key={p._id} value={p._id}>{p.name} ({p.productCode})</option>
                                         ))}

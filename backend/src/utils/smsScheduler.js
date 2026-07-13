@@ -28,8 +28,7 @@ export const checkAndSendAnniversarySms = async () => {
         for (const customer of birthdayCustomers) {
             const phone = customer.primaryContact?.phone || customer.primaryContact?.mobile || customer.billingAddress?.phone;
             if (phone) {
-                const companyName = process.env.SMS_COMPANY_NAME || 'Rush Jewels';
-                const message = `Dear ${customer.displayName}, Happy Birthday from ${companyName}! Celebrate your day with a special 10% off. Use coupon HBD10 on your next purchase.`;
+                const message = `Dear ${customer.displayName}, Happy Birthday from Rush Jewels! Celebrate your day with a special 10% off. Use coupon HBD10 on your next purchase.`;
                 await sendGeneralSms(phone, message);
             } else {
                 console.log(`[SMS SCHEDULER] Skipping birthday SMS for ${customer.displayName}: No phone number.`);
@@ -53,8 +52,7 @@ export const checkAndSendAnniversarySms = async () => {
         for (const customer of anniversaryCustomers) {
             const phone = customer.primaryContact?.phone || customer.primaryContact?.mobile || customer.billingAddress?.phone;
             if (phone) {
-                const companyName = process.env.SMS_COMPANY_NAME || 'Rush Jewels';
-                const message = `Dear ${customer.displayName}, Happy Anniversary from ${companyName}! Enjoy 10% off as a thank you for your loyalty. Use coupon ANNIV10.`;
+                const message = `Dear ${customer.displayName}, Happy Anniversary from Rush Jewels! Enjoy 10% off on premium jewellery as a thank you for your loyalty. Use coupon ANNIV10.`;
                 await sendGeneralSms(phone, message);
             } else {
                 console.log(`[SMS SCHEDULER] Skipping anniversary SMS for ${customer.displayName}: No phone number.`);

@@ -5,6 +5,7 @@ import PosSession from '../models/PosSession.js';
 export const createExpense = asyncHandler(async (req, res) => {
     const expense = new Expense({
         ...req.body,
+        portal: req.portal || 'main',
         createdBy: req.user._id,
     });
 
@@ -31,6 +32,30 @@ export const getExpenses = asyncHandler(async (req, res) => {
         filter.date = {};
         if (startDate) filter.date.$gte = new Date(startDate);
         if (endDate) filter.date.$lte = new Date(endDate);
+    }
+
+    // Filter by Portal Context (if not owner_dashboard)
+    if (req.portal && req.portal !== 'owner_dashboard') {
+        if (req.portal === 'main') {
+            const portalFilter = {
+                $or: [
+                    { portal: 'main' },
+                    { portal: { $exists: false } },
+                    { portal: null }
+                ]
+            };
+            if (filter.$or) {
+                filter.$and = [
+                    { $or: filter.$or },
+                    portalFilter
+                ];
+                delete filter.$or;
+            } else {
+                filter.$or = portalFilter.$or;
+            }
+        } else {
+            filter.portal = req.portal;
+        }
     }
 
     const skip = (Number(page) - 1) * Number(limit);

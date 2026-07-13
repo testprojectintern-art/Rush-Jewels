@@ -69,10 +69,34 @@ const salesOrderSchema = new mongoose.Schema(
     {
         orderNumber: { type: String, unique: true, trim: true, uppercase: true },
 
+        portal: {
+            type: String,
+            enum: ['main', 'online_orders'],
+            default: 'main',
+        },
+        deliveryDistrict: String,
+        deliveryService: String,
+        trackingNumber: String,
+        deliveryStatus: {
+            type: String,
+            enum: ['pending', 'pending_handover', 'handed_to_delivery', 'given_to_delivery', 'completed', 'returned', 'cancelled'],
+            default: 'pending',
+        },
+        bankAccountId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'BankAccount',
+        },
+        paymentMethod: String,
+
         source: {
             type: String,
-            enum: ['direct', 'quotation', 'field_rep', 'phone', 'whatsapp', 'recurring', 'pos'],
+            enum: ['direct', 'quotation', 'field_rep', 'phone', 'whatsapp', 'recurring', 'pos', 'online'],
             default: 'direct',
+        },
+
+        isWholesale: {
+            type: Boolean,
+            default: false,
         },
 
         // Parties

@@ -82,7 +82,7 @@ export const createWarrantyClaim = asyncHandler(async (req, res) => {
     // Optional validation: check if serial number exists in system
     const serialObj = await SerialNumber.findOne({ serialNumber: serialNumber.toUpperCase().trim() });
     if (!serialObj) {
-        // Log a note but allow creation (for watches purchased before the system was installed)
+        // Log a note but allow creation (for jewelry purchased before the system was installed)
         console.log(`Warranty claim logged for untracked serial number: ${serialNumber}`);
     }
 

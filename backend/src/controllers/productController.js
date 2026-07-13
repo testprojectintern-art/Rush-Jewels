@@ -47,8 +47,12 @@ async function resolveCategoryAndBrand(req) {
 
 export const createProduct = asyncHandler(async (req, res) => {
     await resolveCategoryAndBrand(req);
+    const portalHeader = req.headers['x-portal-context'] || 'main';
+    const portalValue = req.body.portal || (portalHeader === 'owner_dashboard' ? 'main' : portalHeader);
+
     const product = await Product.create({
         ...req.body,
+        portal: portalValue,
         createdBy: req.user._id,
     });
 
@@ -98,14 +102,35 @@ export const getProducts = asyncHandler(async (req, res) => {
 
     const filter = {};
 
+    const portalHeader = req.headers['x-portal-context'] || 'main';
+    if (portalHeader !== 'owner_dashboard') {
+        if (portalHeader === 'main') {
+            filter.$and = filter.$and || [];
+            filter.$and.push({
+                $or: [
+                    { portal: 'main' },
+                    { portal: { $exists: false } },
+                    { portal: null }
+                ]
+            });
+        } else {
+            filter.portal = portalHeader;
+        }
+    }
+
     if (search) {
-        filter.$or = [
+        const searchOr = [
             { name: { $regex: search, $options: 'i' } },
             { shortName: { $regex: search, $options: 'i' } },
             { productCode: { $regex: search, $options: 'i' } },
             { sku: { $regex: search, $options: 'i' } },
             { barcode: { $regex: search, $options: 'i' } },
         ];
+        if (filter.$and) {
+            filter.$and.push({ $or: searchOr });
+        } else {
+            filter.$or = searchOr;
+        }
     }
 
     if (categoryId) filter.categoryId = categoryId;

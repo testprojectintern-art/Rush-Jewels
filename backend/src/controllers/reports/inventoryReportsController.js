@@ -1,7 +1,9 @@
 import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose';
 import StockItem from '../../models/StockItem.js';
 import StockMovement from '../../models/StockMovement.js';
 import Product from '../../models/Product.js';
+import { getPortalWarehouseIds, getPortalFilter } from '../../utils/portalFilter.js';
 
 /**
  * GET /api/reports/inventory/valuation?warehouseId=
@@ -9,8 +11,19 @@ import Product from '../../models/Product.js';
  */
 export const getStockValuation = asyncHandler(async (req, res) => {
     const { warehouseId } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
+    const allowedWhIds = await getPortalWarehouseIds(portalHeader);
+
     const matchStage = {};
-    if (warehouseId) matchStage.warehouseId = warehouseId;
+    if (warehouseId) {
+        if (allowedWhIds && !allowedWhIds.includes(warehouseId)) {
+            matchStage.warehouseId = new mongoose.Types.ObjectId();
+        } else {
+            matchStage.warehouseId = new mongoose.Types.ObjectId(warehouseId);
+        }
+    } else if (allowedWhIds) {
+        matchStage.warehouseId = { $in: allowedWhIds.map(id => new mongoose.Types.ObjectId(id)) };
+    }
 
     const data = await StockItem.aggregate([
         { $match: matchStage },
@@ -85,9 +98,20 @@ export const getStockValuation = asyncHandler(async (req, res) => {
  */
 export const getStockMovement = asyncHandler(async (req, res) => {
     const { startDate, endDate, productId, warehouseId, limit = 200 } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
+    const allowedWhIds = await getPortalWarehouseIds(portalHeader);
+
     const filter = {};
     if (productId) filter.productId = productId;
-    if (warehouseId) filter.warehouseId = warehouseId;
+    if (warehouseId) {
+        if (allowedWhIds && !allowedWhIds.includes(warehouseId)) {
+            filter.warehouseId = new mongoose.Types.ObjectId();
+        } else {
+            filter.warehouseId = warehouseId;
+        }
+    } else if (allowedWhIds) {
+        filter.warehouseId = { $in: allowedWhIds };
+    }
     if (startDate || endDate) {
         filter.createdAt = {};
         if (startDate) filter.createdAt.$gte = new Date(startDate);
@@ -113,6 +137,8 @@ export const getStockMovement = asyncHandler(async (req, res) => {
  */
 export const getSlowFastMovers = asyncHandler(async (req, res) => {
     const { days = 90 } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
+    const allowedWhIds = await getPortalWarehouseIds(portalHeader);
     const since = new Date(Date.now() - Number(days) * 24 * 60 * 60 * 1000);
 
     // Revenue per product in the period
@@ -122,6 +148,7 @@ export const getSlowFastMovers = asyncHandler(async (req, res) => {
                 createdAt: { $gte: since },
                 movementType: { $in: ['sale_dispatch'] },
                 direction: 'out',
+                ...(allowedWhIds ? { warehouseId: { $in: allowedWhIds.map(id => new mongoose.Types.ObjectId(id)) } } : {}),
             },
         },
         {
@@ -172,6 +199,7 @@ export const getSlowFastMovers = asyncHandler(async (req, res) => {
     const soldProductIds = new Set(revenueByProduct.map((r) => r._id.toString()));
     const allSellable = await Product.find({
         deletedAt: null, canBeSold: true, status: 'active',
+        ...getPortalFilter(portalHeader)
     }).select('_id productCode name basePrice');
     const deadMovers = allSellable
         .filter((p) => !soldProductIds.has(p._id.toString()))
@@ -205,7 +233,15 @@ export const getSlowFastMovers = asyncHandler(async (req, res) => {
  * GET /api/reports/inventory/low-stock
  */
 export const getLowStockReport = asyncHandler(async (req, res) => {
+    const portalHeader = req.headers['x-portal-context'] || 'main';
+    const allowedWhIds = await getPortalWarehouseIds(portalHeader);
+    const matchStage = {};
+    if (allowedWhIds) {
+        matchStage.warehouseId = { $in: allowedWhIds.map(id => new mongoose.Types.ObjectId(id)) };
+    }
+
     const data = await StockItem.aggregate([
+        ...(allowedWhIds ? [{ $match: matchStage }] : []),
         {
             $group: {
                 _id: '$productId',

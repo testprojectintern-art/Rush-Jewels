@@ -15,6 +15,12 @@ const paymentAllocationSchema = new mongoose.Schema({
 const paymentSchema = new mongoose.Schema({
     paymentNumber: { type: String, unique: true, trim: true, uppercase: true },
 
+    portal: {
+        type: String,
+        enum: ['main', 'online_orders'],
+        default: 'main',
+    },
+
     direction: {
         type: String,
         enum: ['received', 'paid'], // received from customer | paid to supplier

@@ -137,6 +137,11 @@ const productSchema = new mongoose.Schema(
             hsCode: { type: String, trim: true },
         },
 
+        warrantyPeriod: {
+            type: Number,
+            default: 12,
+        },
+
         // Cost tracking
         costs: {
             lastPurchaseCost: { type: Number, default: 0, min: 0 },
@@ -168,6 +173,11 @@ const productSchema = new mongoose.Schema(
             type: String,
             enum: ['active', 'inactive', 'draft', 'discontinued'],
             default: 'active',
+        },
+        portal: {
+            type: String,
+            enum: ['main', 'online_orders'],
+            default: 'main',
         },
 
         notes: { type: String, trim: true, maxlength: 1000 },

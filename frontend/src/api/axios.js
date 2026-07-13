@@ -25,9 +25,23 @@ const api = axios.create({
 // Attach JWT token and global date filters to every request
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token') || localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+        }
+
+        // Attach active portal context header
+        const authStoreData = sessionStorage.getItem('auth-storage') || localStorage.getItem('auth-storage');
+        if (authStoreData) {
+            try {
+                const parsed = JSON.parse(authStoreData);
+                const activePortal = parsed?.state?.user?.activePortal;
+                if (activePortal) {
+                    config.headers['x-portal-context'] = activePortal;
+                }
+            } catch (e) {
+                console.warn('Failed to parse auth-storage in axios interceptor', e);
+            }
         }
 
         // Apply global month/year filter for GET requests

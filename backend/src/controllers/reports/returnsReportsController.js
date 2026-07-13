@@ -1,19 +1,21 @@
 import asyncHandler from 'express-async-handler';
 import CustomerReturn from '../../models/CustomerReturn.js';
 import DamageRecord from '../../models/DamageRecord.js';
+import { getPortalFilter } from '../../utils/portalFilter.js';
 
 /**
  * GET /api/reports/returns/summary?startDate=&endDate=
  */
 export const getReturnsSummary = asyncHandler(async (req, res) => {
     const { startDate, endDate } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
 
     const [summary, byReason, byCustomer, byStatus] = await Promise.all([
         CustomerReturn.aggregate([
-            { $match: { deletedAt: null, requestDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, requestDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             {
                 $group: {
                     _id: null,
@@ -24,7 +26,7 @@ export const getReturnsSummary = asyncHandler(async (req, res) => {
             },
         ]),
         CustomerReturn.aggregate([
-            { $match: { deletedAt: null, requestDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, requestDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $unwind: '$items' },
             {
                 $group: {
@@ -36,7 +38,7 @@ export const getReturnsSummary = asyncHandler(async (req, res) => {
             { $sort: { count: -1 } },
         ]),
         CustomerReturn.aggregate([
-            { $match: { deletedAt: null, requestDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, requestDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             {
                 $group: {
                     _id: '$customerId',
@@ -50,7 +52,7 @@ export const getReturnsSummary = asyncHandler(async (req, res) => {
             { $limit: 10 },
         ]),
         CustomerReturn.aggregate([
-            { $match: { deletedAt: null, requestDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, requestDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: '$status', count: { $sum: 1 } } },
         ]),
     ]);
@@ -69,22 +71,23 @@ export const getReturnsSummary = asyncHandler(async (req, res) => {
  */
 export const getDamagesReport = asyncHandler(async (req, res) => {
     const { startDate, endDate } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
 
     const [summary, bySource, byProduct] = await Promise.all([
         DamageRecord.aggregate([
-            { $match: { deletedAt: null, createdAt: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, createdAt: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: null, count: { $sum: 1 }, totalValue: { $sum: '$totalValue' } } },
         ]),
         DamageRecord.aggregate([
-            { $match: { deletedAt: null, createdAt: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, createdAt: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: '$source', count: { $sum: 1 }, value: { $sum: '$totalValue' } } },
             { $sort: { value: -1 } },
         ]),
         DamageRecord.aggregate([
-            { $match: { deletedAt: null, createdAt: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, createdAt: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             {
                 $group: {
                     _id: '$productId',

@@ -1,19 +1,21 @@
 import asyncHandler from 'express-async-handler';
 import ProductionOrder from '../../models/ProductionOrder.js';
 import DamageRecord from '../../models/DamageRecord.js';
+import { getPortalFilter } from '../../utils/portalFilter.js';
 
 /**
  * GET /api/reports/production/summary?startDate=&endDate=
  */
 export const getProductionSummary = asyncHandler(async (req, res) => {
     const { startDate, endDate } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
 
     const [summary, byStatus] = await Promise.all([
         ProductionOrder.aggregate([
-            { $match: { deletedAt: null, createdAt: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, createdAt: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             {
                 $group: {
                     _id: null,
@@ -27,7 +29,7 @@ export const getProductionSummary = asyncHandler(async (req, res) => {
             },
         ]),
         ProductionOrder.aggregate([
-            { $match: { deletedAt: null, createdAt: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, createdAt: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: '$status', count: { $sum: 1 }, quantity: { $sum: '$plannedQuantity' } } },
         ]),
     ]);
@@ -58,6 +60,7 @@ export const getProductionSummary = asyncHandler(async (req, res) => {
  */
 export const getProductionByProduct = asyncHandler(async (req, res) => {
     const { startDate, endDate } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
@@ -68,6 +71,7 @@ export const getProductionByProduct = asyncHandler(async (req, res) => {
                 deletedAt: null,
                 status: { $in: ['completed', 'partially_completed'] },
                 actualEndDate: { $gte: start, $lte: end },
+                ...getPortalFilter(portalHeader)
             },
         },
         {
@@ -112,6 +116,7 @@ export const getProductionByProduct = asyncHandler(async (req, res) => {
  */
 export const getProductionWastage = asyncHandler(async (req, res) => {
     const { startDate, endDate } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
@@ -122,6 +127,7 @@ export const getProductionWastage = asyncHandler(async (req, res) => {
                 deletedAt: null,
                 source: 'production_reject',
                 createdAt: { $gte: start, $lte: end },
+                ...getPortalFilter(portalHeader)
             },
         },
         {

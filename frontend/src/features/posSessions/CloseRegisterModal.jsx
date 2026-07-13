@@ -30,7 +30,7 @@ export default function CloseRegisterModal({ isOpen, onClose, session }) {
 
     if (!session) return null;
 
-    const expected = (session.openingBalance || 0) + (session.cashSales || 0) - (session.cashExpenses || 0);
+    const expected = (session.openingBalance || 0) + (session.cashSales || 0) - (session.cashExpenses || 0) - (session.bankDeposits || 0);
     const actual = parseFloat(watch('actualClosingBalance')) || 0;
     const diff = actual - expected;
 
@@ -44,6 +44,9 @@ export default function CloseRegisterModal({ isOpen, onClose, session }) {
                         <div className="flex justify-between text-gray-600"><span>Opening Balance:</span> <span>{formatLkr(session.openingBalance)}</span></div>
                         <div className="flex justify-between text-green-600"><span>Cash Sales:</span> <span>+ {formatLkr(session.cashSales)}</span></div>
                         <div className="flex justify-between text-red-600"><span>Cash Expenses:</span> <span>- {formatLkr(session.cashExpenses)}</span></div>
+                        {session.bankDeposits > 0 && (
+                            <div className="flex justify-between text-blue-600"><span>Bank Deposits:</span> <span>- {formatLkr(session.bankDeposits)}</span></div>
+                        )}
                         <div className="flex justify-between font-bold pt-2 border-t"><span>Expected Cash in Drawer:</span> <span>{formatLkr(expected)}</span></div>
                     </div>
 

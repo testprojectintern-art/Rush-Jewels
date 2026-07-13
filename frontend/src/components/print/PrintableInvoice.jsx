@@ -52,8 +52,19 @@ const PrintableInvoice = forwardRef(({ invoice, payments = [], companyInfo: prop
             {/* Header */}
             <div className="flex justify-between items-start mb-8 pb-4 border-b-2 border-gray-800">
                 <div>
-                    {companyInfo?.logo && (
+                    {companyInfo?.logo ? (
                         <img src={companyInfo.logo} alt="Logo" className="h-16 mb-2" />
+                    ) : (
+                        <div className="mb-2">
+                            <svg className="w-14 h-14 text-slate-800" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <circle cx="50" cy="50" r="38" strokeWidth="3.5" />
+                                <circle cx="50" cy="50" r="32" strokeDasharray="3,4" strokeWidth="1.5" />
+                                <path d="M50 50 L50 22" strokeLinecap="round" strokeWidth="3.5" />
+                                <path d="M50 50 L68 50" strokeLinecap="round" strokeWidth="2.5" />
+                                <path d="M88 45 L88 55 M91 47 L91 53" strokeLinecap="round" strokeWidth="2" />
+                                <circle cx="50" cy="50" r="3" fill="currentColor" />
+                            </svg>
+                        </div>
                     )}
                     <h1 className="text-2xl font-bold">{companyInfo?.name || 'Your Company'}</h1>
                     {companyInfo?.address && <p className="text-sm">{companyInfo.address}</p>}

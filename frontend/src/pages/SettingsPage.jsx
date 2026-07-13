@@ -447,7 +447,7 @@ export default function SettingsPage() {
                     <div className="bg-gradient-to-r from-primary-600 to-indigo-600 p-6 rounded-xl text-white shadow-md">
                         <h3 className="text-xl font-bold">Rush Jewels POS & Wholesale Roadmap</h3>
                         <p className="text-sm text-primary-100 mt-2">
-                            A complete expansion roadmap tailored to jewellery retail, stock control, repair management, and warranty tracking.
+                            A complete expansion roadmap tailored to retail jewelry distribution, stock control, and brand warranty management.
                         </p>
                     </div>
 
@@ -455,7 +455,7 @@ export default function SettingsPage() {
                         {/* Phase 2 Card */}
                         <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
                             <div className="flex items-center justify-between border-b pb-3">
-                                <h4 className="font-bold text-gray-800">Phase 2: Watch Operations</h4>
+                                <h4 className="font-bold text-gray-800">Phase 2: Jewelry Operations</h4>
                                 <span className="text-xs bg-green-50 text-green-700 px-2.5 py-0.5 rounded-full font-medium border border-green-200">Completed</span>
                             </div>
                             <ul className="space-y-3 text-sm text-gray-600">
@@ -491,7 +491,7 @@ export default function SettingsPage() {
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="text-primary-600 font-bold mt-0.5">•</span>
-                                    <span><strong>Brand Contribution:</strong> Compare Sales Volumes vs. Profit Margins per watch brand.</span>
+                                    <span><strong>Brand Contribution:</strong> Compare Sales Volumes vs. Profit Margins per jewelry brand.</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="text-primary-600 font-bold mt-0.5">•</span>
@@ -517,7 +517,7 @@ export default function SettingsPage() {
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="text-primary-600 font-bold mt-0.5">•</span>
-                                    <span><strong>Trade-in Calculator:</strong> Evaluate customer watch value for new discounts.</span>
+                                    <span><strong>Trade-in Calculator:</strong> Evaluate customer jewelry value for new discounts.</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="text-primary-600 font-bold mt-0.5">•</span>

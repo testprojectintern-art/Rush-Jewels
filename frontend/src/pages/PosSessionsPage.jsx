@@ -48,7 +48,6 @@ export default function PosSessionsPage() {
     });
 
     const sessions = sessionsRes?.data || [];
-    const total = sessionsRes?.total || 0;
     const totalPages = sessionsRes?.totalPages || 1;
     const users = usersRes?.data || [];
 
@@ -127,10 +126,15 @@ export default function PosSessionsPage() {
             render: (row) => <span className="font-mono text-xs text-red-500 font-medium">-{fmt(row.cashExpenses)}</span>
         },
         {
+            key: 'bankDeposits',
+            label: 'Bank Dep',
+            render: (row) => <span className="font-mono text-xs text-blue-500 font-medium">-{fmt(row.bankDeposits)}</span>
+        },
+        {
             key: 'expectedClosing',
             label: 'Expected Bal',
             render: (row) => {
-                const expected = (row.openingBalance || 0) + (row.cashSales || 0) - (row.cashExpenses || 0);
+                const expected = (row.openingBalance || 0) + (row.cashSales || 0) - (row.cashExpenses || 0) - (row.bankDeposits || 0);
                 return <span className="font-mono text-xs font-semibold">{fmt(expected)}</span>;
             }
         },
@@ -150,7 +154,7 @@ export default function PosSessionsPage() {
             label: 'Discrepancy',
             render: (row) => {
                 if (row.status === 'open') return <span className="text-xs text-gray-400">—</span>;
-                const expected = (row.openingBalance || 0) + (row.cashSales || 0) - (row.cashExpenses || 0);
+                const expected = (row.openingBalance || 0) + (row.cashSales || 0) - (row.cashExpenses || 0) - (row.bankDeposits || 0);
                 const difference = (row.actualClosingBalance || 0) - expected;
                 
                 if (difference === 0) {
@@ -238,7 +242,7 @@ export default function PosSessionsPage() {
                         <p className="text-2xl font-bold text-amber-700 mt-1">
                             {fmt(sessions.reduce((acc, s) => {
                                 if (s.status === 'open') return acc;
-                                const expected = (s.openingBalance || 0) + (s.cashSales || 0) - (s.cashExpenses || 0);
+                                const expected = (s.openingBalance || 0) + (s.cashSales || 0) - (s.cashExpenses || 0) - (s.bankDeposits || 0);
                                 return acc + ((s.actualClosingBalance || 0) - expected);
                             }, 0))}
                         </p>

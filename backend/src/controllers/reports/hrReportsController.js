@@ -3,15 +3,17 @@ import Employee from '../../models/Employee.js';
 import Attendance from '../../models/Attendance.js';
 import LeaveRequest from '../../models/LeaveRequest.js';
 import Payroll from '../../models/Payroll.js';
+import { getPortalFilter } from '../../utils/portalFilter.js';
 
 /**
  * GET /api/reports/hr/headcount
  */
 export const getHeadcountReport = asyncHandler(async (req, res) => {
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const [total, byDepartment, byDesignation, byEmploymentType, byStatus] = await Promise.all([
-        Employee.countDocuments({ deletedAt: null }),
+        Employee.countDocuments({ deletedAt: null, ...getPortalFilter(portalHeader) }),
         Employee.aggregate([
-            { $match: { deletedAt: null } },
+            { $match: { deletedAt: null, ...getPortalFilter(portalHeader) } },
             { $group: { _id: '$departmentId', count: { $sum: 1 } } },
             { $lookup: { from: 'departments', localField: '_id', foreignField: '_id', as: 'dept' } },
             { $unwind: { path: '$dept', preserveNullAndEmptyArrays: true } },
@@ -19,7 +21,7 @@ export const getHeadcountReport = asyncHandler(async (req, res) => {
             { $sort: { count: -1 } },
         ]),
         Employee.aggregate([
-            { $match: { deletedAt: null } },
+            { $match: { deletedAt: null, ...getPortalFilter(portalHeader) } },
             { $group: { _id: '$designationId', count: { $sum: 1 } } },
             { $lookup: { from: 'designations', localField: '_id', foreignField: '_id', as: 'des' } },
             { $unwind: { path: '$des', preserveNullAndEmptyArrays: true } },
@@ -27,11 +29,11 @@ export const getHeadcountReport = asyncHandler(async (req, res) => {
             { $sort: { count: -1 } },
         ]),
         Employee.aggregate([
-            { $match: { deletedAt: null } },
+            { $match: { deletedAt: null, ...getPortalFilter(portalHeader) } },
             { $group: { _id: '$employmentType', count: { $sum: 1 } } },
         ]),
         Employee.aggregate([
-            { $match: { deletedAt: null } },
+            { $match: { deletedAt: null, ...getPortalFilter(portalHeader) } },
             { $group: { _id: '$status', count: { $sum: 1 } } },
         ]),
     ]);
@@ -47,13 +49,14 @@ export const getHeadcountReport = asyncHandler(async (req, res) => {
  */
 export const getAttendanceReport = asyncHandler(async (req, res) => {
     const { startDate, endDate } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
 
     const [summary, byEmployee] = await Promise.all([
         Attendance.aggregate([
-            { $match: { date: { $gte: start, $lte: end } } },
+            { $match: { date: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             {
                 $group: {
                     _id: '$status',
@@ -62,7 +65,7 @@ export const getAttendanceReport = asyncHandler(async (req, res) => {
             },
         ]),
         Attendance.aggregate([
-            { $match: { date: { $gte: start, $lte: end } } },
+            { $match: { date: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             {
                 $group: {
                     _id: '$employeeId',
@@ -95,22 +98,23 @@ export const getAttendanceReport = asyncHandler(async (req, res) => {
  */
 export const getLeavePatternsReport = asyncHandler(async (req, res) => {
     const year = Number(req.query.year) || new Date().getFullYear();
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = new Date(year, 0, 1);
     const end = new Date(year, 11, 31, 23, 59, 59);
 
     const [byType, byMonth, topTakers] = await Promise.all([
         LeaveRequest.aggregate([
-            { $match: { deletedAt: null, status: 'approved', fromDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, status: 'approved', fromDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: '$leaveType', count: { $sum: 1 }, totalDays: { $sum: '$numberOfDays' } } },
             { $sort: { totalDays: -1 } },
         ]),
         LeaveRequest.aggregate([
-            { $match: { deletedAt: null, status: 'approved', fromDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, status: 'approved', fromDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             { $group: { _id: { $month: '$fromDate' }, count: { $sum: 1 }, totalDays: { $sum: '$numberOfDays' } } },
             { $sort: { _id: 1 } },
         ]),
         LeaveRequest.aggregate([
-            { $match: { deletedAt: null, status: 'approved', fromDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, status: 'approved', fromDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             {
                 $group: {
                     _id: '$employeeId',
@@ -133,9 +137,10 @@ export const getLeavePatternsReport = asyncHandler(async (req, res) => {
  */
 export const getPayrollSummaryReport = asyncHandler(async (req, res) => {
     const year = Number(req.query.year) || new Date().getFullYear();
+    const portalHeader = req.headers['x-portal-context'] || 'main';
 
     const data = await Payroll.aggregate([
-        { $match: { deletedAt: null, periodYear: year } },
+        { $match: { deletedAt: null, periodYear: year, ...getPortalFilter(portalHeader) } },
         { $sort: { periodMonth: 1 } },
         {
             $project: {

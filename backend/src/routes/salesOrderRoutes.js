@@ -2,6 +2,7 @@ import express from 'express';
 import {
     createSalesOrder, getSalesOrders, getSalesOrderById,
     updateSalesOrder, changeSalesOrderStatus, deleteSalesOrder,
+    patchOnlineDeliveryStatus,
 } from '../controllers/salesOrderController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validateMiddleware.js';
@@ -33,6 +34,12 @@ router.patch(
     '/:id/status',
     authorize('admin', 'manager', 'cashier', 'accountant'),
     changeSalesOrderStatus
+);
+
+router.patch(
+    '/:id/delivery-status',
+    authorize('admin', 'manager', 'cashier', 'accountant'),
+    patchOnlineDeliveryStatus
 );
 
 export default router;

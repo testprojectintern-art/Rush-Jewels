@@ -4,11 +4,11 @@ async function sendRealSms() {
     // According to the documentation, parameters are:
     // user_id, api_key, sender_id, contact, message
     const params = new URLSearchParams({
-        user_id: '1927',
-        api_key: '3df0dbae-24c7-42f6-80fb-925c8ca35b50',
-        sender_id: 'HoorawaLK',
+        user_id: '2113',
+        api_key: 'b2ae1961-39fd-44e3-b23d-13ab495274ed',
+        sender_id: 'Rush Jewels',
         contact: '+94777498608',
-        message: 'Hoorawa POS integration test message!'
+        message: 'Rush Jewels POS integration test message!'
     });
 
     // Let's try POST with URL-encoded parameters (highly compatible with PHP backends)

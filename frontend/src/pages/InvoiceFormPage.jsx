@@ -30,7 +30,7 @@ export default function InvoiceFormPage() {
     const [discountValue, setDiscountValue] = useState(0);
     const [items, setItems] = useState([{ productName: '', quantity: 1, unitPrice: 0, serialNumbers: [] }]);
 
-    // Watch selling options
+    // Jewelry selling options
     const [giftWrap, setGiftWrap] = useState(false);
     const [giftWrapFee, setGiftWrapFee] = useState(250);
     const [engravingText, setEngravingText] = useState('');
@@ -183,9 +183,9 @@ export default function InvoiceFormPage() {
                                             </div>
                                         </div>
 
-                                        {/* Serial number inputs for watch items */}
+                                        {/* Serial number inputs for jewelry items */}
                                         <div className="space-y-1.5 mt-3">
-                                            <label className="text-[10px] font-bold text-gray-500 uppercase block">Watch Serial Numbers:</label>
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase block">Jewelry Serial Numbers:</label>
                                             {Array.from({ length: Math.max(1, parseInt(item.quantity) || 1) }).map((_, sIdx) => (
                                                 <input
                                                     key={sIdx}

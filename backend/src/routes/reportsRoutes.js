@@ -24,7 +24,7 @@ import {
     getBrandProfitability, 
     getAovAndBundles, 
     getSeasonalVelocity 
-} from '../controllers/reports/watchAnalyticsController.js';
+} from '../controllers/reports/jewelryAnalyticsController.js';
 
 const router = express.Router();
 router.use(protect);
@@ -70,10 +70,10 @@ router.get('/inventory/movement', fullAccess, getStockMovement);
 router.get('/inventory/slow-fast-movers', fullAccess, getSlowFastMovers);
 router.get('/inventory/low-stock', fullAccess, getLowStockReport);
 
-// Watch Shop Analytics Reports
-router.get('/watch/aging-stock', fullAccess, getInventoryAging);
-router.get('/watch/brand-profitability', fullAccess, getBrandProfitability);
-router.get('/watch/aov-bundles', fullAccess, getAovAndBundles);
-router.get('/watch/seasonality', fullAccess, getSeasonalVelocity);
+// Jewelry Shop Analytics Reports
+router.get('/jewelry/aging-stock', fullAccess, getInventoryAging);
+router.get('/jewelry/brand-profitability', fullAccess, getBrandProfitability);
+router.get('/jewelry/aov-bundles', fullAccess, getAovAndBundles);
+router.get('/jewelry/seasonality', fullAccess, getSeasonalVelocity);
 
 export default router;

@@ -31,8 +31,59 @@ export default function NetProfitReportPage() {
     const { data: profitRes, isLoading } = useNetProfitAnalysis(filters);
     const { data: productsRes } = useProducts({ limit: 1000, status: 'active' });
 
-    const profitData = profitRes?.data || { summary: { revenue: 0, cogs: 0, expenses: 0, netProfit: 0 }, breakdown: [] };
+    const profitData = profitRes?.data || { 
+        summary: { 
+            revenue: 0, 
+            wholesaleRevenue: 0, 
+            retailRevenue: 0, 
+            cogs: 0, 
+            wholesaleCogs: 0, 
+            retailCogs: 0, 
+            expenses: 0, 
+            netProfit: 0 
+        }, 
+        breakdown: [] 
+    };
     const products = productsRes?.data || [];
+    const [transactionType, setTransactionType] = useState('all'); // 'all', 'wholesale', 'retail'
+
+    const filteredProfitData = useMemo(() => {
+        const { summary, breakdown } = profitData;
+        if (transactionType === 'all') {
+            return profitData;
+        }
+
+        if (transactionType === 'wholesale') {
+            return {
+                summary: {
+                    revenue: summary.wholesaleRevenue || 0,
+                    cogs: summary.wholesaleCogs || 0,
+                    expenses: summary.expenses || 0,
+                    netProfit: (summary.wholesaleRevenue || 0) - (summary.wholesaleCogs || 0) - (summary.expenses || 0)
+                },
+                breakdown: breakdown.map(item => ({
+                    ...item,
+                    revenue: item.wholesaleRevenue || 0,
+                    cost: item.wholesaleCost || 0
+                }))
+            };
+        }
+
+        // retail
+        return {
+            summary: {
+                revenue: summary.retailRevenue || 0,
+                cogs: summary.retailCogs || 0,
+                expenses: summary.expenses || 0,
+                netProfit: (summary.retailRevenue || 0) - (summary.retailCogs || 0) - (summary.expenses || 0)
+            },
+            breakdown: breakdown.map(item => ({
+                ...item,
+                revenue: item.retailRevenue || 0,
+                cost: item.retailCost || 0
+            }))
+        };
+    }, [profitData, transactionType]);
 
     const productOptions = products.map(p => ({
         value: p._id,
@@ -43,7 +94,7 @@ export default function NetProfitReportPage() {
 
     // Format data for Recharts Pie
     const chartData = useMemo(() => {
-        const { summary } = profitData;
+        const { summary } = filteredProfitData;
         
         if (filters.productId) {
             // Product Specific - Show Margin vs COGS (Expenses are general, so they don't apply to a single product)
@@ -61,7 +112,7 @@ export default function NetProfitReportPage() {
             { name: 'Cost of Goods Sold (COGS)', value: summary.cogs },
             { name: 'Operating Expenses', value: summary.expenses }
         ];
-    }, [profitData, filters.productId]);
+    }, [filteredProfitData, filters.productId]);
 
     const handleQuickDate = (type) => {
         const now = new Date();
@@ -85,23 +136,46 @@ export default function NetProfitReportPage() {
 
     const columns = [
         { key: 'label', label: 'Period / Date', render: (r) => <span className="font-semibold">{r.label}</span> },
-        { key: 'revenue', label: 'Revenue', render: (r) => <span className="text-green-600 font-medium">{fmt(r.revenue)}</span> },
-        { key: 'cost', label: 'Cost of Goods Sold (COGS)', render: (r) => <span className="text-blue-600 font-medium">{fmt(r.cost)}</span> },
+        { 
+            key: 'revenue', 
+            label: 'Revenue', 
+            render: (r) => (
+                <div className="flex flex-col">
+                    <span className="text-green-600 font-medium">{fmt(r.revenue)}</span>
+                    <span className="text-[10px] text-gray-400 font-medium">WS: {fmt(r.wholesaleRevenue)} | RT: {fmt(r.retailRevenue)}</span>
+                </div>
+            ) 
+        },
+        { 
+            key: 'cost', 
+            label: 'Cost of Goods Sold (COGS)', 
+            render: (r) => (
+                <div className="flex flex-col">
+                    <span className="text-blue-600 font-medium">{fmt(r.cost)}</span>
+                    <span className="text-[10px] text-gray-400 font-medium">WS: {fmt(r.wholesaleCost)} | RT: {fmt(r.retailCost)}</span>
+                </div>
+            ) 
+        },
         { 
             key: 'netProfit', 
             label: filters.productId ? 'Product Profit' : 'Gross profit (before expenses)', 
             render: (r) => {
                 const profitVal = r.revenue - r.cost;
+                const wsProfit = (r.wholesaleRevenue || 0) - (r.wholesaleCost || 0);
+                const rtProfit = (r.retailRevenue || 0) - (r.retailCost || 0);
                 return (
-                    <span className={`font-bold ${profitVal >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {fmt(profitVal)}
-                    </span>
+                    <div className="flex flex-col">
+                        <span className={`font-bold ${profitVal >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {fmt(profitVal)}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-medium">WS: {fmt(wsProfit)} | RT: {fmt(rtProfit)}</span>
+                    </div>
                 );
             } 
         }
     ];
 
-    const { summary } = profitData;
+    const { summary } = filteredProfitData;
     const profitMarginPct = summary.revenue > 0 ? ((summary.netProfit / summary.revenue) * 100).toFixed(1) : '0.0';
 
     return (
@@ -158,6 +232,18 @@ export default function NetProfitReportPage() {
                             onChange={(e) => setFilters(f => ({ ...f, groupBy: e.target.value }))}
                         />
                     </div>
+                    <div className="w-full sm:w-38">
+                        <label className="block text-xs font-semibold text-gray-500 mb-1">Transaction Type</label>
+                        <Select
+                            options={[
+                                { value: 'all', label: 'All Transactions' },
+                                { value: 'wholesale', label: 'Wholesale Only' },
+                                { value: 'retail', label: 'Retail Only' }
+                            ]}
+                            value={transactionType}
+                            onChange={(e) => setTransactionType(e.target.value)}
+                        />
+                    </div>
                     <div className="flex gap-2 w-full sm:w-auto">
                         <Button type="button" variant="outline" size="sm" onClick={() => handleQuickDate('today')}>Today</Button>
                         <Button type="button" variant="outline" size="sm" onClick={() => handleQuickDate('this-month')}>This Month</Button>
@@ -172,12 +258,15 @@ export default function NetProfitReportPage() {
             ) : (
                 <>
                     {/* Key Metrics Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 font-sans">
                         <Card className="p-5 border-l-4 border-l-green-500">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className="text-xs font-semibold text-gray-400 uppercase">Total Revenue</p>
                                     <h3 className="text-xl font-bold text-gray-900 mt-1">{fmt(summary.revenue)}</h3>
+                                    <p className="text-[10px] text-gray-500 mt-1 font-semibold">
+                                        WS: {fmt(summary.wholesaleRevenue)} | RT: {fmt(summary.retailRevenue)}
+                                    </p>
                                 </div>
                                 <div className="p-2 bg-green-50 text-green-600 rounded-lg"><TrendingUp size={18} /></div>
                             </div>
@@ -188,6 +277,9 @@ export default function NetProfitReportPage() {
                                 <div>
                                     <p className="text-xs font-semibold text-gray-400 uppercase">Cost of Goods Sold (COGS)</p>
                                     <h3 className="text-xl font-bold text-gray-900 mt-1">{fmt(summary.cogs)}</h3>
+                                    <p className="text-[10px] text-gray-500 mt-1 font-semibold">
+                                        WS: {fmt(summary.wholesaleCogs)} | RT: {fmt(summary.retailCogs)}
+                                    </p>
                                 </div>
                                 <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><DollarSign size={18} /></div>
                             </div>
@@ -200,7 +292,11 @@ export default function NetProfitReportPage() {
                                     <h3 className="text-xl font-bold text-gray-900 mt-1">
                                         {filters.productId ? '—' : fmt(summary.expenses)}
                                     </h3>
-                                    {filters.productId && <p className="text-[10px] text-gray-400 mt-1">Not split by product</p>}
+                                    {filters.productId ? (
+                                        <p className="text-[10px] text-gray-400 mt-1">Not split by product</p>
+                                    ) : (
+                                        <p className="text-[10px] text-gray-400 mt-1">General business expenses</p>
+                                    )}
                                 </div>
                                 <div className="p-2 bg-rose-50 text-rose-600 rounded-lg"><Wallet size={18} /></div>
                             </div>
@@ -215,8 +311,12 @@ export default function NetProfitReportPage() {
                                     <h3 className={`text-xl font-bold mt-1 ${summary.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                         {filters.productId ? fmt(summary.revenue - summary.cogs) : fmt(summary.netProfit)}
                                     </h3>
-                                    {!filters.productId && (
-                                        <p className="text-[10px] text-gray-500 mt-1 font-semibold flex items-center gap-0.5">
+                                    {!filters.productId ? (
+                                        <p className="text-[10px] text-gray-500 mt-1 font-semibold">
+                                            WS Profit: {fmt(summary.wholesaleProfit)} | RT: {fmt(summary.retailProfit)}
+                                        </p>
+                                    ) : (
+                                        <p className="text-[10px] text-gray-550 mt-1 font-semibold flex items-center gap-0.5">
                                             <Percent size={10} /> {profitMarginPct}% Profit Margin
                                         </p>
                                     )}
@@ -274,7 +374,7 @@ export default function NetProfitReportPage() {
 
                         <Card className="lg:col-span-2 p-6">
                             <h3 className="text-sm font-semibold text-gray-700 mb-4">Detailed Breakdown</h3>
-                            <Table columns={columns} data={profitData.breakdown} />
+                            <Table columns={columns} data={filteredProfitData.breakdown} />
                         </Card>
                     </div>
                 </>

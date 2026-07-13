@@ -3,6 +3,11 @@ import { getNextSequence } from './Counter.js';
 
 const expenseSchema = new mongoose.Schema({
     expenseNumber: { type: String, unique: true, trim: true, uppercase: true },
+    portal: {
+        type: String,
+        enum: ['main', 'online_orders'],
+        default: 'main',
+    },
     date: { type: Date, required: true, default: Date.now },
     category: { type: String, required: true, trim: true },
     amount: { type: Number, required: true, min: 0 },

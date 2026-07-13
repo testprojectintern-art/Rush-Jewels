@@ -37,6 +37,7 @@ import payrollRoutes from './routes/payrollRoutes.js';
 import chequeRoutes from './routes/chequeRoutes.js';
 import bankRoutes from './routes/bankRoutes.js';
 import fundTransferRoutes from './routes/fundTransferRoutes.js';
+import bankDepositRoutes from './routes/bankDepositRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import installmentRoutes from './routes/installmentRoutes.js';
 import targetRoutes from './routes/targetRoutes.js';
@@ -44,6 +45,8 @@ import pettyCashRoutes from './routes/pettyCashRoutes.js';
 import reportsRoutes from './routes/reportsRoutes.js';
 import warrantyClaimRoutes from './routes/warrantyClaimRoutes.js';
 import publicRoutes from './routes/publicRoutes.js';
+import ownerRoutes from './routes/ownerRoutes.js';
+import serialNumberRoutes from './routes/serialNumberRoutes.js';
 import { initSmsScheduler } from './utils/smsScheduler.js';
 
 import { seedDefaults } from './utils/seedDefaults.js';
@@ -64,29 +67,8 @@ const app = express();
 
 // Security & parsing middleware
 app.use(helmet());
-
-// CORS - allow Netlify frontend + localhost dev
-// Always include the production domains as safe defaults
-const defaultOrigins = [
-    'https://rush-jewels.netlify.app',
-    'http://localhost:5173',
-    'http://localhost:5174',
-];
-const envOrigins = (process.env.FRONTEND_URL || '')
-    .split(',')
-    .map(o => o.trim())
-    .filter(Boolean);
-
-// Merge and deduplicate
-const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
-
 app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (e.g. Render health checks, curl)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
-        callback(new Error(`CORS: Origin ${origin} not allowed`));
-    },
+    origin: true, // Allow all origins in dev, or use the logic below
     credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -139,13 +121,16 @@ app.use('/api/payroll', payrollRoutes);
 app.use('/api/cheques', chequeRoutes);
 app.use('/api/bank-accounts', bankRoutes);
 app.use('/api/fund-transfers', fundTransferRoutes);
+app.use('/api/bank-deposits', bankDepositRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/installments', installmentRoutes);
 app.use('/api/targets', targetRoutes);
 app.use('/api/petty-cash', pettyCashRoutes);
 app.use('/api/warranty-claims', warrantyClaimRoutes);
+app.use('/api/serial-numbers', serialNumberRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/owner', ownerRoutes);
 
 
 // Health check endpoint

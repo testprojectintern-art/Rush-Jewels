@@ -52,6 +52,7 @@ export default function StockAdjustmentPage() {
     const [warehouseId, setWarehouseId] = useState('');
     const [notes, setNotes] = useState('');
     const [lines, setLines] = useState([{ productId: '', adjustmentQuantity: '', reason: 'physical_count' }]);
+    const [searchQueries, setSearchQueries] = useState({});
 
     const { data: warehousesData } = useWarehouses({ isActive: true });
     const mutation = useAdjustStock();
@@ -155,13 +156,35 @@ export default function StockAdjustmentPage() {
                                             <div className="flex gap-2 items-start">
                                                 <span className="text-xs text-gray-500 mt-2 w-6">{idx + 1}</span>
                                                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-6 gap-2">
-                                                    <div className="sm:col-span-3">
-                                                        <Select
-                                                            placeholder="Select product..."
-                                                            options={productOptions}
-                                                            value={line.productId}
-                                                            onChange={(e) => updateLine(idx, 'productId', e.target.value)}
+                                                    <div className="sm:col-span-3 relative">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Type code or name to search..."
+                                                            list={`adjust-products-list-${idx}`}
+                                                            value={searchQueries[idx] !== undefined ? searchQueries[idx] : (productOptions.find(p => p.value === line.productId)?.label || '')}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                setSearchQueries(prev => ({ ...prev, [idx]: val }));
+                                                                const selected = productOptions.find(p => p.label === val);
+                                                                if (selected) {
+                                                                    updateLine(idx, 'productId', selected.value);
+                                                                    setSearchQueries(prev => ({ ...prev, [idx]: undefined }));
+                                                                } else if (val === '') {
+                                                                    updateLine(idx, 'productId', '');
+                                                                }
+                                                            }}
+                                                            onBlur={() => {
+                                                                setTimeout(() => {
+                                                                    setSearchQueries(prev => ({ ...prev, [idx]: undefined }));
+                                                                }, 200);
+                                                            }}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
                                                         />
+                                                        <datalist id={`adjust-products-list-${idx}`}>
+                                                            {productOptions.map(p => (
+                                                                <option key={p.value} value={p.label} />
+                                                            ))}
+                                                        </datalist>
                                                     </div>
                                                     <div>
                                                         <Input

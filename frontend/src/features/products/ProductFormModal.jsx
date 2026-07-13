@@ -176,6 +176,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                 sellable: product.salesConfig?.sellable ?? true,
                 allowBackorder: product.salesConfig?.allowBackorder ?? false,
                 status: product.status || 'active',
+                portal: product.portal || 'main',
                 buyingPrice: product.costs?.standardCost || 0,
                 profitPercentage: product.costs?.standardCost && product.costs.standardCost > 0 && product.basePrice 
                     ? ((product.basePrice - product.costs.standardCost) / product.costs.standardCost * 100).toFixed(2) 
@@ -190,6 +191,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                 })) || [],
                 notes: product.notes || '',
                 image: product.image || '',
+                warrantyPeriod: product.warrantyPeriod ?? 12,
             });
             if (product.image && product.image.startsWith('http')) {
                 setImageUrlInput(product.image);
@@ -201,6 +203,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
             reset({
                 type: 'trading',
                 status: 'active',
+                portal: 'main',
                 taxable: false,
                 taxRate: 0,
                 sellable: true,
@@ -221,6 +224,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                 canBeSold: true,
                 canBePurchased: true,
                 canBeManufactured: false,
+                warrantyPeriod: 12,
             });
             setImageUrlInput('');
         }
@@ -272,6 +276,8 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                 allowBackorder: data.allowBackorder,
             },
             status: data.status,
+            portal: data.portal,
+            warrantyPeriod: data.warrantyPeriod,
             notes: data.notes || undefined,
             image: data.image || undefined,
             tierPricing: data.tierPricing || [],
@@ -358,9 +364,19 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                                     {...register('productNature')}
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-3 gap-4">
                                 <Input label="Short Name" error={errors.shortName?.message} {...register('shortName')} />
                                 <Input label="Barcode" error={errors.barcode?.message} {...register('barcode')} />
+                                <Select
+                                    label="Business Portal"
+                                    required
+                                    error={errors.portal?.message}
+                                    options={[
+                                        { value: 'main', label: 'Main Business' },
+                                        { value: 'online_orders', label: 'Online Orders Store' },
+                                    ]}
+                                    {...register('portal')}
+                                />
                             </div>
                             <div className="grid grid-cols-3 gap-4">
                                 <Input label="SKU" error={errors.sku?.message} {...register('sku')} />
@@ -375,6 +391,12 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                                         { value: 'bundle', label: 'Bundle' },
                                     ]}
                                     {...register('type')}
+                                />
+                                <Input 
+                                    label="Warranty Period (Months)" 
+                                    type="number"
+                                    error={errors.warrantyPeriod?.message} 
+                                    {...register('warrantyPeriod')} 
                                 />
                             </div>
                             <div className="grid grid-cols-3 gap-4">
@@ -434,7 +456,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                             </div>
                             {/* Product Image Input */}
                             <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-gray-100/50 dark:bg-gray-800/40 space-y-4">
-                                <label className="block text-sm font-bold text-gray-800">Product Image (Watch Photo)</label>
+                                <label className="block text-sm font-bold text-gray-800">Product Image (Jewelry Photo)</label>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {/* Preview Panel */}
                                     <div className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg p-2 flex flex-col items-center justify-center min-h-[160px] relative overflow-hidden group">
@@ -494,7 +516,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                                             <label className="block text-xs font-bold text-gray-700 mb-1">Option B: Paste Image URL / Google Drive Share Link</label>
                                             <input
                                                 type="text"
-                                                placeholder="https://example.com/watch.jpg or Google Drive Link"
+                                                placeholder="https://example.com/jewelry.jpg or Google Drive Link"
                                                 value={imageUrlInput}
                                                 onChange={handleUrlChange}
                                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500"

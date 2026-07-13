@@ -35,8 +35,13 @@ const userSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ['admin', 'manager', 'cashier', 'accountant', 'employee'],
+            enum: ['admin', 'owner', 'manager', 'cashier', 'accountant', 'employee'],
             default: 'employee',
+        },
+        allowedPortals: {
+            type: [String],
+            enum: ['main', 'online_orders', 'owner_dashboard'],
+            default: ['main']
         },
         nic: { type: String, trim: true },
         address: { type: String, trim: true },

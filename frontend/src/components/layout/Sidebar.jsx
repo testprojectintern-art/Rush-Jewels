@@ -53,6 +53,8 @@ const menuItems = [
             { label: 'Invoices', path: '/invoices', allowedRoles: ADMIN_MANAGER_ACCOUNTANT_CASHIER },
             { label: 'Payments Received', path: '/payments', allowedRoles: ADMIN_MANAGER_ACCOUNTANT_CASHIER },
             { label: 'Installments', path: '/installments', allowedRoles: ADMIN_MANAGER_ACCOUNTANT_CASHIER },
+            { label: 'Warranty Claims', path: '/warranty-claims', allowedRoles: ALL_ROLES },
+            { label: 'Warranty Registry', path: '/warranty-registry', allowedRoles: ALL_ROLES },
         ],
     },
     {
@@ -94,6 +96,7 @@ const menuItems = [
             { label: 'Expenses', path: '/expenses', allowedRoles: ADMIN_MANAGER_ACCOUNTANT },
             { label: 'Petty Cash Ledger', path: '/finance/petty-cash', allowedRoles: ADMIN_MANAGER_ACCOUNTANT },
             { label: 'Fund Transfers', path: '/fund-transfers', allowedRoles: ADMIN_MANAGER_ACCOUNTANT },
+            { label: 'Bank Deposits (Tally)', path: '/bank-deposits', allowedRoles: ADMIN_MANAGER_ACCOUNTANT },
             { label: 'Cheque Registry', path: '/cheques', allowedRoles: ADMIN_MANAGER_ACCOUNTANT },
             { label: 'Credit Notes', path: '/credit-notes', allowedRoles: ADMIN_MANAGER_ACCOUNTANT },
         ],
@@ -260,7 +263,7 @@ export default function Sidebar({ userRole, isOpen, onClose }) {
                                 <Package className="w-6 h-6 text-white" />
                             </div>
                             <div className="flex items-center gap-2">
-                                <h2 className="font-bold text-gray-900 text-xl tracking-tight">Rush Jewels</h2>
+                                <h2 className="font-bold text-gray-900 text-xl tracking-tight">Rush Jewels POS</h2>
                             </div>
                         </div>
                         <button

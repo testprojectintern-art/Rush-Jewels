@@ -2,12 +2,14 @@ import asyncHandler from 'express-async-handler';
 import SalesOrder from '../../models/SalesOrder.js';
 import Invoice from '../../models/Invoice.js';
 import Payment from '../../models/Payment.js';
+import { getPortalFilter } from '../../utils/portalFilter.js';
 
 /**
  * GET /api/reports/sales/summary?startDate=&endDate=
  */
 export const getSalesSummary = asyncHandler(async (req, res) => {
     const { startDate, endDate } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
@@ -19,6 +21,7 @@ export const getSalesSummary = asyncHandler(async (req, res) => {
                 deletedAt: null,
                 orderDate: { $gte: start, $lte: end },
                 status: { $nin: ['draft', 'cancelled'] },
+                ...getPortalFilter(portalHeader)
             },
         },
         {
@@ -37,6 +40,7 @@ export const getSalesSummary = asyncHandler(async (req, res) => {
             $match: {
                 deletedAt: null,
                 orderDate: { $gte: start, $lte: end },
+                ...getPortalFilter(portalHeader)
             },
         },
         {
@@ -51,7 +55,7 @@ export const getSalesSummary = asyncHandler(async (req, res) => {
     // Invoice & payment info
     const [invoicesAgg, paymentsAgg] = await Promise.all([
         Invoice.aggregate([
-            { $match: { deletedAt: null, invoiceDate: { $gte: start, $lte: end } } },
+            { $match: { deletedAt: null, invoiceDate: { $gte: start, $lte: end }, ...getPortalFilter(portalHeader) } },
             {
                 $group: {
                     _id: null,
@@ -59,6 +63,10 @@ export const getSalesSummary = asyncHandler(async (req, res) => {
                     paid: { $sum: '$amountPaid' },
                     balance: { $sum: '$balanceDue' },
                     count: { $sum: 1 },
+                    wholesaleTotal: { $sum: { $cond: [{ $eq: ['$isWholesale', true] }, '$grandTotal', 0] } },
+                    wholesaleCount: { $sum: { $cond: [{ $eq: ['$isWholesale', true] }, 1, 0] } },
+                    retailTotal: { $sum: { $cond: [{ $ne: ['$isWholesale', true] }, '$grandTotal', 0] } },
+                    retailCount: { $sum: { $cond: [{ $ne: ['$isWholesale', true] }, 1, 0] } },
                 },
             },
         ]),
@@ -68,6 +76,7 @@ export const getSalesSummary = asyncHandler(async (req, res) => {
                     deletedAt: null,
                     direction: 'received',
                     paymentDate: { $gte: start, $lte: end },
+                    ...getPortalFilter(portalHeader)
                 },
             },
             {
@@ -80,7 +89,7 @@ export const getSalesSummary = asyncHandler(async (req, res) => {
         ]),
     ]);
 
-    const invoices = invoicesAgg[0] || { total: 0, paid: 0, balance: 0, count: 0 };
+    const invoices = invoicesAgg[0] || { total: 0, paid: 0, balance: 0, count: 0, wholesaleTotal: 0, wholesaleCount: 0, retailTotal: 0, retailCount: 0 };
     const payments = paymentsAgg[0] || { collected: 0, count: 0 };
 
     const collectionEfficiency = invoices.total > 0
@@ -98,6 +107,10 @@ export const getSalesSummary = asyncHandler(async (req, res) => {
                 total: +invoices.total.toFixed(2),
                 paid: +invoices.paid.toFixed(2),
                 balance: +invoices.balance.toFixed(2),
+                wholesaleTotal: +(invoices.wholesaleTotal || 0).toFixed(2),
+                wholesaleCount: invoices.wholesaleCount || 0,
+                retailTotal: +(invoices.retailTotal || 0).toFixed(2),
+                retailCount: invoices.retailCount || 0,
             },
             payments: {
                 collected: +payments.collected.toFixed(2),
@@ -113,6 +126,7 @@ export const getSalesSummary = asyncHandler(async (req, res) => {
  */
 export const getSalesByProduct = asyncHandler(async (req, res) => {
     const { startDate, endDate, limit = 50 } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
@@ -123,6 +137,7 @@ export const getSalesByProduct = asyncHandler(async (req, res) => {
                 deletedAt: null,
                 orderDate: { $gte: start, $lte: end },
                 status: { $nin: ['draft', 'cancelled'] },
+                ...getPortalFilter(portalHeader)
             },
         },
         { $unwind: '$items' },
@@ -155,6 +170,7 @@ export const getSalesByProduct = asyncHandler(async (req, res) => {
  */
 export const getSalesByCustomer = asyncHandler(async (req, res) => {
     const { startDate, endDate, limit = 50 } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
@@ -165,6 +181,7 @@ export const getSalesByCustomer = asyncHandler(async (req, res) => {
                 deletedAt: null,
                 orderDate: { $gte: start, $lte: end },
                 status: { $nin: ['draft', 'cancelled'] },
+                ...getPortalFilter(portalHeader)
             },
         },
         {
@@ -189,6 +206,7 @@ export const getSalesByCustomer = asyncHandler(async (req, res) => {
                 deletedAt: null,
                 customerId: { $in: customerIds },
                 invoiceDate: { $gte: start, $lte: end },
+                ...getPortalFilter(portalHeader)
             },
         },
         {
@@ -222,6 +240,7 @@ export const getSalesByCustomer = asyncHandler(async (req, res) => {
  */
 export const getSalesTrend = asyncHandler(async (req, res) => {
     const { startDate, endDate, groupBy = 'day' } = req.query;
+    const portalHeader = req.headers['x-portal-context'] || 'main';
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
@@ -245,6 +264,7 @@ export const getSalesTrend = asyncHandler(async (req, res) => {
                 deletedAt: null,
                 orderDate: { $gte: start, $lte: end },
                 status: { $nin: ['draft', 'cancelled'] },
+                ...getPortalFilter(portalHeader)
             },
         },
         {
@@ -252,6 +272,8 @@ export const getSalesTrend = asyncHandler(async (req, res) => {
                 _id: groupExpr,
                 count: { $sum: 1 },
                 total: { $sum: '$grandTotal' },
+                wholesaleTotal: { $sum: { $cond: [{ $eq: ['$isWholesale', true] }, '$grandTotal', 0] } },
+                retailTotal: { $sum: { $cond: [{ $ne: ['$isWholesale', true] }, '$grandTotal', 0] } },
             },
         },
         { $sort: { '_id.year': 1, '_id.month': 1, '_id.week': 1, '_id.day': 1 } },
@@ -267,7 +289,13 @@ export const getSalesTrend = asyncHandler(async (req, res) => {
         } else {
             label = `${d._id.year}-${String(d._id.month).padStart(2, '0')}-${String(d._id.day).padStart(2, '0')}`;
         }
-        return { label, count: d.count, total: +d.total.toFixed(2) };
+        return { 
+            label, 
+            count: d.count, 
+            total: +d.total.toFixed(2),
+            wholesaleTotal: +(d.wholesaleTotal || 0).toFixed(2),
+            retailTotal: +(d.retailTotal || 0).toFixed(2),
+        };
     });
 
     res.json({ success: true, data: result });

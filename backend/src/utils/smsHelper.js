@@ -1,6 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 
+const SMS_USER_ID = process.env.SMS_USER_ID || '2113';
+const SMS_API_KEY = process.env.SMS_API_KEY || 'b2ae1961-39fd-44e3-b23d-13ab495274ed';
+const SMS_SENDER_ID = process.env.SMS_SENDER_ID || 'Rush Jewels';
+const SMS_GATEWAY_URL = process.env.SMS_GATEWAY_URL || 'https://smslenz.lk/api/send-sms';
+
 /**
  * Normalizes Sri Lankan phone numbers to international format (e.g., +94777498608)
  */
@@ -28,17 +33,6 @@ function normalizePhoneNumber(phone) {
  */
 export const sendSalesSms = async (order, invoice) => {
     try {
-        // Read SMS credentials from environment variables
-        const smsUserId   = process.env.SMS_USER_ID;
-        const smsApiKey   = process.env.SMS_API_KEY;
-        const smsSenderId = process.env.SMS_SENDER_ID;
-        const companyName = process.env.SMS_COMPANY_NAME || 'Rush Jewels';
-
-        if (!smsUserId || !smsApiKey || !smsSenderId) {
-            console.log('[SMS] SMS credentials not configured — skipping sale SMS.');
-            return;
-        }
-
         const rawPhone = order.customerSnapshot?.phone;
         const phone = normalizePhoneNumber(rawPhone);
 
@@ -50,22 +44,26 @@ export const sendSalesSms = async (order, invoice) => {
         const itemsSummary = order.items.map(item => `${item.productName} (x${item.orderedQuantity})`).join(', ');
         const invoiceNum = invoice?.invoiceNumber || order.orderNumber;
         const total = order.grandTotal;
+        const invoiceLink = invoice?._id ? ` View invoice: https://rush-jewels.onrender.com/public/invoice/${invoice._id}` : '';
 
-        const message = `Dear ${order.customerSnapshot.name}, thank you for buying from ${companyName}! Bill No: ${invoiceNum}, Items: ${itemsSummary}. Total: LKR ${total.toFixed(2)}. Status: ${invoice?.paymentStatus || 'paid'}.`;
+        // Custom SMS message text
+        const message = `Dear ${order.customerSnapshot.name}, thank you for buying from Rush Jewels! Bill No: ${invoiceNum}, Items: ${itemsSummary}. Total: LKR ${total.toFixed(2)}. Status: ${invoice?.paymentStatus || 'paid'}.${invoiceLink}`;
 
         console.log(`\n========================================`);
         console.log(`[SMS OUTBOX] Triggered send to: ${phone}`);
         console.log(`[SMS MESSAGE] "${message}"`);
-
+        
+        // Prepare request parameters for SMSLenz
         const params = new URLSearchParams({
-            user_id: smsUserId,
-            api_key: smsApiKey,
-            sender_id: smsSenderId,
+            user_id: SMS_USER_ID,
+            api_key: SMS_API_KEY,
+            sender_id: SMS_SENDER_ID,
             contact: phone,
             message: message
         });
 
-        const res = await fetch('https://smslenz.lk/api/send-sms', {
+        // Send POST request with form URL-encoded body
+        const res = await fetch(SMS_GATEWAY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params.toString()
@@ -94,16 +92,6 @@ export const sendSalesSms = async (order, invoice) => {
  */
 export const sendGeneralSms = async (phone, message) => {
     try {
-        // Read SMS credentials from environment variables
-        const smsUserId   = process.env.SMS_USER_ID;
-        const smsApiKey   = process.env.SMS_API_KEY;
-        const smsSenderId = process.env.SMS_SENDER_ID;
-
-        if (!smsUserId || !smsApiKey || !smsSenderId) {
-            console.log('[SMS] SMS credentials not configured — skipping general SMS.');
-            return { success: false, error: 'SMS not configured' };
-        }
-
         const normalizedPhone = normalizePhoneNumber(phone);
         if (!normalizedPhone) {
             console.log(`[SMS] Invalid phone number provided: ${phone}`);
@@ -111,14 +99,14 @@ export const sendGeneralSms = async (phone, message) => {
         }
 
         const params = new URLSearchParams({
-            user_id: smsUserId,
-            api_key: smsApiKey,
-            sender_id: smsSenderId,
+            user_id: SMS_USER_ID,
+            api_key: SMS_API_KEY,
+            sender_id: SMS_SENDER_ID,
             contact: normalizedPhone,
             message: message
         });
 
-        const res = await fetch('https://smslenz.lk/api/send-sms', {
+        const res = await fetch(SMS_GATEWAY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params.toString()

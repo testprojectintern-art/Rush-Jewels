@@ -6,6 +6,7 @@ import SalesOrder from '../models/SalesOrder.js';
 import SerialNumber from '../models/SerialNumber.js';
 import { increaseStock } from '../services/stockService.js';
 import Warehouse from '../models/Warehouse.js';
+import Product from '../models/Product.js';
 
 /**
  * Helper: recalculate customer credit balance
@@ -100,6 +101,7 @@ export const createInvoice = asyncHandler(async (req, res) => {
         dueDate: finalDueDate,
         items,
         ...rest,
+        portal: req.portal || 'main',
         createdBy: req.user._id,
     });
 
@@ -108,13 +110,18 @@ export const createInvoice = asyncHandler(async (req, res) => {
     // Mark serial numbers as sold
     for (const item of invoice.items) {
         if (item.serialNumbers && item.serialNumbers.length > 0) {
+            const product = await Product.findById(item.productId);
+            const warrantyMonths = product?.warrantyPeriod ?? 12;
+            const expiryDate = new Date(invoice.invoiceDate);
+            expiryDate.setMonth(expiryDate.getMonth() + warrantyMonths);
+
             for (const sn of item.serialNumbers) {
                 await SerialNumber.updateOne(
                     { serialNumber: sn.toUpperCase().trim() },
                     { 
                         status: 'sold', 
                         invoiceId: invoice._id,
-                        warrantyExpiryDate: new Date(new Date(invoice.invoiceDate).setFullYear(new Date(invoice.invoiceDate).getFullYear() + 1))
+                        warrantyExpiryDate: expiryDate
                     }
                 );
             }
@@ -211,6 +218,8 @@ export const generateInvoiceFromOrders = async ({
         engravingText: orders[0].engravingText || '',
         notes,
         status,
+        portal: orders[0].portal || 'main',
+        isWholesale: orders[0].isWholesale || false,
         createdBy,
     });
 
@@ -219,13 +228,18 @@ export const generateInvoiceFromOrders = async ({
     // Mark serial numbers as sold
     for (const item of invoice.items) {
         if (item.serialNumbers && item.serialNumbers.length > 0) {
+            const product = await Product.findById(item.productId).session(session || null);
+            const warrantyMonths = product?.warrantyPeriod ?? 12;
+            const expiryDate = new Date(invoice.invoiceDate);
+            expiryDate.setMonth(expiryDate.getMonth() + warrantyMonths);
+
             for (const sn of item.serialNumbers) {
                 await SerialNumber.updateOne(
                     { serialNumber: sn.toUpperCase().trim() },
                     { 
                         status: 'sold', 
                         invoiceId: invoice._id,
-                        warrantyExpiryDate: new Date(new Date(invoice.invoiceDate).setFullYear(new Date(invoice.invoiceDate).getFullYear() + 1))
+                        warrantyExpiryDate: expiryDate
                     },
                     { session }
                 );
@@ -363,6 +377,30 @@ export const getInvoices = asyncHandler(async (req, res) => {
         filter.invoiceDate = {};
         if (startDate) filter.invoiceDate.$gte = new Date(startDate);
         if (endDate) filter.invoiceDate.$lte = new Date(endDate);
+    }
+
+    // Filter by Portal Context (if not owner_dashboard)
+    if (req.portal && req.portal !== 'owner_dashboard') {
+        if (req.portal === 'main') {
+            const portalFilter = {
+                $or: [
+                    { portal: 'main' },
+                    { portal: { $exists: false } },
+                    { portal: null }
+                ]
+            };
+            if (filter.$or) {
+                filter.$and = [
+                    { $or: filter.$or },
+                    portalFilter
+                ];
+                delete filter.$or;
+            } else {
+                filter.$or = portalFilter.$or;
+            }
+        } else {
+            filter.portal = req.portal;
+        }
     }
 
     const skip = (Number(page) - 1) * Number(limit);

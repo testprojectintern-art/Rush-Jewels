@@ -9,6 +9,7 @@ const posSessionSchema = new mongoose.Schema({
     
     cashSales: { type: Number, default: 0 },
     cashExpenses: { type: Number, default: 0 },
+    bankDeposits: { type: Number, default: 0 },
     
     expectedClosingBalance: { type: Number, default: 0 },
     actualClosingBalance: { type: Number, default: 0 },
@@ -23,7 +24,7 @@ posSessionSchema.index({ userId: 1, status: 1 });
 posSessionSchema.index({ openedAt: -1 });
 
 posSessionSchema.pre('save', function () {
-    this.expectedClosingBalance = (this.openingBalance || 0) + (this.cashSales || 0) - (this.cashExpenses || 0);
+    this.expectedClosingBalance = (this.openingBalance || 0) + (this.cashSales || 0) - (this.cashExpenses || 0) - (this.bankDeposits || 0);
     if (this.status === 'closed') {
         this.difference = (this.actualClosingBalance || 0) - this.expectedClosingBalance;
         if (!this.closedAt) {

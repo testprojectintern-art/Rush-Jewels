@@ -71,7 +71,7 @@ export default function PosPage() {
     const [calculatorCashReceived, setCalculatorCashReceived] = useState('');
     const [calculatorChangeReturned, setCalculatorChangeReturned] = useState(0);
 
-    // Trade-in watch discount states
+    // Trade-in jewelry discount states
     const [tradeInDiscount, setTradeInDiscount] = useState(0);
     const [tradeInInfo, setTradeInInfo] = useState(null);
     const [isTradeInModalOpen, setIsTradeInModalOpen] = useState(false);
@@ -88,10 +88,11 @@ export default function PosPage() {
     const [numberOfInstallments, setNumberOfInstallments] = useState(3);
     const [installmentInterval, setInstallmentInterval] = useState('monthly');
 
-    // Watch selling options
+    // Jewelry selling options
     const [giftWrap, setGiftWrap] = useState(false);
     const [giftWrapFee, setGiftWrapFee] = useState(250);
     const [engravingText, setEngravingText] = useState('');
+    const [isWholesale, setIsWholesale] = useState(false);
 
     // Fetch bank accounts for checkout payments
     const { data: bankAccountsRes } = useQuery({
@@ -138,12 +139,21 @@ export default function PosPage() {
     }, [categoriesData, products]);
     const stockItems = stockData?.data || [];
 
-    // Set default warehouse
+    // Set default warehouse based on portal context
     useEffect(() => {
-        if (!sourceWarehouseId && warehouses.length > 0) {
-            const assignedVan = warehouses.find((w) => w.assignedRep === user?._id || w.assignedRep?._id === user?._id);
-            const def = assignedVan || warehouses.find((w) => w.isDefault) || warehouses[0];
-            if (def) setSourceWarehouseId(def._id);
+        if (warehouses.length > 0) {
+            if (user?.activePortal === 'main') {
+                const mainWh = warehouses.find(w => w.warehouseCode === 'MAIN');
+                if (mainWh) {
+                    setSourceWarehouseId(mainWh._id);
+                    return;
+                }
+            }
+            if (!sourceWarehouseId) {
+                const assignedVan = warehouses.find((w) => w.assignedRep === user?._id || w.assignedRep?._id === user?._id);
+                const def = assignedVan || warehouses.find((w) => w.isDefault) || warehouses[0];
+                if (def) setSourceWarehouseId(def._id);
+            }
         }
     }, [warehouses, sourceWarehouseId, user]);
 
@@ -352,23 +362,47 @@ export default function PosPage() {
 
     const handleCheckout = async (saveAsDraft = false, cashAmt = null, changeAmt = null, overridePaymentMethod = null) => {
         if (checkoutPendingRef.current) return;
+        if (!activeSession) { toast.error('You must open the cash register first'); setIsSessionModalOpen(true); return; }
+
+        // 1. If cash calculator is required, open it BEFORE doing any customer creation to prevent double API calls
+        const selectedMethod = overridePaymentMethod || paymentMethod;
+        if (!saveAsDraft && cashAmt === null && !overridePaymentMethod && selectedMethod !== 'installment') {
+            setCalculatorCashReceived('');
+            setCalculatorChangeReturned(0);
+            setIsCalculatorModalOpen(true);
+            return;
+        }
 
         let finalCustomerId = customerId;
+        checkoutPendingRef.current = true;
 
-        // Auto-add customer if not selected but name typed
+        // 2. Auto-add customer if not selected but name typed (only when checkout actually proceeds)
         if (!finalCustomerId && customerSearch) {
-            checkoutPendingRef.current = true;
             try {
-                const newCust = await createCustomer.mutateAsync({
-                    displayName: customerSearch,
-                    primaryContact: {
-                        name: customerSearch,
-                        phone: customerPhone || undefined
-                    },
-                    customerType: 'individual',
-                    status: 'active'
-                });
-                finalCustomerId = newCust.data._id;
+                // Check if a customer with the same name or phone already exists locally to prevent duplication
+                const existing = (customers || []).find(c => 
+                    c.displayName?.toLowerCase() === customerSearch.trim().toLowerCase() ||
+                    (customerPhone && c.primaryContact?.phone === customerPhone)
+                );
+
+                if (existing) {
+                    finalCustomerId = existing._id;
+                    setCustomerId(existing._id);
+                    setCustomerSearch('');
+                } else {
+                    const newCust = await createCustomer.mutateAsync({
+                        displayName: customerSearch.trim(),
+                        primaryContact: {
+                            name: customerSearch.trim(),
+                            phone: customerPhone || undefined
+                        },
+                        customerType: 'individual',
+                        status: 'active'
+                    });
+                    finalCustomerId = newCust.data._id;
+                    setCustomerId(newCust.data._id);
+                    setCustomerSearch('');
+                }
             } catch (err) {
                 console.error('Auto-create customer error:', err);
                 toast.error(err.response?.data?.message || err.message || 'Failed to auto-create customer');
@@ -377,26 +411,16 @@ export default function PosPage() {
             }
         }
 
-        if (!finalCustomerId) { toast.error('Select or type a customer'); return; }
-        if (!sourceWarehouseId) { toast.error('Select a warehouse'); return; }
-        if (cart.length === 0) { toast.error('Cart is empty'); return; }
-        if (!activeSession) { toast.error('You must open the cash register first'); setIsSessionModalOpen(true); return; }
+        if (!finalCustomerId) { toast.error('Select or type a customer'); checkoutPendingRef.current = false; return; }
+        if (!sourceWarehouseId) { toast.error('Select a warehouse'); checkoutPendingRef.current = false; return; }
+        if (cart.length === 0) { toast.error('Cart is empty'); checkoutPendingRef.current = false; return; }
+        if (!activeSession) { toast.error('You must open the cash register first'); setIsSessionModalOpen(true); checkoutPendingRef.current = false; return; }
 
-        const selectedMethod = overridePaymentMethod || paymentMethod;
-
-        if (!saveAsDraft && cashAmt === null && !overridePaymentMethod) {
-            setCalculatorCashReceived('');
-            setCalculatorChangeReturned(0);
-            setIsCalculatorModalOpen(true);
-            checkoutPendingRef.current = false;
-            return;
-        }
-
-        checkoutPendingRef.current = true;
         const payload = {
             customerId: finalCustomerId,
             sourceWarehouseId,
             source: 'pos',
+            isWholesale,
             items: cart.map((i) => ({
                 productId: i.productId,
                 orderedQuantity: i.qty,
@@ -411,7 +435,7 @@ export default function PosPage() {
             giftWrapFee: saveAsDraft ? undefined : (giftWrap ? parseFloat(giftWrapFee) || 0 : 0),
             engravingText: saveAsDraft ? undefined : engravingText,
             notes: tradeInInfo 
-                ? `[Trade-in watch applied: Brand: ${tradeInInfo.brand}, Condition: ${tradeInInfo.condition.toUpperCase()}, Original Price: LKR ${tradeInInfo.originalPrice.toLocaleString()}, Credit discount: LKR ${tradeInInfo.credit.toLocaleString()}]`
+                ? `[Trade-in jewelry applied: Brand: ${tradeInInfo.brand}, Condition: ${tradeInInfo.condition.toUpperCase()}, Original Price: LKR ${tradeInInfo.originalPrice.toLocaleString()}, Credit discount: LKR ${tradeInInfo.credit.toLocaleString()}]`
                 : undefined,
             status: saveAsDraft ? 'draft' : 'approved',
             cashReceived: saveAsDraft ? undefined : (cashAmt || 0),
@@ -685,7 +709,16 @@ export default function PosPage() {
                     </div>
 
                     {/* Category tabs */}
-                    <div className="flex gap-1 mb-3 overflow-x-auto pb-1 no-scrollbar">
+                    <div 
+                        className="flex gap-1 mb-3 overflow-x-auto pb-2 category-scrollbar"
+                        onWheel={(e) => {
+                            const container = e.currentTarget;
+                            if (e.deltaY !== 0) {
+                                container.scrollLeft += e.deltaY;
+                                e.preventDefault();
+                            }
+                        }}
+                    >
                         <button onClick={() => setActiveCategory('all')}
                             className={`px-3 py-1.5 rounded-lg text-sm whitespace-nowrap ${activeCategory === 'all' ? 'bg-primary-600 text-white' : 'bg-white border hover:bg-gray-100'
                                 }`}>
@@ -875,9 +908,9 @@ export default function PosPage() {
                                         <span className="bg-gray-100 px-1.5 py-0.5 rounded-full">{item.available} in stock</span>
                                     </div>
 
-                                    {/* Serial number inputs for watch items */}
+                                    {/* Serial number inputs for jewelry items */}
                                     <div className="space-y-1.5 mt-2">
-                                        <label className="text-[9px] font-bold text-gray-500 uppercase block">Watch Serial Numbers:</label>
+                                        <label className="text-[9px] font-bold text-gray-500 uppercase block">Jewelry Serial Numbers:</label>
                                         {Array.from({ length: item.qty }).map((_, idx) => (
                                             <input
                                                 key={idx}
@@ -951,6 +984,20 @@ export default function PosPage() {
                                         + Add Trade-in
                                     </button>
                                 )}
+                            </div>
+
+                            {/* Wholesale Option Box */}
+                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 shadow-xs flex items-center justify-between text-[11px] mt-2">
+                                <label className="flex items-center gap-1.5 font-bold text-amber-950 cursor-pointer font-sans">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={isWholesale} 
+                                        onChange={(e) => setIsWholesale(e.target.checked)}
+                                        className="rounded text-amber-600 focus:ring-amber-500 h-3.5 w-3.5"
+                                    />
+                                    Wholesale Transaction
+                                </label>
+                                <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Mark Wholesale</span>
                             </div>
 
                             {/* Gift Options Box */}
@@ -1319,14 +1366,14 @@ export default function PosPage() {
             <Modal
                 isOpen={isTradeInModalOpen}
                 onClose={() => setIsTradeInModalOpen(false)}
-                title="Trade-in Watch Valuation Calculator"
+                title="Trade-in Jewelry Valuation Calculator"
             >
                 <div className="space-y-4 p-2">
                     <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">Watch Brand</label>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Jewelry Brand</label>
                         <input
                             type="text"
-                            placeholder="E.g. Seiko, Citizen, Casio"
+                            placeholder="E.g. Brand/Maker, Gold type"
                             value={tradeInBrand}
                             onChange={(e) => setTradeInBrand(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:border-indigo-500 outline-none text-sm font-semibold"
@@ -1345,7 +1392,7 @@ export default function PosPage() {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">Watch Condition</label>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Jewelry Condition</label>
                         <select
                             value={tradeInCondition}
                             onChange={(e) => setTradeInCondition(e.target.value)}
@@ -1421,6 +1468,21 @@ export default function PosPage() {
                 __html: `
                 .no-scrollbar::-webkit-scrollbar { display: none; }
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                
+                .category-scrollbar::-webkit-scrollbar {
+                    height: 5px;
+                }
+                .category-scrollbar::-webkit-scrollbar-track {
+                    background: #f1f5f9;
+                    border-radius: 10px;
+                }
+                .category-scrollbar::-webkit-scrollbar-thumb {
+                    background: #cbd5e1;
+                    border-radius: 10px;
+                }
+                .category-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #94a3b8;
+                }
             `}} />
         </div>
     );

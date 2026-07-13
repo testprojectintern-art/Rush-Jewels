@@ -192,8 +192,8 @@ export default function BarcodeGeneratorPage() {
                                         <option value="roll_30_25">Label Roll (30mm x 25mm) - Recommended</option>
                                         <option value="roll_50_30">Label Roll (50mm x 30mm) - Standard</option>
                                         <option value="roll_38_25">Label Roll (38mm x 25mm) - Small</option>
-                                        <option value="roll_strap_70_12">Watch Strap Tag (70mm x 12mm)</option>
-                                        <option value="roll_strap_80_15">Watch Strap Tag (80mm x 15mm)</option>
+                                        <option value="roll_strap_70_12">Jewelry Strap/Tag (70mm x 12mm)</option>
+                                        <option value="roll_strap_80_15">Jewelry Strap/Tag (80mm x 15mm)</option>
                                         <option value="roll_custom">Custom Label Roll (Specify size)</option>
                                         <option value="a4_3col">A4 Sticker Sheet (3 Columns)</option>
                                     </select>
@@ -351,7 +351,7 @@ export default function BarcodeGeneratorPage() {
                                         <span className="barcode-text text-[8px] font-mono tracking-widest mt-0.5 text-gray-700">{p.barcode}</span>
                                     </div>
                                     {!printFormat.startsWith('roll_strap') && (
-                                    <p className="barcode-subtext text-[7px] text-gray-400 font-mono tracking-tighter uppercase">Rush Jewels</p>
+                                        <p className="barcode-subtext text-[7px] text-gray-400 font-mono tracking-tighter uppercase">Rush Jewels Pvt Ltd</p>
                                     )}
                                 </div>
                             ))}
@@ -406,7 +406,7 @@ export default function BarcodeGeneratorPage() {
                                  <span className="label-code-text">{p.barcode}</span>
                              </div>
                             {!printFormat.startsWith('roll_strap') && (
-                                <div className="label-footer">Rush Jewels</div>
+                                <div className="label-footer">Rush Jewels Pvt Ltd</div>
                             )}
                         </div>
                     ))}

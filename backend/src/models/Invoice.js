@@ -39,10 +39,21 @@ const invoiceLineItemSchema = new mongoose.Schema({
 const invoiceSchema = new mongoose.Schema({
     invoiceNumber: { type: String, unique: true, trim: true, uppercase: true },
 
+    portal: {
+        type: String,
+        enum: ['main', 'online_orders'],
+        default: 'main',
+    },
+
     invoiceType: {
         type: String,
         enum: ['standard', 'proforma', 'service'],
         default: 'standard',
+    },
+
+    isWholesale: {
+        type: Boolean,
+        default: false,
     },
 
     // Parties

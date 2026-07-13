@@ -18,6 +18,7 @@ import WholesalePricesPage from './pages/WholesalePricesPage';
 import ChequesPage from './pages/ChequesPage';
 import BankAccountsPage from './pages/BankAccountsPage';
 import FundTransfersPage from './pages/FundTransfersPage';
+import BankDepositsPage from './pages/BankDepositsPage';
 import ExpensesPage from './pages/ExpensesPage';
 import WarehousesPage from './pages/WarehousesPage';
 import StockPage from './pages/StockPage';
@@ -62,6 +63,7 @@ import SupplierReturnDetailPage from './pages/SupplierReturnDetailPage';
 import RepairsPage from './pages/RepairsPage';
 import RepairDetailPage from './pages/RepairDetailPage';
 import WarrantyClaimsPage from './pages/WarrantyClaimsPage';
+import WarrantyRegistryPage from './pages/WarrantyRegistryPage';
 import PosPage from './pages/PosPage';
 import PosSessionsPage from './pages/PosSessionsPage';
 
@@ -99,8 +101,14 @@ import PettyCashPage from './pages/PettyCashPage';
 import TargetsProgressPage from './pages/TargetsProgressPage';
 import NetProfitReportPage from './pages/reports/NetProfitReportPage';
 import BulkSmsPage from './pages/BulkSmsPage';
-import WatchAnalyticsPage from './pages/reports/WatchAnalyticsPage';
+import JewelryAnalyticsPage from './pages/reports/JewelryAnalyticsPage';
 import PublicWarrantyCheckPage from './pages/PublicWarrantyCheckPage';
+import PublicCatalogPage from './pages/PublicCatalogPage';
+import PublicInvoicePage from './pages/PublicInvoicePage';
+import PortalSelectPage from './pages/PortalSelectPage';
+import OnlineOrdersPosPage from './pages/OnlineOrdersPosPage';
+import OnlineOrdersListPage from './pages/OnlineOrdersListPage';
+import OwnerDashboardPage from './pages/OwnerDashboardPage';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
@@ -109,9 +117,31 @@ import ReceiptPrintPage from './pages/ReceiptPrintPage';
 function App() {
   return (
     <Routes>
+      <Route path="/" element={<PublicCatalogPage />} />
+      <Route path="/portal-select" element={<PortalSelectPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route path="/public-warranty-check" element={<PublicWarrantyCheckPage />} />
+      <Route path="/public/invoice/:id" element={<PublicInvoicePage />} />
+
+      <Route path="/online-orders/pos" element={
+          <ProtectedRoute allowedRoles={['admin', 'manager', 'cashier', 'accountant']}>
+            <OnlineOrdersPosPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/online-orders/list" element={
+          <ProtectedRoute allowedRoles={['admin', 'manager', 'cashier', 'accountant']}>
+            <OnlineOrdersListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/owner-dashboard" element={
+          <ProtectedRoute allowedRoles={['admin', 'owner']}>
+            <OwnerDashboardPage />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="/receipt/:id" element={
           <ProtectedRoute allowedRoles={['admin', 'manager', 'accountant', 'cashier']}>
@@ -136,7 +166,6 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<ProtectedRoute allowedRoles={['admin','manager','accountant','cashier','employee']}><DashboardPage /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['admin','manager','accountant','cashier','employee']}><DashboardPage /></ProtectedRoute>} />
         <Route path="/products" element={<ProtectedRoute allowedRoles={['admin','manager']}><ProductsPage /></ProtectedRoute>} />
         <Route path="/products/barcodes" element={<ProtectedRoute allowedRoles={['admin','manager']}><BarcodeGeneratorPage /></ProtectedRoute>} />
@@ -173,6 +202,7 @@ function App() {
         <Route path="/cheques" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><ChequesPage /></ProtectedRoute>} />
         <Route path="/bank-accounts" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><BankAccountsPage /></ProtectedRoute>} />
         <Route path="/fund-transfers" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><FundTransfersPage /></ProtectedRoute>} />
+        <Route path="/bank-deposits" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><BankDepositsPage /></ProtectedRoute>} />
         <Route path="/expenses" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><ExpensesPage /></ProtectedRoute>} />
         <Route path="/finance/petty-cash" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><PettyCashPage /></ProtectedRoute>} />
         <Route path="/payments/new" element={<ProtectedRoute allowedRoles={['admin','manager','accountant','cashier']}><PaymentFormPage /></ProtectedRoute>} />
@@ -197,6 +227,7 @@ function App() {
         <Route path="/repairs" element={<RepairsPage />} />
         <Route path="/repairs/:id" element={<RepairDetailPage />} />
         <Route path="/warranty-claims" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'employee', 'cashier']}><WarrantyClaimsPage /></ProtectedRoute>} />
+        <Route path="/warranty-registry" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'employee', 'cashier']}><WarrantyRegistryPage /></ProtectedRoute>} />
         <Route path="/employees" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><EmployeesPage /></ProtectedRoute>} />
         <Route path="/employees/new" element={<ProtectedRoute allowedRoles={['admin','manager']}><EmployeeFormPage /></ProtectedRoute>} />
         <Route path="/employees/:id" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><EmployeeDetailPage /></ProtectedRoute>} />
@@ -228,7 +259,7 @@ function App() {
         <Route path="/reports/financial" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><FinancialSnapshotPage /></ProtectedRoute>} />
         <Route path="/reports/net-profit-analysis" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><NetProfitReportPage /></ProtectedRoute>} />
         <Route path="/reports/hr" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><HrReportsPage /></ProtectedRoute>} />
-        <Route path="/reports/watch-analytics" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><WatchAnalyticsPage /></ProtectedRoute>} />
+        <Route path="/reports/jewelry-analytics" element={<ProtectedRoute allowedRoles={['admin','manager','accountant']}><JewelryAnalyticsPage /></ProtectedRoute>} />
 
         <Route path="/users"
           element={<ProtectedRoute allowedRoles={['admin', 'manager']}><UsersPage /></ProtectedRoute>} />

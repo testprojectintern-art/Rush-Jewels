@@ -124,9 +124,15 @@ export const createSalesOrder = asyncHandler(async (req, res) => {
             type: customer.paymentTerms?.type || 'cod',
             creditDays: customer.paymentTerms?.creditDays || 0,
         },
+        portal: req.portal || 'main',
+        deliveryDistrict: req.body.deliveryDistrict,
+        deliveryService: req.body.deliveryService,
+        trackingNumber: req.body.trackingNumber,
+        deliveryStatus: req.body.deliveryStatus || 'pending',
+        bankAccountId: req.body.bankAccountId,
+        paymentMethod: req.body.paymentMethod,
         createdBy: req.user._id,
     };
-
     const order = new SalesOrder(orderData);
 
     // Use transaction for stock and invoice
@@ -215,13 +221,17 @@ export const createSalesOrder = asyncHandler(async (req, res) => {
 
             await order.save({ session });
 
-            // AUTO-INVOICE AND PAYMENT for POS
-            if (order.source === 'pos' && order.status === 'approved') {
+            // AUTO-INVOICE AND PAYMENT for POS and Online Orders
+            if ((order.source === 'pos' || order.portal === 'online_orders') && order.status === 'approved') {
                 const invoice = await generateInvoiceFromOrders({
                     salesOrderIds: [order._id],
                     createdBy: req.user._id,
                     session,
                 });
+
+                invoice.portal = order.portal;
+                invoice.isWholesale = order.isWholesale || false;
+                await invoice.save({ session });
                 
                 // Fetch models dynamically to avoid circular dependencies
                 const Payment = (await import('../models/Payment.js')).default;
@@ -239,7 +249,14 @@ export const createSalesOrder = asyncHandler(async (req, res) => {
                     installmentInterval = 'monthly'
                 } = req.body;
                 
-                if (paymentMethod === 'installment') {
+                if (paymentMethod === 'cod') {
+                    // COD: leave invoice unpaid
+                    invoice.amountPaid = 0;
+                    invoice.balanceDue = invoice.grandTotal;
+                    invoice.paymentStatus = 'unpaid';
+                    invoice.status = 'approved';
+                    await invoice.save({ session });
+                } else if (paymentMethod === 'installment') {
                     // Handle Installment payment method
                     let paidAmount = 0;
                     if (downPayment > 0) {
@@ -412,8 +429,8 @@ export const createSalesOrder = asyncHandler(async (req, res) => {
         session.endSession();
     }
 
-    // Trigger SMS sending asynchronously for POS approved sales
-    if (order.source === 'pos' && order.status === 'approved') {
+    // Trigger SMS sending asynchronously for POS approved sales (exclude online orders here)
+    if (order.source === 'pos' && order.portal !== 'online_orders' && order.status === 'approved') {
         const Invoice = mongoose.model('Invoice');
         Invoice.findOne({ salesOrderIds: order._id }).then((inv) => {
             sendSalesSms(order, inv);
@@ -461,6 +478,30 @@ export const getSalesOrders = asyncHandler(async (req, res) => {
     // Sales reps only see their own orders
     if (req.user.role === 'sales_rep') {
         filter.salesRepId = req.user._id;
+    }
+
+    // Filter by Portal Context (if not owner_dashboard)
+    if (req.portal && req.portal !== 'owner_dashboard') {
+        if (req.portal === 'main') {
+            const portalFilter = {
+                $or: [
+                    { portal: 'main' },
+                    { portal: { $exists: false } },
+                    { portal: null }
+                ]
+            };
+            if (filter.$or) {
+                filter.$and = [
+                    { $or: filter.$or },
+                    portalFilter
+                ];
+                delete filter.$or;
+            } else {
+                filter.$or = portalFilter.$or;
+            }
+        } else {
+            filter.portal = req.portal;
+        }
     }
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -751,4 +792,103 @@ export const deleteSalesOrder = asyncHandler(async (req, res) => {
     await order.save();
 
     res.json({ success: true, message: 'Draft order deleted' });
+});
+
+/**
+ * Update delivery status for online orders
+ * Trigger SMS on handed_to_delivery, create Payment on completed (for COD)
+ */
+export const patchOnlineDeliveryStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { deliveryStatus, trackingNumber, deliveryService } = req.body;
+
+    const order = await SalesOrder.findById(id);
+    if (!order) {
+        res.status(404);
+        throw new Error('Sales order not found');
+    }
+
+    const previousStatus = order.deliveryStatus;
+    if (deliveryStatus) order.deliveryStatus = deliveryStatus;
+    if (trackingNumber) order.trackingNumber = trackingNumber;
+    if (deliveryService) order.deliveryService = deliveryService;
+
+    const session = await mongoose.startSession();
+    try {
+        await session.withTransaction(async () => {
+            // Send SMS if transitioned to handed_to_delivery
+            if (deliveryStatus === 'handed_to_delivery' && previousStatus !== 'handed_to_delivery') {
+                const customerPhone = order.customerSnapshot?.phone;
+                const tracking = trackingNumber || order.trackingNumber || 'N/A';
+                const service = order.deliveryService || 'Delivery Service';
+                const amount = order.grandTotal;
+
+                if (customerPhone) {
+                    const message = `Dear ${order.customerSnapshot.name}, your Rush Jewels order has been handed over to ${service}. Tracking No: ${tracking}. Total to pay: LKR ${amount.toFixed(2)}. Thank you!`;
+                    const { sendGeneralSms } = await import('../utils/smsHelper.js');
+                    await sendGeneralSms(customerPhone, message);
+                }
+            }
+
+            // Record payment on completed (if COD)
+            if (deliveryStatus === 'completed' && previousStatus !== 'completed') {
+                const Invoice = (await import('../models/Invoice.js')).default;
+                const Payment = (await import('../models/Payment.js')).default;
+                const BankAccount = (await import('../models/BankAccount.js')).default;
+
+                const invoice = await Invoice.findOne({ salesOrderIds: order._id }).session(session);
+                if (invoice) {
+                    invoice.paymentStatus = 'paid';
+                    invoice.amountPaid = invoice.grandTotal;
+                    invoice.balanceDue = 0;
+                    invoice.fullyPaidAt = new Date();
+                    invoice.status = 'paid';
+                    await invoice.save({ session });
+
+                    const existingPayment = await Payment.findOne({ 'allocations.documentId': invoice._id }).session(session);
+                    if (!existingPayment && order.paymentMethod === 'cod') {
+                        const bankAccountId = order.bankAccountId;
+                        const payment = new Payment({
+                            direction: 'received',
+                            portal: order.portal,
+                            customerId: order.customerId,
+                            partyName: order.customerSnapshot.name,
+                            amount: invoice.grandTotal,
+                            method: 'cash',
+                            bankAccountId,
+                            allocations: [{
+                                documentType: 'invoice',
+                                documentId: invoice._id,
+                                documentNumber: invoice.invoiceNumber,
+                                amount: invoice.grandTotal
+                            }],
+                            status: 'cleared',
+                            receivedBy: req.user._id,
+                            createdBy: req.user._id
+                        });
+                        await payment.save({ session });
+
+                        if (bankAccountId) {
+                            const bankAcc = await BankAccount.findById(bankAccountId).session(session);
+                            if (bankAcc) {
+                                bankAcc.currentBalance = +(bankAcc.currentBalance + invoice.grandTotal).toFixed(2);
+                                await bankAcc.save({ session });
+                            }
+                        }
+                    }
+                }
+                order.status = 'completed';
+            }
+
+            order.updatedBy = req.user._id;
+            await order.save({ session });
+        });
+
+        res.json({ success: true, message: `Delivery status updated to ${deliveryStatus}`, data: order });
+    } catch (err) {
+        res.status(400);
+        throw new Error(err.message || 'Failed to update delivery status');
+    } finally {
+        session.endSession();
+    }
 });

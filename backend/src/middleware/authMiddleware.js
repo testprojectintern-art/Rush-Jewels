@@ -34,6 +34,21 @@ export const protect = asyncHandler(async (req, res, next) => {
         }
 
         req.user = user;
+
+        // Portal Context Validation
+        const portalHeader = req.headers['x-portal-context'] || 'main';
+        if (portalHeader !== 'public' && portalHeader !== 'owner_dashboard') {
+            if (user.role !== 'admin' && user.role !== 'owner' && user.allowedPortals && !user.allowedPortals.includes(portalHeader)) {
+                res.status(403);
+                throw new Error(`User does not have access to portal: ${portalHeader}`);
+            }
+        }
+        if (portalHeader === 'owner_dashboard' && !['admin', 'owner'].includes(user.role)) {
+            res.status(403);
+            throw new Error('Only owners and admins can access the owner dashboard.');
+        }
+        req.portal = portalHeader;
+
         next();
     } catch (error) {
         res.status(401);

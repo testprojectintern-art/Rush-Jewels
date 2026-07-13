@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi, salesReportsApi, inventoryReportsApi } from './reportsApi';
 import {
-    productionReportsApi, returnsReportsApi, financialReportsApi, hrReportsApi, watchReportsApi,
+    productionReportsApi, returnsReportsApi, financialReportsApi, hrReportsApi, jewelryReportsApi,
 } from './reportsApi';
 
 // Production
@@ -81,19 +81,19 @@ export const useNetProfitAnalysis = (params = {}) => useQuery({
     queryFn: () => financialReportsApi.netProfit(params),
 });
 
-export const useWatchAgingStock = (params = {}) => useQuery({
-    queryKey: ['watchAgingStock', params],
-    queryFn: () => watchReportsApi.agingStock(params),
+export const useJewelryAgingStock = (params = {}) => useQuery({
+    queryKey: ['jewelryAgingStock', params],
+    queryFn: () => jewelryReportsApi.agingStock(params),
 });
-export const useWatchBrandProfitability = (params = {}) => useQuery({
-    queryKey: ['watchBrandProfitability', params],
-    queryFn: () => watchReportsApi.brandProfitability(params),
+export const useJewelryBrandProfitability = (params = {}) => useQuery({
+    queryKey: ['jewelryBrandProfitability', params],
+    queryFn: () => jewelryReportsApi.brandProfitability(params),
 });
-export const useWatchAovBundles = (params = {}) => useQuery({
-    queryKey: ['watchAovBundles', params],
-    queryFn: () => watchReportsApi.aovAndBundles(params),
+export const useJewelryAovBundles = (params = {}) => useQuery({
+    queryKey: ['jewelryAovBundles', params],
+    queryFn: () => jewelryReportsApi.aovAndBundles(params),
 });
-export const useWatchSeasonality = (params = {}) => useQuery({
-    queryKey: ['watchSeasonality', params],
-    queryFn: () => watchReportsApi.seasonality(params),
+export const useJewelrySeasonality = (params = {}) => useQuery({
+    queryKey: ['jewelrySeasonality', params],
+    queryFn: () => jewelryReportsApi.seasonality(params),
 });

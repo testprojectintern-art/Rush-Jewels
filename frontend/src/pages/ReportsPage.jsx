@@ -56,10 +56,10 @@ const reportGroups = [
         ],
     },
     {
-        category: 'Watch Shop Analytics',
+        category: 'Jewelry Shop Analytics',
         color: 'text-indigo-600', bg: 'bg-indigo-50',
         reports: [
-            { title: 'Watch & Retail Insights', description: 'Stock aging, brand margins, AOV bundles, and seasonal velocity', path: '/reports/watch-analytics', icon: TrendingUp },
+            { title: 'Jewelry & Retail Insights', description: 'Stock aging, brand margins, AOV bundles, and seasonal velocity', path: '/reports/jewelry-analytics', icon: TrendingUp },
         ],
     },
 ];

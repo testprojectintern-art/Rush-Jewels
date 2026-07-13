@@ -11,6 +11,7 @@ const lineItemSchema = z.object({
     taxRate: z.coerce.number().min(0).optional(),
     taxable: z.boolean().optional(),
     notes: z.string().optional(),
+    serialNumbers: z.array(z.string()).optional(),
 });
 
 export const createSalesOrderSchema = z.object({
@@ -33,11 +34,12 @@ export const createSalesOrderSchema = z.object({
     internalNotes: z.string().optional(),
     specialInstructions: z.string().optional(),
     status: z.enum(['draft', 'pending_approval', 'approved']).optional(),
+    isWholesale: z.boolean().optional(),
     creditOverride: z.boolean().optional(),
     creditOverrideReason: z.string().optional(),
     cashReceived: z.coerce.number().min(0).optional(),
     changeReturned: z.coerce.number().min(0).optional(),
-    paymentMethod: z.enum(['cash', 'card', 'bank_transfer', 'cheque', 'koko', 'installment']).optional(),
+    paymentMethod: z.enum(['cash', 'card', 'bank_transfer', 'cheque', 'koko', 'installment', 'cod']).optional(),
     bankAccountId: objectId.optional().nullable(),
     chequeNumber: z.string().optional().nullable(),
     chequeDate: z.string().optional().nullable(),

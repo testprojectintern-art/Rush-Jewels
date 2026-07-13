@@ -1,21 +1,21 @@
 async function inspect() {
     const url = 'https://smslenz.lk/api/send-sms';
     const credentials = {
-        userId: 1927,
-        user_id: 1927,
-        userID: 1927,
-        apiKey: "3df0dbae-24c7-42f6-80fb-925c8ca35b50",
-        api_key: "3df0dbae-24c7-42f6-80fb-925c8ca35b50",
-        senderId: "HoorawaLK",
-        sender_id: "HoorawaLK",
-        senderID: "HoorawaLK",
+        userId: 2113,
+        user_id: 2113,
+        userID: 2113,
+        apiKey: "b2ae1961-39fd-44e3-b23d-13ab495274ed",
+        api_key: "b2ae1961-39fd-44e3-b23d-13ab495274ed",
+        senderId: "Rush Jewels",
+        sender_id: "Rush Jewels",
+        senderID: "Rush Jewels",
         recipient: "94777498608",
         recipient_number: "94777498608",
         to: "94777498608",
         number: "94777498608",
-        message: "Hoorawa Test!",
-        msg: "Hoorawa Test!",
-        text: "Hoorawa Test!"
+        message: "Rush Jewels Test!",
+        msg: "Rush Jewels Test!",
+        text: "Rush Jewels Test!"
     };
 
     try {

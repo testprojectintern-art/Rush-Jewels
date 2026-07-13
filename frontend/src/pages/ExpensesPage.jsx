@@ -19,9 +19,6 @@ export default function ExpensesPage() {
     const queryClient = useQueryClient();
 
     // Filters
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
 
     const [filters, setFilters] = useState({
         startDate: '',
@@ -193,7 +190,7 @@ export default function ExpensesPage() {
                 )}
             </Card>
 
-            <ExpenseFormModal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
+            <ExpenseFormModal key={isFormOpen} isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
 
             <ConfirmDialog
                 isOpen={!!deletingExpense}

@@ -7,6 +7,7 @@ import Payroll from '../../models/Payroll.js';
 import Installment from '../../models/Installment.js';
 import BankAccount from '../../models/BankAccount.js';
 import StockItem from '../../models/StockItem.js';
+import { getPortalFilter, getPortalWarehouseIds } from '../../utils/portalFilter.js';
 
 /**
  * GET /api/reports/predictive/analytics
@@ -16,12 +17,19 @@ export const getPredictiveAnalytics = asyncHandler(async (req, res) => {
     const ninetyDaysAgo = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000);
+    const portalHeader = req.headers['x-portal-context'] || 'main';
+    const allowedWhIds = await getPortalWarehouseIds(portalHeader);
 
     // 1. Fetch all active products
-    const products = await Product.find({ canBeSold: true }).lean();
+    const products = await Product.find({ canBeSold: true, ...getPortalFilter(portalHeader) }).lean();
     
     // 2. Fetch stock levels aggregated by product
+    const stockMatch = {};
+    if (allowedWhIds) {
+        stockMatch.warehouseId = { $in: allowedWhIds.map(id => new mongoose.Types.ObjectId(id)) };
+    }
     const stockAgg = await StockItem.aggregate([
+        ...(allowedWhIds ? [{ $match: stockMatch }] : []),
         {
             $group: {
                 _id: '$productId',
@@ -38,7 +46,8 @@ export const getPredictiveAnalytics = asyncHandler(async (req, res) => {
             $match: {
                 deletedAt: null,
                 orderDate: { $gte: ninetyDaysAgo },
-                status: { $nin: ['draft', 'cancelled'] }
+                status: { $nin: ['draft', 'cancelled'] },
+                ...getPortalFilter(portalHeader)
             }
         },
         { $unwind: '$items' },
@@ -75,7 +84,8 @@ export const getPredictiveAnalytics = asyncHandler(async (req, res) => {
                 $match: {
                     deletedAt: null,
                     orderDate: { $gte: thirtyDaysAgo },
-                    status: { $nin: ['draft', 'cancelled'] }
+                    status: { $nin: ['draft', 'cancelled'] },
+                    ...getPortalFilter(portalHeader)
                 }
             },
             {
@@ -89,7 +99,8 @@ export const getPredictiveAnalytics = asyncHandler(async (req, res) => {
             {
                 $match: {
                     deletedAt: null,
-                    date: { $gte: thirtyDaysAgo }
+                    date: { $gte: thirtyDaysAgo },
+                    ...getPortalFilter(portalHeader)
                 }
             },
             {
@@ -103,7 +114,8 @@ export const getPredictiveAnalytics = asyncHandler(async (req, res) => {
             {
                 $match: {
                     deletedAt: null,
-                    createdAt: { $gte: thirtyDaysAgo }
+                    createdAt: { $gte: thirtyDaysAgo },
+                    ...getPortalFilter(portalHeader)
                 }
             },
             {
@@ -113,7 +125,7 @@ export const getPredictiveAnalytics = asyncHandler(async (req, res) => {
                 }
             }
         ]),
-        BankAccount.find({}).lean()
+        BankAccount.find({ ...getPortalFilter(portalHeader) }).lean()
     ]);
 
     // Financial trends (60-30 days ago vs 30 days ago to today)
@@ -123,7 +135,8 @@ export const getPredictiveAnalytics = asyncHandler(async (req, res) => {
                 $match: {
                     deletedAt: null,
                     orderDate: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo },
-                    status: { $nin: ['draft', 'cancelled'] }
+                    status: { $nin: ['draft', 'cancelled'] },
+                    ...getPortalFilter(portalHeader)
                 }
             },
             {
@@ -137,7 +150,8 @@ export const getPredictiveAnalytics = asyncHandler(async (req, res) => {
             {
                 $match: {
                     deletedAt: null,
-                    date: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo }
+                    date: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo },
+                    ...getPortalFilter(portalHeader)
                 }
             },
             {
@@ -150,7 +164,7 @@ export const getPredictiveAnalytics = asyncHandler(async (req, res) => {
     ]);
 
     // Installments status
-    const installments = await Installment.find({ status: 'active' }).lean();
+    const installments = await Installment.find({ status: 'active', ...getPortalFilter(portalHeader) }).lean();
 
     const revenueM3 = monthlySalesAgg[0]?.revenue || 0;
     const revenueM2 = salesPrevAgg[0]?.revenue || 0;
