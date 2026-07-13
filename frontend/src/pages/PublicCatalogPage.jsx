@@ -4,6 +4,21 @@ import axios from 'axios';
 import { Search, MapPin, Gem, Clock, UserCheck, ShieldCheck, Moon, Sun, Sparkles, Star, Award, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+function SafeImage({ src, alt, className, onError }) {
+    const [failed, setFailed] = useState(false);
+    return (
+        <img
+            src={failed || !src ? "/luxury_jewelry_placeholder.png" : src}
+            alt={alt}
+            className={className}
+            onError={() => {
+                setFailed(true);
+                if (onError) onError();
+            }}
+        />
+    );
+}
+
 export default function PublicCatalogPage() {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
@@ -346,14 +361,10 @@ export default function PublicCatalogPage() {
 
                                         {/* Jewelry Image Showcase */}
                                         <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-950 relative">
-                                            <img 
+                                            <SafeImage 
                                                 src={product.image} 
                                                 alt={product.name}
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108"
-                                                onError={(e) => {
-                                                    e.target.onerror = null;
-                                                    e.target.src = "/luxury_jewelry_placeholder.png";
-                                                }}
                                             />
                                             {/* Luxury Overlay Gradient */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/20 to-transparent pointer-events-none" />
@@ -449,14 +460,10 @@ export default function PublicCatalogPage() {
 
                             {/* Image left panel */}
                             <div className="w-full md:w-1/2 aspect-video md:aspect-square bg-slate-50 dark:bg-slate-950 relative">
-                                <img 
-                                  src={selectedProduct.image} 
-                                  alt={selectedProduct.name}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                      e.target.onerror = null;
-                                      e.target.src = "/luxury_jewelry_placeholder.png";
-                                  }}
+                                <SafeImage 
+                                   src={selectedProduct.image} 
+                                   alt={selectedProduct.name}
+                                   className="w-full h-full object-cover"
                                 />
                                 <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-lg border border-slate-800">
                                     <span className="text-[10px] font-bold text-amber-400 tracking-widest font-mono uppercase">
