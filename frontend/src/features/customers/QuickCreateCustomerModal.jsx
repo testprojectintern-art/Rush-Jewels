@@ -11,7 +11,7 @@ import { useCreateCustomer, useUpdateCustomer, useCustomerGroups } from './useCu
  * Lightweight modal to quickly create/edit a customer with minimum required fields.
  * On success, calls onCreated(customer) so parent can auto-select.
  */
-export default function QuickCreateCustomerModal({ isOpen, onClose, onCreated, initialData = null, isPosMode = false }) {
+export default function QuickCreateCustomerModal({ isOpen, onClose, onCreated, onSuccess, initialData = null, isPosMode = false }) {
     const [form, setForm] = useState({
         displayName: '',
         legalName: '',
@@ -93,7 +93,8 @@ export default function QuickCreateCustomerModal({ isOpen, onClose, onCreated, i
                 toast.success('Customer created — you can complete details later');
             }
 
-            onCreated?.(result.data);
+            const callback = onCreated || onSuccess;
+            callback?.(result.data);
             onClose();
         } catch (err) {
             console.error('Customer creation error:', err);

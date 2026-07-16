@@ -380,10 +380,24 @@ export default function PosPage() {
         if (!finalCustomerId && customerSearch) {
             try {
                 // Check if a customer with the same name or phone already exists locally to prevent duplication
-                const existing = (customers || []).find(c => 
+                let existing = (customers || []).find(c => 
                     c.displayName?.toLowerCase() === customerSearch.trim().toLowerCase() ||
                     (customerPhone && c.primaryContact?.phone === customerPhone)
                 );
+
+                // If not found locally, query the database directly in case local cache is stale or incomplete
+                if (!existing) {
+                    const searchRes = await customersApi.list({
+                        search: customerPhone || customerSearch.trim(),
+                        status: 'active',
+                        limit: 10
+                    });
+                    const found = searchRes?.data || [];
+                    existing = found.find(c => 
+                        c.displayName?.toLowerCase() === customerSearch.trim().toLowerCase() ||
+                        (customerPhone && c.primaryContact?.phone === customerPhone)
+                    );
+                }
 
                 if (existing) {
                     finalCustomerId = existing._id;
@@ -1077,7 +1091,7 @@ export default function PosPage() {
             <QuickCreateCustomerModal
                 isOpen={isCustomerModalOpen}
                 onClose={() => setIsCustomerModalOpen(false)}
-                onSuccess={(newCustomer) => {
+                onCreated={(newCustomer) => {
                     setCustomerId(newCustomer._id);
                     setCustomerSearch('');
                 }}
