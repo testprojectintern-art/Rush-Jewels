@@ -79,6 +79,8 @@ const productSchema = new mongoose.Schema(
                 price: { type: Number, min: 0 },
                 purchasePrice: { type: Number, min: 0, default: 0 },
                 stock: { type: Number, default: 0 },
+                discountPercent: { type: Number, default: 0, min: 0, max: 100 },
+                discountPrice: { type: Number, default: 0, min: 0 },
             },
         ],
 
@@ -100,6 +102,17 @@ const productSchema = new mongoose.Schema(
         basePrice: {
             type: Number,
             required: [true, 'Base price is required'],
+            min: 0,
+        },
+        discountPercent: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: 100,
+        },
+        discountPrice: {
+            type: Number,
+            default: 0,
             min: 0,
         },
         purchasePrice: {

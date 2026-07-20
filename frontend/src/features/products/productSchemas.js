@@ -19,6 +19,8 @@ export const productFormSchema = z.object({
     type: z.enum(['manufactured', 'trading', 'service', 'bundle']),
     unitOfMeasure: z.string().optional(),
     basePrice: z.coerce.number().min(0, 'Selling Price must be 0 or greater'),
+    discountPercent: z.coerce.number().min(0).max(100).optional().or(z.literal(0)),
+    discountPrice: z.coerce.number().min(0).optional().or(z.literal(0)),
     buyingPrice: z.coerce.number().min(0, 'Buying Price must be 0 or greater').optional(),
     profitPercentage: z.coerce.number().optional(),
     mrp: z.coerce.number().min(0).optional(),
@@ -48,6 +50,8 @@ export const productFormSchema = z.object({
         purchasePrice: z.coerce.number().min(0).optional(),
         price: z.coerce.number().min(0),
         stock: z.coerce.number().optional(),
+        discountPercent: z.coerce.number().min(0).max(100).optional().or(z.literal(0)),
+        discountPrice: z.coerce.number().min(0).optional().or(z.literal(0)),
     })).optional(),
     comboItems: z.array(z.object({
         productId: z.string().min(1, 'Product is required'),

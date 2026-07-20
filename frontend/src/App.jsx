@@ -110,6 +110,18 @@ import OnlineOrdersPosPage from './pages/OnlineOrdersPosPage';
 import OnlineOrdersListPage from './pages/OnlineOrdersListPage';
 import OwnerDashboardPage from './pages/OwnerDashboardPage';
 
+import PublicLayout from './components/layout/PublicLayout';
+import PublicHomePage from './pages/PublicHomePage';
+import PublicCartPage from './pages/PublicCartPage';
+import PublicCheckoutPage from './pages/PublicCheckoutPage';
+import PublicAboutPage from './pages/PublicAboutPage';
+import PublicContactPage from './pages/PublicContactPage';
+import PublicProfilePage from './pages/PublicProfilePage';
+import PublicCustomizerPage from './pages/PublicCustomizerPage';
+import PublicSizeGuidePage from './pages/PublicSizeGuidePage';
+import PublicWishlistPage from './pages/PublicWishlistPage';
+import PublicBookingPage from './pages/PublicBookingPage';
+
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
 import ReceiptPrintPage from './pages/ReceiptPrintPage';
@@ -117,7 +129,21 @@ import ReceiptPrintPage from './pages/ReceiptPrintPage';
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<PublicCatalogPage />} />
+      {/* Customer Facing Luxury Portal */}
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<PublicHomePage />} />
+        <Route path="/catalog" element={<PublicCatalogPage />} />
+        <Route path="/cart" element={<PublicCartPage />} />
+        <Route path="/checkout" element={<PublicCheckoutPage />} />
+        <Route path="/about" element={<PublicAboutPage />} />
+        <Route path="/contact" element={<PublicContactPage />} />
+        <Route path="/customer/profile" element={<PublicProfilePage />} />
+        <Route path="/customizer" element={<PublicCustomizerPage />} />
+        <Route path="/size-guide" element={<PublicSizeGuidePage />} />
+        <Route path="/wishlist" element={<PublicWishlistPage />} />
+        <Route path="/book-appointment" element={<PublicBookingPage />} />
+      </Route>
+
       <Route path="/portal-select" element={<PortalSelectPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />

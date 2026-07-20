@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFilterStore } from '../../store/filterStore';
+import api from '../../api/axios';
 import {
     LayoutDashboard, BarChart3, Package, ShoppingCart, Users, Settings,
     FolderTree, Award, UserCircle, Tags, Warehouse, Boxes, Truck,
@@ -48,6 +49,7 @@ const menuItems = [
         children: [
             { label: 'POS Terminal', path: '/pos', allowedRoles: ADMIN_MANAGER_CASHIER },
             { label: 'POS Registers', path: '/pos-sessions', allowedRoles: ADMIN_MANAGER_CASHIER },
+            { label: 'Online Deliveries', path: '/online-orders/list', allowedRoles: ADMIN_MANAGER_ACCOUNTANT_CASHIER },
             { label: 'Sales Orders', path: '/sales-orders', allowedRoles: ADMIN_MANAGER_ACCOUNTANT_CASHIER },
             { label: 'Wholesale Prices', path: '/wholesale-prices', allowedRoles: ADMIN_MANAGER },
             { label: 'Invoices', path: '/invoices', allowedRoles: ADMIN_MANAGER_ACCOUNTANT_CASHIER },
@@ -152,6 +154,26 @@ export default function Sidebar({ userRole, isOpen, onClose }) {
     const [expandedItems, setExpandedItems] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
     const { selectedMonth, selectedYear, setMonth, setYear } = useFilterStore();
+    const [pendingCount, setPendingCount] = useState(0);
+
+    useEffect(() => {
+        const fetchPendingOrders = async () => {
+            try {
+                const res = await api.get('/sales-orders?status=pending_approval', {
+                    headers: { 'x-portal-context': 'online_orders' }
+                });
+                if (res.data?.success) {
+                    setPendingCount(res.data.data.length);
+                }
+            } catch (err) {
+                // Non-blocking
+            }
+        };
+
+        fetchPendingOrders();
+        const interval = setInterval(fetchPendingOrders, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     const toggleExpand = (id) => {
         setExpandedItems(prev => ({
@@ -419,20 +441,28 @@ export default function Sidebar({ userRole, isOpen, onClose }) {
 
                                     {hasChildren && isExpanded && (
                                         <div className="ml-9 space-y-1 mt-1 border-l border-gray-100 dark:border-slate-800">
-                                            {item.children.map((child) => (
-                                                <NavLink
-                                                    key={child.path}
-                                                    to={child.path}
-                                                    className={({ isActive }) =>
-                                                        `block px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:translate-x-1 ${isActive
-                                                            ? 'text-indigo-600 dark:text-amber-400 dark:bg-slate-800/50 font-semibold'
-                                                            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/40'
-                                                        }`
-                                                    }
-                                                >
-                                                    {child.label}
-                                                </NavLink>
-                                            ))}
+                                            {item.children.map((child) => {
+                                                const isOnlineDeliveries = child.path === '/online-orders/list';
+                                                return (
+                                                    <NavLink
+                                                        key={child.path}
+                                                        to={child.path}
+                                                        className={({ isActive }) =>
+                                                            `flex justify-between items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:translate-x-1 ${isActive
+                                                                ? 'text-indigo-650 dark:text-amber-400 dark:bg-slate-800/50 font-semibold'
+                                                                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/40'
+                                                            }`
+                                                        }
+                                                    >
+                                                        <span>{child.label}</span>
+                                                        {isOnlineDeliveries && pendingCount > 0 && (
+                                                            <span className="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold">
+                                                                {pendingCount}
+                                                            </span>
+                                                        )}
+                                                    </NavLink>
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>

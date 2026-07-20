@@ -4,6 +4,9 @@ import Product from '../models/Product.js';
 import Brand from '../models/Brand.js';
 import StockItem from '../models/StockItem.js';
 import Invoice from '../models/Invoice.js';
+import Customer from '../models/Customer.js';
+import SalesOrder from '../models/SalesOrder.js';
+import Appointment from '../models/Appointment.js';
 
 /**
  * GET /api/public/warranty-check/:serialNumber
@@ -132,6 +135,10 @@ export const getProductsPublic = asyncHandler(async (req, res) => {
             name: product.name,
             description: product.description,
             basePrice: product.basePrice,
+            discountPercent: product.discountPercent || 0,
+            discountPrice: product.discountPrice || 0,
+            productNature: product.productNature || 'single',
+            variations: product.variations || [],
             image: product.image || '/luxury_jewelry_placeholder.png',
             brand: product.brandId?.name || 'Rush Jewels Premium',
             category: product.categoryId?.name || 'General',
@@ -273,4 +280,269 @@ export const getPublicSettings = asyncHandler(async (req, res) => {
             logo: settings.logo || null
         }
     });
+});
+
+/**
+ * POST /api/public/orders
+ * Public endpoint to place a customer order.
+ */
+export const placeOnlineOrderPublic = asyncHandler(async (req, res) => {
+    const { name, phone, address, email, items, paymentMethod, deliveryDistrict, deliveryService, notes, engravingText, giftWrap } = req.body;
+
+    if (!name || !phone || !address || !items || !Array.isArray(items) || items.length === 0) {
+        res.status(400);
+        throw new Error('Name, phone, address, and items are required');
+    }
+
+    const cleanedPhone = phone.trim();
+
+    // 1. Find or create customer
+    let customer = await Customer.findOne({ 'primaryContact.phone': cleanedPhone });
+    if (!customer) {
+        customer = await Customer.create({
+            displayName: name,
+            customerType: 'individual',
+            businessType: 'end_user',
+            primaryContact: {
+                name: name,
+                phone: cleanedPhone,
+                email: email || '',
+            },
+            billingAddress: {
+                label: 'Main Address',
+                line1: address,
+                city: deliveryDistrict || 'Colombo',
+                country: 'Sri Lanka',
+                phone: cleanedPhone
+            },
+            shippingAddresses: [{
+                label: 'Delivery Address',
+                line1: address,
+                city: deliveryDistrict || 'Colombo',
+                country: 'Sri Lanka',
+                phone: cleanedPhone,
+                isDefault: true
+            }],
+            status: 'active'
+        });
+    }
+
+    // 2. Validate items and build line items
+    const orderItems = [];
+    for (const item of items) {
+        const product = await Product.findById(item.productId);
+        if (!product) {
+            res.status(404);
+            throw new Error(`Product not found: ${item.productId}`);
+        }
+        let listPrice = product.basePrice;
+        let itemDiscountPercent = product.discountPercent || 0;
+        let itemDiscountPrice = product.discountPrice || 0;
+        let variationName = '';
+
+        if (item.variationId && product.variations && product.variations.length > 0) {
+            const variant = product.variations.find(v => v._id.toString() === item.variationId.toString());
+            if (variant) {
+                listPrice = variant.price || product.basePrice;
+                itemDiscountPercent = variant.discountPercent || 0;
+                itemDiscountPrice = variant.discountPrice || 0;
+                variationName = variant.name;
+            }
+        }
+
+        // Calculate actual price after discount
+        let unitPrice = listPrice;
+        let discountAmount = 0;
+        if (itemDiscountPrice > 0) {
+            unitPrice = itemDiscountPrice;
+            discountAmount = Math.max(0, listPrice - itemDiscountPrice);
+        } else if (itemDiscountPercent > 0) {
+            discountAmount = +(listPrice * (itemDiscountPercent / 100)).toFixed(2);
+            unitPrice = +(listPrice - discountAmount).toFixed(2);
+        }
+
+        orderItems.push({
+            productId: product._id,
+            variationId: item.variationId || null,
+            productCode: product.productCode,
+            productName: variationName ? `${product.name} (${variationName})` : product.name,
+            orderedQuantity: item.qty || 1,
+            listPrice,
+            unitPrice,
+            discountPercent: itemDiscountPercent,
+            discountAmount,
+            taxable: product.tax?.taxable || false,
+            taxRate: product.tax?.taxRate || 0,
+        });
+    }
+
+    // 3. Create the SalesOrder
+    const salesOrder = new SalesOrder({
+        portal: 'online_orders',
+        source: 'online',
+        status: 'pending_approval',
+        customerId: customer._id,
+        customerSnapshot: {
+            name: customer.displayName,
+            phone: customer.primaryContact.phone,
+        },
+        billingAddress: {
+            line1: address,
+            city: deliveryDistrict || 'Colombo',
+            phone: cleanedPhone
+        },
+        shippingAddress: {
+            line1: address,
+            city: deliveryDistrict || 'Colombo',
+            phone: cleanedPhone
+        },
+        items: orderItems,
+        paymentMethod: paymentMethod || 'cod',
+        deliveryDistrict: deliveryDistrict || 'Colombo',
+        deliveryService: deliveryService || 'Domex Delivery',
+        trackingNumber: '',
+        deliveryStatus: 'pending',
+        customerNotes: notes || '',
+        engravingText: engravingText || '',
+        giftWrap: giftWrap || false,
+        giftWrapFee: giftWrap ? 250 : 0,
+    });
+
+    await salesOrder.save();
+
+    res.status(201).json({
+        success: true,
+        message: 'Online order placed successfully',
+        data: salesOrder
+    });
+});
+
+/**
+ * GET /api/public/orders/history
+ * Public endpoint to fetch customer order history.
+ */
+export const getPublicOrderHistory = asyncHandler(async (req, res) => {
+    const { phone } = req.query;
+
+    if (!phone) {
+        return res.status(400).json({
+            success: false,
+            message: 'Phone number parameter is required'
+        });
+    }
+
+    const cleanedPhone = phone.trim();
+
+    const customer = await Customer.findOne({ 'primaryContact.phone': cleanedPhone });
+    if (!customer) {
+        return res.status(200).json({
+            success: true,
+            count: 0,
+            data: []
+        });
+    }
+
+    const orders = await SalesOrder.find({
+        customerId: customer._id,
+        portal: 'online_orders'
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+        success: true,
+        count: orders.length,
+        data: orders
+    });
+});
+
+/**
+ * POST /api/public/appointments
+ * Public endpoint to request a showroom appointment booking.
+ */
+export const createAppointmentPublic = asyncHandler(async (req, res) => {
+    const { customerName, customerPhone, customerEmail, showroom, date, timeSlot, notes } = req.body;
+
+    if (!customerName || !customerPhone || !showroom || !date || !timeSlot) {
+        res.status(400);
+        throw new Error('Please fill in all required appointment fields');
+    }
+
+    const appointment = await Appointment.create({
+        customerName,
+        customerPhone: customerPhone.trim(),
+        customerEmail,
+        showroom,
+        date: new Date(date),
+        timeSlot,
+        notes,
+        status: 'pending'
+    });
+
+    res.status(201).json({
+        success: true,
+        data: appointment
+    });
+});
+
+/**
+ * GET /api/public/certificates/:certNumber
+ * Public mock GIA lookup.
+ */
+export const checkCertificatePublic = asyncHandler(async (req, res) => {
+    const { certNumber } = req.params;
+
+    if (!certNumber) {
+        return res.status(400).json({
+            success: false,
+            message: 'Certificate number parameter is required'
+        });
+    }
+
+    const cleanNum = certNumber.trim().toUpperCase();
+
+    // Mock GIA Diamond registry
+    const mockCertificates = {
+        'GIA-12345678': {
+            certNumber: 'GIA-12345678',
+            issueDate: '2025-10-15',
+            shape: 'Round Brilliant',
+            caratWeight: '1.25 carat',
+            colorGrade: 'D (Colorless)',
+            clarityGrade: 'VVS1 (Very, Very Slightly Included)',
+            cutGrade: 'Excellent',
+            polish: 'Excellent',
+            symmetry: 'Excellent',
+            fluorescence: 'None',
+            inscription: 'GIA 12345678',
+            authenticity: 'Certified Authentic Natural Diamond'
+        },
+        'GIA-87654321': {
+            certNumber: 'GIA-87654321',
+            issueDate: '2026-02-18',
+            shape: 'Oval Modified Brilliant',
+            caratWeight: '2.01 carat',
+            colorGrade: 'E (Colorless)',
+            clarityGrade: 'VS1 (Slightly Included)',
+            cutGrade: 'Excellent',
+            polish: 'Excellent',
+            symmetry: 'Very Good',
+            fluorescence: 'Faint',
+            inscription: 'GIA 87654321',
+            authenticity: 'Certified Authentic Natural Diamond'
+        }
+    };
+
+    const certData = mockCertificates[cleanNum];
+    if (certData) {
+        res.status(200).json({
+            success: true,
+            found: true,
+            data: certData
+        });
+    } else {
+        res.status(200).json({
+            success: true,
+            found: false,
+            message: 'No laboratory records found for this certificate number. Please contact customer care for support.'
+        });
+    }
 });

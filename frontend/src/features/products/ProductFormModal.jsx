@@ -56,6 +56,8 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
             buyingPrice: 0,
             profitPercentage: 0,
             basePrice: 0,
+            discountPercent: 0,
+            discountPrice: 0,
             tierPricing: [],
             categoryName: '',
             brandName: '',
@@ -162,6 +164,8 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                 type: product.type || 'trading',
                 unitOfMeasure: product.unitOfMeasure || '',
                 basePrice: product.basePrice || 0,
+                discountPercent: product.discountPercent || 0,
+                discountPrice: product.discountPrice || 0,
                 mrp: product.mrp || 0,
                 callPrice: product.callPrice || 0,
                 taxable: product.tax?.taxable ?? false,
@@ -212,6 +216,8 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                 buyingPrice: 0,
                 profitPercentage: 0,
                 basePrice: 0,
+                discountPercent: 0,
+                discountPrice: 0,
                 mrp: 0,
                 callPrice: 0,
                 tierPricing: [],
@@ -250,6 +256,8 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
             type: data.type,
             unitOfMeasure: data.unitOfMeasure || product?.unitOfMeasure || 'pcs',
             basePrice: data.basePrice,
+            discountPercent: data.discountPercent || 0,
+            discountPrice: data.discountPrice || 0,
             purchasePrice: data.buyingPrice || 0,
             mrp: data.mrp || undefined,
             callPrice: data.callPrice || undefined,
@@ -538,7 +546,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => appendVariation({ name: '', sku: '', price: watch('basePrice') || 0, purchasePrice: watch('buyingPrice') || 0, stock: 0 })}
+                                    onClick={() => appendVariation({ name: '', sku: '', price: watch('basePrice') || 0, purchasePrice: watch('buyingPrice') || 0, stock: 0, discountPercent: 0, discountPrice: 0 })}
                                 >
                                     + Add Variation
                                 </Button>
@@ -563,10 +571,12 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                                                 <Input label="Variation Name (e.g. Red, XL)" required error={errors.variations?.[index]?.name?.message} {...register(`variations.${index}.name`)} />
                                                 <Input label="SKU" error={errors.variations?.[index]?.sku?.message} {...register(`variations.${index}.sku`)} />
                                             </div>
-                                            <div className="grid grid-cols-4 gap-4">
+                                            <div className="grid grid-cols-6 gap-4">
                                                 <Input label="Barcode" error={errors.variations?.[index]?.barcode?.message} {...register(`variations.${index}.barcode`)} />
                                                 <Input label="Purchase Price" type="number" step="0.01" error={errors.variations?.[index]?.purchasePrice?.message} {...register(`variations.${index}.purchasePrice`)} />
                                                 <Input label="Sell Price" type="number" step="0.01" error={errors.variations?.[index]?.price?.message} {...register(`variations.${index}.price`)} />
+                                                <Input label="Discount (%)" type="number" step="0.01" error={errors.variations?.[index]?.discountPercent?.message} {...register(`variations.${index}.discountPercent`)} />
+                                                <Input label="Disc Price" type="number" step="0.01" error={errors.variations?.[index]?.discountPrice?.message} {...register(`variations.${index}.discountPrice`)} />
                                                 <Input label="Initial Stock" type="number" error={errors.variations?.[index]?.stock?.message} {...register(`variations.${index}.stock`)} />
                                             </div>
                                         </div>
@@ -675,6 +685,22 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
                                             }
                                         }
                                     })}
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <Input
+                                    label="Discount Percentage (%)"
+                                    type="number"
+                                    step="0.01"
+                                    error={errors.discountPercent?.message}
+                                    {...register('discountPercent')}
+                                />
+                                <Input
+                                    label="Discount Price (LKR)"
+                                    type="number"
+                                    step="0.01"
+                                    error={errors.discountPrice?.message}
+                                    {...register('discountPrice')}
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
