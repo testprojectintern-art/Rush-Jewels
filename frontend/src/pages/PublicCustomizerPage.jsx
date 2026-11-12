@@ -157,14 +157,9 @@ export default function PublicCustomizerPage() {
         <div className="max-w-7xl mx-auto px-6 py-12 space-y-16">
             {/* Header */}
             <div className="text-center space-y-2">
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="inline-flex items-center space-x-2 bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 rounded-full text-[10px] text-amber-550 font-bold uppercase tracking-widest"
-                >
-                    <Sparkles size={11} className="text-amber-500" />
-                    <span>Treasury Design Studio</span>
-                </motion.div>
+                <span className="text-[11px] font-semibold tracking-[0.25em] text-amber-700 uppercase block">
+                    Bespoke Design Studio
+                </span>
                 <h1 className="text-3xl font-extrabold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
                     Custom Jewelry Builder
                 </h1>

@@ -3,9 +3,9 @@ import { useNavigate, useOutletContext, Link } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    ShieldCheck, Gem, Sparkles, ChevronRight, Star, Heart, 
+    ShieldCheck, Gem, ChevronRight, Heart, 
     ShoppingBag, ArrowRight, Award, Compass, Clock, CheckCircle2,
-    Calendar, PhoneCall, SlidersHorizontal
+    Calendar, PhoneCall
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import IntroOverlay from '../components/layout/IntroOverlay';
@@ -44,11 +44,9 @@ export default function PublicHomePage() {
                     if (discounted.length > 0) {
                         setDeals(discounted.slice(0, 4));
                     } else {
-                        // Fallback to demo products with discounts
                         setDeals(DEMO_PRODUCTS.slice(0, 4));
                     }
                 } else {
-                    // Fallback to demo products when database is empty
                     setDeals(DEMO_PRODUCTS.slice(0, 4));
                 }
             } catch (err) {
@@ -88,11 +86,9 @@ export default function PublicHomePage() {
                 setGiaResult(res.data);
                 toast.success('GIA Certificate Verified!');
             } else if (DEMO_CERTIFICATES[trimmed.toUpperCase()]) {
-                // Verified demo record
                 setGiaResult(DEMO_CERTIFICATES[trimmed.toUpperCase()]);
                 toast.success('GIA Laboratory Certificate Verified (Certified Authentic)');
             } else {
-                // Generate instant certificate for any standard GIA code entered in demo
                 setGiaResult({
                     found: true,
                     data: {
@@ -168,7 +164,6 @@ export default function PublicHomePage() {
         }
     ];
 
-    // Filter signature creations for tabs
     const filteredSignature = DEMO_PRODUCTS.filter(p => {
         if (activeTab === 'all') return true;
         if (activeTab === 'rings') return p.category === 'rings';
@@ -184,7 +179,6 @@ export default function PublicHomePage() {
             location: 'Colombo 07',
             item: 'Ceylon Blue Sapphire Choker',
             comment: 'The unheated royal blue sapphire from Rush Jewels is simply breathtaking. The craftsmanship and certification gave us absolute confidence.',
-            stars: 5,
             verified: 'Verified Salon Buyer'
         },
         {
@@ -192,15 +186,13 @@ export default function PublicHomePage() {
             location: 'Kandy & London',
             item: 'Custom 2.0ct Solitaire Ring',
             comment: 'I designed our engagement ring via their bespoke customizer. The finish, diamond brilliance, and presentation box exceeded every expectation.',
-            stars: 5,
             verified: 'Custom Atelier Client'
         },
         {
             client: 'Natasha Fernando',
             location: 'Mount Lavinia',
             item: 'Lumière Diamond Tennis Bracelet',
-            comment: 'The diamonds catch light in the most stunning way. Fast insured delivery and lifetime cleaning service included. 10/10 recommend.',
-            stars: 5,
+            comment: 'The diamonds catch light in the most stunning way. Fast insured delivery and lifetime cleaning service included. Highly recommended.',
             verified: 'Verified Online Order'
         }
     ];
@@ -208,37 +200,35 @@ export default function PublicHomePage() {
     return (
         <>
             {introActive && <IntroOverlay onComplete={() => setIntroActive(false)} />}
-            <div className="space-y-24 pb-20 relative overflow-hidden">
+            <div className="w-full relative overflow-hidden bg-white">
                 
-                {/* ── PARALLAX LUXURY HERO BANNER ── */}
-                <section className="relative min-h-[92vh] flex items-center justify-center text-center px-6 overflow-hidden bg-slate-950">
+                {/* ══════════════════════════════════════════════════════════
+                    DIVISION 1: HERO SHOWCASE (Dark Luxury Atmosphere)
+                   ══════════════════════════════════════════════════════════ */}
+                <section className="relative min-h-[90vh] flex items-center justify-center text-center px-6 overflow-hidden bg-slate-950">
                     <div 
-                        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-45 scale-105"
+                        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 scale-105"
                         style={{ 
                             backgroundImage: 'url("https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=2000&q=85")',
                             transform: 'translate3d(0, 0, 0)'
                         }}
                     />
                     
-                    {/* Visual Premium Overlays */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/80 to-slate-950" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/75 via-slate-950/85 to-slate-950" />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,169,106,0.12)_0%,transparent_70%)]" />
 
                     <div className="relative z-10 max-w-4xl space-y-7 pt-12">
-                        {/* Refined Haute Joaillerie Pill */}
+                        {/* Refined Minimal Text Label without pill/sparkles */}
                         <motion.div 
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
-                            className="inline-flex items-center space-x-2.5 bg-gradient-to-r from-amber-500/10 via-amber-400/15 to-amber-500/10 border border-amber-500/30 px-5 py-2 rounded-full backdrop-blur-md shadow-sm"
                         >
-                            <Gem size={13} className="text-amber-400 animate-pulse" />
-                            <span className="text-[10px] sm:text-xs text-amber-300 font-semibold uppercase tracking-[0.25em]">
-                                Haute Joaillerie &bull; Colombo &bull; Kandy
+                            <span className="text-[11px] sm:text-xs text-amber-300 font-semibold uppercase tracking-[0.35em] block">
+                                HAUTE JOAILLERIE &bull; COLOMBO &bull; KANDY
                             </span>
                         </motion.div>
 
-                        {/* Hero Headline */}
                         <motion.h1 
                             initial={{ opacity: 0, y: 25 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -252,7 +242,6 @@ export default function PublicHomePage() {
                             </span>
                         </motion.h1>
 
-                        {/* Hero Subtitle */}
                         <motion.p 
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -262,7 +251,6 @@ export default function PublicHomePage() {
                             Handcrafted masterworks sculpted in certified 22K gold, platinum 950, and GIA-graded natural diamonds. Experience our bespoke salons in Colombo and Kandy.
                         </motion.p>
 
-                        {/* CTA Buttons */}
                         <motion.div 
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -285,99 +273,108 @@ export default function PublicHomePage() {
                             </Link>
                         </motion.div>
 
-                        {/* Trust Badges Bar */}
                         <motion.div 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 1, delay: 0.8 }}
-                            className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto border-t border-white/10"
+                            className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto border-t border-white/10"
                         >
-                            <div className="flex items-center justify-center space-x-2 text-slate-400 text-[11px]">
+                            <div className="flex items-center justify-center space-x-2 text-slate-300 text-[11px]">
                                 <ShieldCheck size={14} className="text-amber-400" />
                                 <span>100% GIA Certified</span>
                             </div>
-                            <div className="flex items-center justify-center space-x-2 text-slate-400 text-[11px]">
+                            <div className="flex items-center justify-center space-x-2 text-slate-300 text-[11px]">
                                 <Award size={14} className="text-amber-400" />
                                 <span>22K Hallmark Assayed</span>
                             </div>
-                            <div className="flex items-center justify-center space-x-2 text-slate-400 text-[11px]">
-                                <Sparkles size={14} className="text-amber-400" />
+                            <div className="flex items-center justify-center space-x-2 text-slate-300 text-[11px]">
+                                <Gem size={14} className="text-amber-400" />
                                 <span>Lifetime Care Guarantee</span>
                             </div>
-                            <div className="flex items-center justify-center space-x-2 text-slate-400 text-[11px]">
+                            <div className="flex items-center justify-center space-x-2 text-slate-300 text-[11px]">
                                 <Compass size={14} className="text-amber-400" />
-                                <span>Islandwide Insured Delivery</span>
+                                <span>Insured Delivery</span>
                             </div>
                         </motion.div>
                     </div>
                 </section>
 
-                {/* ── CURATED CATEGORIES GRID ── */}
-                <section className="max-w-7xl mx-auto px-6 space-y-10">
-                    <div className="text-center space-y-2">
-                        <span className="text-[10px] font-bold tracking-[0.25em] text-amber-500 uppercase">Artisan Categories</span>
-                        <h2 className="text-2xl sm:text-4xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                            Shop by Curated Collections
-                        </h2>
-                        <div className="w-16 h-[2px] bg-amber-500 mx-auto" />
-                        <p className="text-slate-500 dark:text-slate-400 text-xs font-light max-w-md mx-auto">
-                            Handcrafted styles tailored with precious elements, brilliant gemstones, and precise dimensions.
-                        </p>
-                    </div>
+                {/* ══════════════════════════════════════════════════════════
+                    DIVISION 2: CURATED CATEGORIES (Pure White Background)
+                   ══════════════════════════════════════════════════════════ */}
+                <section className="w-full py-20 bg-white border-b border-stone-200/70">
+                    <div className="max-w-7xl mx-auto px-6 space-y-12">
+                        <div className="text-center space-y-2">
+                            <span className="text-[11px] font-semibold tracking-[0.28em] text-amber-700 uppercase block">
+                                Artisan Categories
+                            </span>
+                            <h2 className="text-3xl sm:text-4xl font-normal text-slate-900 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                Curated Collections
+                            </h2>
+                            <div className="w-12 h-[2px] bg-amber-500 mx-auto" />
+                            <p className="text-slate-500 text-xs font-light max-w-md mx-auto pt-1">
+                                Handcrafted styles tailored with precious elements, brilliant gemstones, and precise dimensions.
+                            </p>
+                        </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
-                        {categories.map((cat, idx) => (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                                key={cat.name}
-                                onClick={() => navigate(`/catalog?category=${cat.query}`)}
-                                className="group cursor-pointer bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-amber-500/5 transition-all duration-300 hover:-translate-y-1.5"
-                            >
-                                <div className="aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-950 relative">
-                                    <img 
-                                        src={cat.image} 
-                                        alt={cat.name} 
-                                        className="w-full h-full object-cover group-hover:scale-108 transition-all duration-700" 
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-                                    <div className="absolute top-3 right-3 bg-slate-950/60 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] text-amber-300 font-medium">
-                                        {cat.count}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
+                            {categories.map((cat, idx) => (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 15 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.5, delay: idx * 0.1 }}
+                                    key={cat.name}
+                                    onClick={() => navigate(`/catalog?category=${cat.query}`)}
+                                    className="group cursor-pointer bg-white border border-stone-200/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:border-amber-400/60 transition-all duration-300 hover:-translate-y-1"
+                                >
+                                    <div className="aspect-[4/3] overflow-hidden bg-stone-100 relative">
+                                        <img 
+                                            src={cat.image} 
+                                            alt={cat.name} 
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700" 
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-75 group-hover:opacity-90 transition-opacity" />
+                                        <div className="absolute top-3 right-3 bg-slate-950/70 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] text-amber-300 font-medium">
+                                            {cat.count}
+                                        </div>
+                                        <div className="absolute bottom-4 left-4 text-white space-y-0.5">
+                                            <h3 className="font-bold text-base tracking-wider uppercase" style={{ fontFamily: "'Playfair Display', serif" }}>{cat.name}</h3>
+                                            <span className="text-[10px] uppercase tracking-widest text-amber-400 font-semibold group-hover:underline flex items-center">
+                                                <span>Discover Collection</span>
+                                                <ChevronRight size={12} className="ml-0.5" />
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="absolute bottom-4 left-4 text-white space-y-0.5">
-                                        <h3 className="font-bold text-base tracking-wider uppercase" style={{ fontFamily: "'Playfair Display', serif" }}>{cat.name}</h3>
-                                        <span className="text-[10px] uppercase tracking-widest text-amber-400 font-semibold group-hover:underline flex items-center">
-                                            <span>Discover Collection</span>
-                                            <ChevronRight size={12} className="ml-0.5" />
-                                        </span>
+                                    <div className="p-4 bg-white">
+                                        <p className="text-[11px] text-slate-600 font-light leading-relaxed">{cat.desc}</p>
                                     </div>
-                                </div>
-                                <div className="p-4">
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-light leading-relaxed">{cat.desc}</p>
-                                </div>
-                            </motion.div>
-                        ))}
+                                </motion.div>
+                            ))}
+                        </div>
                     </div>
                 </section>
 
-                {/* ── PROMOTIONAL OFFERS & LIMITED RELEASES ── */}
-                <section className="bg-amber-500/[0.03] dark:bg-amber-500/[0.015] border-y border-amber-500/15 py-20 px-6">
-                    <div className="max-w-7xl mx-auto space-y-10">
+                {/* ══════════════════════════════════════════════════════════
+                    DIVISION 3: PROMOTIONS & RELEASES (Light Warm Champagne / Pale Yellow)
+                   ══════════════════════════════════════════════════════════ */}
+                <section className="w-full py-20 bg-[#FAF7F0] border-b border-amber-200/60">
+                    <div className="max-w-7xl mx-auto px-6 space-y-12">
                         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                             <div className="space-y-1 text-center sm:text-left">
-                                <span className="text-[10px] font-bold tracking-[0.25em] text-amber-500 uppercase">Exclusive Privileges</span>
-                                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
-                                    Promotional Releases & Limited Editions
+                                <span className="text-[11px] font-semibold tracking-[0.28em] text-amber-800 uppercase block">
+                                    Exclusive Privileges
+                                </span>
+                                <h2 className="text-2xl sm:text-3xl font-normal text-slate-900 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                    Limited Releases & Promotional Pieces
                                 </h2>
-                                <p className="text-slate-500 text-xs font-light">
+                                <p className="text-slate-600 text-xs font-light">
                                     Direct atelier savings calculated dynamically in real-time.
                                 </p>
                             </div>
                             <Link 
                                 to="/catalog" 
-                                className="text-xs uppercase tracking-widest font-bold text-amber-500 hover:text-amber-600 flex items-center space-x-1.5 active:scale-95"
+                                className="text-xs uppercase tracking-widest font-bold text-amber-700 hover:text-amber-800 flex items-center space-x-1.5 active:scale-95"
                             >
                                 <span>Explore All Pieces</span>
                                 <ArrowRight size={13} />
@@ -396,27 +393,25 @@ export default function PublicHomePage() {
                                     return (
                                         <div 
                                             key={product._id}
-                                            className="group bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-[0_15px_35px_rgba(245,158,11,0.06)] transition-all duration-300 relative flex flex-col justify-between"
+                                            className="group bg-white border border-stone-200/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:border-amber-400/60 transition-all duration-300 relative flex flex-col justify-between"
                                         >
-                                            {/* Discount badge */}
                                             {product.discountPercent > 0 && (
                                                 <div className="absolute top-3 left-3 z-10">
-                                                    <span className="px-2.5 py-0.5 rounded-lg bg-rose-500 text-white text-[9px] font-black tracking-wider uppercase shadow-md shadow-rose-500/20">
+                                                    <span className="px-2.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-bold tracking-wider uppercase shadow-sm">
                                                         -{product.discountPercent}% SAVING
                                                     </span>
                                                 </div>
                                             )}
 
-                                            <div className="aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-950 relative">
+                                            <div className="aspect-[4/3] overflow-hidden bg-stone-100 relative">
                                                 <img 
                                                     src={product.image} 
                                                     alt={product.name} 
-                                                    className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700" 
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                                                 />
-                                                {/* Wishlist Button */}
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
-                                                    className="absolute top-3 right-3 z-10 p-2 rounded-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-800 text-slate-500 hover:text-rose-500 transition active:scale-90"
+                                                    className="absolute top-3 right-3 z-10 p-2 rounded-xl bg-white/90 backdrop-blur-md border border-stone-200 text-slate-500 hover:text-rose-600 transition active:scale-90"
                                                     title="Wishlist"
                                                 >
                                                     <Heart size={14} className={isWish ? "fill-rose-500 text-rose-500" : ""} />
@@ -427,33 +422,33 @@ export default function PublicHomePage() {
                                                 <div className="space-y-1.5">
                                                     <div className="flex items-center justify-between text-[9px] text-slate-400 font-mono tracking-wider uppercase">
                                                         <span>SKU: {product.productCode}</span>
-                                                        <span className="text-amber-500 font-semibold">{product.metal || '18K Gold'}</span>
+                                                        <span className="text-amber-700 font-semibold">{product.metal || '18K Gold'}</span>
                                                     </div>
                                                     <h3 
                                                         onClick={() => navigate(`/catalog`)}
-                                                        className="font-bold text-sm text-slate-900 dark:text-white line-clamp-1 hover:text-amber-500 cursor-pointer transition"
+                                                        className="font-bold text-sm text-slate-900 line-clamp-1 hover:text-amber-700 cursor-pointer transition"
                                                         style={{ fontFamily: "'Playfair Display', serif" }}
                                                     >
                                                         {product.name}
                                                     </h3>
-                                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                                                    <p className="text-[10px] text-slate-500 line-clamp-2 leading-relaxed">
                                                         {product.description}
                                                     </p>
                                                 </div>
 
-                                                <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                                                <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
                                                     <div>
                                                         {product.discountPercent > 0 && (
                                                             <span className="text-[10px] text-slate-400 line-through block">LKR {product.basePrice.toLocaleString()}</span>
                                                         )}
-                                                        <span className="text-sm font-extrabold text-amber-500 dark:text-amber-400">{fmtPrice(effPrice)}</span>
+                                                        <span className="text-sm font-bold text-amber-700">{fmtPrice(effPrice)}</span>
                                                     </div>
                                                     <button
                                                         onClick={() => {
                                                             addToCart(product, 1);
                                                             toast.success(`${product.name} added to cart`);
                                                         }}
-                                                        className="p-2.5 rounded-xl bg-slate-900 text-white dark:bg-amber-500 dark:text-slate-950 hover:bg-amber-500 dark:hover:bg-amber-400 hover:text-white transition active:scale-95 flex items-center justify-center shadow-sm"
+                                                        className="p-2.5 rounded-xl bg-slate-900 text-white hover:bg-amber-600 transition active:scale-95 flex items-center justify-center shadow-sm"
                                                         title="Quick Add to Bag"
                                                     >
                                                         <ShoppingBag size={14} />
@@ -468,356 +463,376 @@ export default function PublicHomePage() {
                     </div>
                 </section>
 
-                {/* ── SIGNATURE SHOWCASE WITH INTERACTIVE FILTER TABS ── */}
-                <section className="max-w-7xl mx-auto px-6 space-y-10">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200/80 dark:border-slate-800/80 pb-6">
-                        <div className="space-y-2">
-                            <span className="text-[10px] font-bold tracking-[0.25em] text-amber-500 uppercase">The Signature Vault</span>
-                            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                                Masterpiece Gallery
+                {/* ══════════════════════════════════════════════════════════
+                    DIVISION 4: MASTERPIECE VAULT (Pure White Background)
+                   ══════════════════════════════════════════════════════════ */}
+                <section className="w-full py-20 bg-white border-b border-stone-200/70">
+                    <div className="max-w-7xl mx-auto px-6 space-y-12">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-stone-200/80 pb-6">
+                            <div className="space-y-2">
+                                <span className="text-[11px] font-semibold tracking-[0.28em] text-amber-700 uppercase block">
+                                    The Signature Vault
+                                </span>
+                                <h2 className="text-3xl sm:text-4xl font-normal text-slate-900 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                    Masterpiece Gallery
+                                </h2>
+                                <p className="text-slate-500 text-xs font-light">
+                                    Certified solitaires, rare untreated Sapphires, and bridal heirlooms.
+                                </p>
+                            </div>
+
+                            {/* Clean Filter Tabs */}
+                            <div className="flex flex-wrap gap-2">
+                                {[
+                                    { id: 'all', label: 'All Vault' },
+                                    { id: 'rings', label: 'Rings & Solitaires' },
+                                    { id: 'necklaces', label: 'Necklaces & Pendants' },
+                                    { id: 'bracelets', label: 'Tennis Bracelets' },
+                                    { id: 'earrings', label: 'Earrings' }
+                                ].map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wider transition-all ${
+                                            activeTab === tab.id 
+                                                ? 'bg-amber-600 text-white shadow-sm' 
+                                                : 'bg-stone-100 text-slate-700 hover:bg-stone-200'
+                                        }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {filteredSignature.map(item => {
+                                const isWish = isWishlisted(item._id);
+                                return (
+                                    <div 
+                                        key={item._id}
+                                        className="group bg-white border border-stone-200/80 rounded-2xl overflow-hidden hover:border-amber-400/60 transition-all duration-300 hover:shadow-xl flex flex-col"
+                                    >
+                                        <div className="aspect-[4/3] bg-stone-100 relative overflow-hidden">
+                                            <img 
+                                                src={item.image} 
+                                                alt={item.name} 
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700" 
+                                            />
+                                            <button 
+                                                onClick={() => toggleWishlist(item)}
+                                                className="absolute top-3 right-3 p-2 rounded-xl bg-white/90 backdrop-blur-md border border-stone-200 text-slate-500 hover:text-rose-600 transition active:scale-90"
+                                            >
+                                                <Heart size={14} className={isWish ? "fill-rose-500 text-rose-500" : ""} />
+                                            </button>
+                                            <div className="absolute bottom-3 left-3 bg-slate-950/70 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] text-amber-300 font-mono">
+                                                {item.caratWeight || item.metal}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                                            <div className="space-y-1.5">
+                                                <div className="text-[10px] font-semibold text-amber-700 uppercase tracking-wider">
+                                                    {item.metal} &bull; {item.purity || '750 Hallmark'}
+                                                </div>
+                                                <h3 
+                                                    onClick={() => navigate('/catalog')}
+                                                    className="font-bold text-base text-slate-900 hover:text-amber-700 cursor-pointer transition"
+                                                    style={{ fontFamily: "'Playfair Display', serif" }}
+                                                >
+                                                    {item.name}
+                                                </h3>
+                                                <p className="text-xs text-slate-500 font-light line-clamp-2">
+                                                    {item.description}
+                                                </p>
+                                            </div>
+
+                                            <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
+                                                <div>
+                                                    <span className="text-[10px] text-slate-400 block font-mono">ATELIER PRICE</span>
+                                                    <span className="text-base font-bold text-amber-800">
+                                                        {fmtPrice(item.discountPrice || item.basePrice)}
+                                                    </span>
+                                                </div>
+                                                <button 
+                                                    onClick={() => {
+                                                        addToCart(item, 1);
+                                                        toast.success(`${item.name} added to cart`);
+                                                    }}
+                                                    className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider transition active:scale-95 flex items-center space-x-1.5 shadow-sm"
+                                                >
+                                                    <ShoppingBag size={13} />
+                                                    <span>Acquire</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+
+                {/* ══════════════════════════════════════════════════════════
+                    DIVISION 5: BESPOKE 3D ATELIER (Light Warm Cream Background)
+                   ══════════════════════════════════════════════════════════ */}
+                <section className="w-full py-20 bg-[#FDFBF7] border-b border-amber-200/60">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="rounded-3xl overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 text-white p-8 sm:p-14 shadow-xl relative">
+                            <div className="max-w-xl space-y-6 relative z-10">
+                                <span className="text-[11px] font-semibold text-amber-300 tracking-[0.25em] uppercase block">
+                                    Bespoke Creations
+                                </span>
+                                <h2 className="text-3xl sm:text-5xl font-normal tracking-tight leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                    Sculpt Your Dream Jewel in Real-Time 3D
+                                </h2>
+                                <p className="text-slate-300 text-xs sm:text-sm font-light leading-relaxed">
+                                    Select metal purity (22K Gold, 18K Rose, Platinum 950), hand-pick certified diamonds, customize prong settings, and receive live instant price estimation before our master goldsmiths bring it to life.
+                                </p>
+                                
+                                <div className="flex flex-wrap gap-4 pt-2">
+                                    <Link 
+                                        to="/customizer" 
+                                        className="px-8 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest shadow-md transition active:scale-95 flex items-center space-x-2"
+                                    >
+                                        <span>Launch 3D Configurator</span>
+                                        <ArrowRight size={14} />
+                                    </Link>
+                                    <Link 
+                                        to="/warranty" 
+                                        className="px-6 py-3.5 rounded-xl border border-white/20 hover:border-amber-400/50 bg-white/5 text-white font-bold text-xs uppercase tracking-widest transition active:scale-95 flex items-center space-x-2"
+                                    >
+                                        <ShieldCheck size={14} className="text-amber-400" />
+                                        <span>Warranty Registry</span>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* ══════════════════════════════════════════════════════════
+                    DIVISION 6: THE RUSH ASSURANCE (Pure White Background)
+                   ══════════════════════════════════════════════════════════ */}
+                <section className="w-full py-20 bg-white border-b border-stone-200/70">
+                    <div className="max-w-7xl mx-auto px-6 space-y-12">
+                        <div className="text-center space-y-2">
+                            <span className="text-[11px] font-semibold tracking-[0.28em] text-amber-700 uppercase block">
+                                Uncompromising Standards
+                            </span>
+                            <h2 className="text-3xl sm:text-4xl font-normal text-slate-900 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                The Rush Assurance
                             </h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-xs font-light">
-                                Certified solitaires, rare untreated Sapphires, and bridal heirlooms.
+                            <div className="w-12 h-[2px] bg-amber-500 mx-auto" />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            {[
+                                {
+                                    icon: Award,
+                                    title: 'Certified Assay & Purity',
+                                    desc: 'Guaranteed 916 (22K) and 750 (18K) hallmarked purity certified with laser micro-engraved hallmarks.'
+                                },
+                                {
+                                    icon: Gem,
+                                    title: 'GIA Conflict-Free Diamonds',
+                                    desc: 'Every diamond is ethically sourced conforming strictly to the Kimberley Process with GIA lab dossiers.'
+                                },
+                                {
+                                    icon: ShieldCheck,
+                                    title: 'Artisan Goldsmithing',
+                                    desc: 'Handcrafted by generational master jewelers with microscope prong-setting and mirror polishing.'
+                                },
+                                {
+                                    icon: Clock,
+                                    title: 'Lifetime Care & Cleaning',
+                                    desc: 'Complimentary annual prong inspection, ultrasonic cleansing, and rhodium replating across all salons.'
+                                }
+                            ].map((pillar, i) => {
+                                const IconComponent = pillar.icon;
+                                return (
+                                    <div 
+                                        key={i} 
+                                        className="p-7 rounded-2xl bg-white border border-stone-200/80 space-y-3 hover:border-amber-400/60 transition-all duration-300 shadow-sm"
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+                                            <IconComponent size={20} />
+                                        </div>
+                                        <h3 className="font-bold text-sm text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                            {pillar.title}
+                                        </h3>
+                                        <p className="text-xs text-slate-500 font-light leading-relaxed">
+                                            {pillar.desc}
+                                        </p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+
+                {/* ══════════════════════════════════════════════════════════
+                    DIVISION 7: GIA CERTIFICATE DOSSIER LOOKUP (Light Warm Champagne)
+                   ══════════════════════════════════════════════════════════ */}
+                <section className="w-full py-20 bg-[#FAF7F0] border-b border-amber-200/60">
+                    <div className="max-w-3xl mx-auto px-6 space-y-8">
+                        <div className="text-center space-y-2">
+                            <span className="text-[11px] font-semibold tracking-[0.28em] text-amber-800 uppercase block">
+                                Live Dossier Lookup
+                            </span>
+                            <h2 className="text-2xl sm:text-3xl font-normal text-slate-900 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                Verify Diamond & Gemstone Dossier
+                            </h2>
+                            <div className="w-12 h-[2px] bg-amber-500 mx-auto" />
+                            <p className="text-slate-600 text-xs font-light">
+                                Enter any laboratory certificate number (e.g. GIA-12345678 or GIA-22019482) for live verification.
                             </p>
                         </div>
 
-                        {/* Filter Tabs */}
-                        <div className="flex flex-wrap gap-2">
-                            {[
-                                { id: 'all', label: 'All Vault' },
-                                { id: 'rings', label: 'Rings & Solitaires' },
-                                { id: 'necklaces', label: 'Necklaces & Pendants' },
-                                { id: 'bracelets', label: 'Tennis Bracelets' },
-                                { id: 'earrings', label: 'Earrings' }
-                            ].map(tab => (
+                        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-stone-200 shadow-md space-y-6">
+                            <form onSubmit={handleGiaLookup} className="flex flex-col sm:flex-row gap-3">
+                                <input
+                                    type="text"
+                                    placeholder="e.g. GIA-12345678 or GIA-22019482"
+                                    value={giaInput}
+                                    onChange={(e) => setGiaInput(e.target.value)}
+                                    className="flex-grow px-4 py-3.5 rounded-xl border border-stone-300 bg-stone-50 focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs font-mono tracking-wider uppercase placeholder-slate-400"
+                                />
                                 <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wider transition-all ${
-                                        activeTab === tab.id 
-                                            ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' 
-                                            : 'bg-slate-100 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
-                                    }`}
+                                    type="submit"
+                                    disabled={giaLoading}
+                                    className="px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-widest transition flex items-center justify-center space-x-2 shrink-0 active:scale-95 disabled:opacity-50"
                                 >
-                                    {tab.label}
+                                    <ShieldCheck size={15} />
+                                    <span>{giaLoading ? 'Verifying...' : 'Verify Authenticity'}</span>
                                 </button>
+                            </form>
+
+                            {giaResult && giaResult.found && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-4"
+                                >
+                                    <div className="flex items-center justify-between border-b border-emerald-200/60 pb-3">
+                                        <div className="flex items-center space-x-2 text-emerald-800">
+                                            <CheckCircle2 size={18} />
+                                            <span className="font-bold text-xs uppercase tracking-wider">{giaResult.data.authenticity}</span>
+                                        </div>
+                                        <span className="text-[10px] font-mono text-slate-500">{giaResult.data.certificateNumber || giaInput}</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+                                        <div>
+                                            <span className="text-slate-500 block text-[10px] uppercase font-semibold">Cut & Shape</span>
+                                            <span className="font-bold text-slate-900">{giaResult.data.shape}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-500 block text-[10px] uppercase font-semibold">Carat Weight</span>
+                                            <span className="font-bold text-slate-900">{giaResult.data.caratWeight}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-500 block text-[10px] uppercase font-semibold">Color Grade</span>
+                                            <span className="font-bold text-slate-900">{giaResult.data.colorGrade}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-500 block text-[10px] uppercase font-semibold">Clarity Grade</span>
+                                            <span className="font-bold text-slate-900">{giaResult.data.clarityGrade}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-500 block text-[10px] uppercase font-semibold">Cut Quality</span>
+                                            <span className="font-bold text-slate-900">{giaResult.data.cutGrade}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-500 block text-[10px] uppercase font-semibold">Polish / Symmetry</span>
+                                            <span className="font-bold text-slate-900">{giaResult.data.polish || 'Excellent'} / {giaResult.data.symmetry || 'Excellent'}</span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                {/* ══════════════════════════════════════════════════════════
+                    DIVISION 8: PATRON EXPERIENCES (Pure White Background)
+                   ══════════════════════════════════════════════════════════ */}
+                <section className="w-full py-20 bg-white border-b border-stone-200/70">
+                    <div className="max-w-7xl mx-auto px-6 space-y-12">
+                        <div className="text-center space-y-2">
+                            <span className="text-[11px] font-semibold tracking-[0.28em] text-amber-700 uppercase block">
+                                Patron Stories
+                            </span>
+                            <h2 className="text-3xl sm:text-4xl font-normal text-slate-900 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                Client Experiences
+                            </h2>
+                            <div className="w-12 h-[2px] bg-amber-500 mx-auto" />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
+                            {reviews.map((rev, idx) => (
+                                <div 
+                                    key={idx} 
+                                    className="p-8 rounded-2xl bg-[#FAF9F6] border border-stone-200/70 flex flex-col justify-between space-y-6 shadow-sm"
+                                >
+                                    <div className="space-y-3">
+                                        <span className="text-amber-800 text-[10px] font-semibold uppercase tracking-wider block">
+                                            {rev.item}
+                                        </span>
+                                        <p className="text-xs text-slate-700 font-light italic leading-relaxed">
+                                            "{rev.comment}"
+                                        </p>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-stone-200/60 flex items-center justify-between">
+                                        <div>
+                                            <h4 className="font-bold text-xs text-slate-900">{rev.client}</h4>
+                                            <span className="text-[10px] text-slate-500">{rev.location}</span>
+                                        </div>
+                                        <span className="text-[9px] px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">
+                                            {rev.verified}
+                                        </span>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {filteredSignature.map(item => {
-                            const isWish = isWishlisted(item._id);
-                            return (
-                                <div 
-                                    key={item._id}
-                                    className="group bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl overflow-hidden hover:border-amber-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/5 flex flex-col"
-                                >
-                                    <div className="aspect-[4/3] bg-slate-100 dark:bg-slate-950 relative overflow-hidden">
-                                        <img 
-                                            src={item.image} 
-                                            alt={item.name} 
-                                            className="w-full h-full object-cover group-hover:scale-108 transition-all duration-700" 
-                                        />
-                                        <button 
-                                            onClick={() => toggleWishlist(item)}
-                                            className="absolute top-3 right-3 p-2 rounded-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-rose-500 transition active:scale-90"
-                                        >
-                                            <Heart size={14} className={isWish ? "fill-rose-500 text-rose-500" : ""} />
-                                        </button>
-                                        <div className="absolute bottom-3 left-3 bg-slate-950/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] text-amber-300 font-mono">
-                                            {item.caratWeight || item.metal}
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
-                                        <div className="space-y-1.5">
-                                            <div className="flex items-center space-x-1 text-amber-500 text-xs">
-                                                <Star size={12} className="fill-amber-500" />
-                                                <span className="font-bold">{item.rating}</span>
-                                                <span className="text-slate-400 text-[10px]">({item.reviewsCount} reviews)</span>
-                                            </div>
-                                            <h3 
-                                                onClick={() => navigate('/catalog')}
-                                                className="font-bold text-base text-slate-900 dark:text-white hover:text-amber-500 cursor-pointer transition"
-                                                style={{ fontFamily: "'Playfair Display', serif" }}
-                                            >
-                                                {item.name}
-                                            </h3>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 font-light line-clamp-2">
-                                                {item.description}
-                                            </p>
-                                        </div>
-
-                                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-                                            <div>
-                                                <span className="text-[10px] text-slate-400 block font-mono">ASSAY PRICE</span>
-                                                <span className="text-base font-bold text-amber-500 dark:text-amber-400">
-                                                    {fmtPrice(item.discountPrice || item.basePrice)}
-                                                </span>
-                                            </div>
-                                            <button 
-                                                onClick={() => {
-                                                    addToCart(item, 1);
-                                                    toast.success(`${item.name} added to cart`);
-                                                }}
-                                                className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs uppercase tracking-wider transition active:scale-95 flex items-center space-x-1.5"
-                                            >
-                                                <ShoppingBag size={13} />
-                                                <span>Acquire</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
                 </section>
 
-                {/* ── BESPOKE 3D ATELIER SHOWCASE BANNER ── */}
-                <section className="max-w-7xl mx-auto px-6">
-                    <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950/80 border border-amber-500/20 p-8 sm:p-14 shadow-2xl">
-                        <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-20 pointer-events-none hidden md:block">
-                            <img 
-                                src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1200&q=80" 
-                                alt="Customizer" 
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-
-                        <div className="relative z-10 max-w-xl space-y-6">
-                            <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[10px] font-bold tracking-widest uppercase">
-                                <Sparkles size={11} />
-                                <span>Rush Bespoke Customizer</span>
-                            </span>
-                            <h2 className="text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                                Sculpt Your Dream Jewel in Real-Time 3D
-                            </h2>
-                            <p className="text-slate-300 text-xs sm:text-sm font-light leading-relaxed">
-                                Select metal purity (22K Gold, 18K Rose, Platinum), hand-pick certified diamonds, customize prong settings, and receive live instant price estimation before our master goldsmiths bring it to life.
-                            </p>
-                            
-                            <div className="flex flex-wrap gap-4 pt-2">
-                                <Link 
-                                    to="/customizer" 
-                                    className="px-8 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest shadow-lg shadow-amber-500/20 transition active:scale-95 flex items-center space-x-2"
-                                >
-                                    <span>Launch 3D Configurator</span>
-                                    <ArrowRight size={14} />
-                                </Link>
-                                <Link 
-                                    to="/warranty" 
-                                    className="px-6 py-3.5 rounded-xl border border-white/20 hover:border-amber-400/40 bg-white/5 text-white font-bold text-xs uppercase tracking-widest transition active:scale-95 flex items-center space-x-2"
-                                >
-                                    <ShieldCheck size={14} className="text-amber-400" />
-                                    <span>Warranty Registry</span>
-                                </Link>
+                {/* ══════════════════════════════════════════════════════════
+                    DIVISION 9: PRIVATE SALON VIEWING (Light Warm Champagne)
+                   ══════════════════════════════════════════════════════════ */}
+                <section className="w-full py-20 bg-[#FAF7F0]">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="p-8 sm:p-12 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl">
+                            <div className="space-y-3 max-w-xl text-center md:text-left">
+                                <span className="text-[11px] font-semibold text-amber-300 tracking-[0.25em] uppercase block">
+                                    Private Viewing
+                                </span>
+                                <h3 className="text-2xl sm:text-3xl font-normal tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                    Reserve an Appointment at Our Salons
+                                </h3>
+                                <p className="text-xs text-slate-300 font-light leading-relaxed">
+                                    Schedule a one-on-one viewing with our gemologists in our private VIP lounges at Ward Place Colombo or Kandy Heritage Arcade.
+                                </p>
                             </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* ── THE ART OF FINE CRAFTSMANSHIP (4 PILLARS) ── */}
-                <section className="max-w-7xl mx-auto px-6 space-y-10">
-                    <div className="text-center space-y-2">
-                        <span className="text-[10px] font-bold tracking-[0.25em] text-amber-500 uppercase">Uncompromising Standards</span>
-                        <h2 className="text-2xl sm:text-4xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                            The Rush Assurance
-                        </h2>
-                        <div className="w-16 h-[2px] bg-amber-500 mx-auto" />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {[
-                            {
-                                icon: Award,
-                                title: 'Certified Assay & Purity',
-                                desc: 'Guaranteed 916 (22K) and 750 (18K) hallmarked purity certified with laser micro-engraved hallmarks.'
-                            },
-                            {
-                                icon: Gem,
-                                title: 'GIA Conflict-Free Diamonds',
-                                desc: 'Every diamond is ethically sourced conforming strictly to the Kimberley Process with GIA lab dossiers.'
-                            },
-                            {
-                                icon: Sparkles,
-                                title: 'Artisan Goldsmithing',
-                                desc: 'Handcrafted by generational master jewelers with microscope prong-setting and mirror polishing.'
-                            },
-                            {
-                                icon: Clock,
-                                title: 'Lifetime Care & Cleaning',
-                                desc: 'Complimentary annual prong inspection, ultrasonic cleansing, and rhodium replating across all salons.'
-                            }
-                        ].map((pillar, i) => {
-                            const IconComponent = pillar.icon;
-                            return (
-                                <div 
-                                    key={i} 
-                                    className="p-6 rounded-2xl bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 space-y-3 hover:border-amber-500/40 transition-all duration-300"
+                            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                                <Link 
+                                    to="/contact" 
+                                    className="px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest text-center transition active:scale-95 flex items-center justify-center space-x-2"
                                 >
-                                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                                        <IconComponent size={20} />
-                                    </div>
-                                    <h3 className="font-bold text-sm text-slate-900 dark:text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
-                                        {pillar.title}
-                                    </h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-light leading-relaxed">
-                                        {pillar.desc}
-                                    </p>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </section>
-
-                {/* ── GIA CERTIFICATE VERIFICATION WIDGET ── */}
-                <section className="max-w-3xl mx-auto px-6 space-y-8">
-                    <div className="text-center space-y-2">
-                        <span className="text-[10px] font-bold tracking-[0.25em] text-amber-500 uppercase">Live Dossier Lookup</span>
-                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                            Verify Diamond & Gemstone Dossier
-                        </h2>
-                        <div className="w-16 h-[2px] bg-amber-500 mx-auto" />
-                        <p className="text-slate-400 text-xs font-light">
-                            Enter any laboratory certificate number (e.g., GIA-12345678 or GIA-22019482) for live verification.
-                        </p>
-                    </div>
-
-                    <div className="p-6 sm:p-8 rounded-3xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md space-y-6">
-                        <form onSubmit={handleGiaLookup} className="flex flex-col sm:flex-row gap-3">
-                            <input
-                                type="text"
-                                placeholder="e.g. GIA-12345678 or GIA-22019482"
-                                value={giaInput}
-                                onChange={(e) => setGiaInput(e.target.value)}
-                                className="flex-grow px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs font-mono tracking-wider uppercase placeholder-slate-400"
-                            />
-                            <button
-                                type="submit"
-                                disabled={giaLoading}
-                                className="px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs uppercase tracking-widest transition flex items-center justify-center space-x-2 shrink-0 active:scale-95 disabled:opacity-50"
-                            >
-                                <ShieldCheck size={15} />
-                                <span>{giaLoading ? 'Verifying...' : 'Verify Authenticity'}</span>
-                            </button>
-                        </form>
-
-                        {/* Result printout */}
-                        {giaResult && giaResult.found && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="p-6 rounded-2xl bg-emerald-500/[0.04] border border-emerald-500/20 space-y-4"
-                            >
-                                <div className="flex items-center justify-between border-b border-emerald-500/10 pb-3">
-                                    <div className="flex items-center space-x-2 text-emerald-500">
-                                        <CheckCircle2 size={18} />
-                                        <span className="font-bold text-xs uppercase tracking-wider">{giaResult.data.authenticity}</span>
-                                    </div>
-                                    <span className="text-[10px] font-mono text-slate-400">{giaResult.data.certificateNumber || giaInput}</span>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
-                                    <div>
-                                        <span className="text-slate-400 block text-[10px] uppercase font-semibold">Cut & Shape</span>
-                                        <span className="font-bold text-slate-900 dark:text-slate-100">{giaResult.data.shape}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-400 block text-[10px] uppercase font-semibold">Carat Weight</span>
-                                        <span className="font-bold text-slate-900 dark:text-slate-100">{giaResult.data.caratWeight}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-400 block text-[10px] uppercase font-semibold">Color Grade</span>
-                                        <span className="font-bold text-slate-900 dark:text-slate-100">{giaResult.data.colorGrade}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-400 block text-[10px] uppercase font-semibold">Clarity Grade</span>
-                                        <span className="font-bold text-slate-900 dark:text-slate-100">{giaResult.data.clarityGrade}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-400 block text-[10px] uppercase font-semibold">Cut Quality</span>
-                                        <span className="font-bold text-slate-900 dark:text-slate-100">{giaResult.data.cutGrade}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-400 block text-[10px] uppercase font-semibold">Polish / Symmetry</span>
-                                        <span className="font-bold text-slate-900 dark:text-slate-100">{giaResult.data.polish || 'Excellent'} / {giaResult.data.symmetry || 'Excellent'}</span>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </div>
-                </section>
-
-                {/* ── CLIENT REVIEWS / TESTIMONIALS ── */}
-                <section className="max-w-7xl mx-auto px-6 space-y-10">
-                    <div className="text-center space-y-2">
-                        <span className="text-[10px] font-bold tracking-[0.25em] text-amber-500 uppercase">Client Stories</span>
-                        <h2 className="text-2xl sm:text-4xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                            Patron Experiences
-                        </h2>
-                        <div className="w-16 h-[2px] bg-amber-500 mx-auto" />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
-                        {reviews.map((rev, idx) => (
-                            <div 
-                                key={idx} 
-                                className="p-7 rounded-2xl bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800/80 flex flex-col justify-between space-y-4 shadow-sm"
-                            >
-                                <div className="space-y-3">
-                                    <div className="flex items-center space-x-1 text-amber-400">
-                                        {[...Array(rev.stars)].map((_, i) => (
-                                            <Star key={i} size={14} className="fill-amber-400" />
-                                        ))}
-                                    </div>
-                                    <p className="text-xs text-slate-600 dark:text-slate-300 font-light italic leading-relaxed">
-                                        "{rev.comment}"
-                                    </p>
-                                </div>
-
-                                <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-                                    <div>
-                                        <h4 className="font-bold text-xs text-slate-900 dark:text-white">{rev.client}</h4>
-                                        <span className="text-[10px] text-slate-400">{rev.location}</span>
-                                    </div>
-                                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-semibold">
-                                        {rev.verified}
-                                    </span>
-                                </div>
+                                    <Calendar size={14} />
+                                    <span>Book Appointment</span>
+                                </Link>
+                                <a 
+                                    href="https://wa.me/94771234567" 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="px-6 py-3.5 rounded-xl border border-white/20 hover:border-amber-400/50 bg-white/5 text-white font-bold text-xs uppercase tracking-widest text-center transition active:scale-95 flex items-center justify-center space-x-2"
+                                >
+                                    <PhoneCall size={14} className="text-emerald-400" />
+                                    <span>WhatsApp Concierge</span>
+                                </a>
                             </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* ── VISIT OUR SALONS / PRIVATE VIEWING ── */}
-                <section className="max-w-7xl mx-auto px-6">
-                    <div className="p-8 sm:p-12 rounded-3xl bg-slate-900 text-white border border-amber-500/20 flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div className="space-y-3 max-w-xl text-center md:text-left">
-                            <span className="text-[10px] font-bold tracking-[0.25em] text-amber-400 uppercase">Private Viewing</span>
-                            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                                Reserve an Appointment at Our Salons
-                            </h3>
-                            <p className="text-xs text-slate-400 font-light leading-relaxed">
-                                Schedule a one-on-one viewing with our gemologists in our private VIP lounges at Ward Place Colombo or Kandy Heritage Arcade.
-                            </p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                            <Link 
-                                to="/contact" 
-                                className="px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest text-center transition active:scale-95 flex items-center justify-center space-x-2"
-                            >
-                                <Calendar size={14} />
-                                <span>Book Appointment</span>
-                            </Link>
-                            <a 
-                                href="https://wa.me/94771234567" 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="px-6 py-3.5 rounded-xl border border-white/20 hover:border-amber-400/40 bg-white/5 text-white font-bold text-xs uppercase tracking-widest text-center transition active:scale-95 flex items-center justify-center space-x-2"
-                            >
-                                <PhoneCall size={14} className="text-emerald-400" />
-                                <span>WhatsApp Concierge</span>
-                            </a>
                         </div>
                     </div>
                 </section>

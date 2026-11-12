@@ -1,76 +1,132 @@
-import { Award, ShieldCheck, Heart, Sparkles, Gem } from 'lucide-react';
+import { Award, ShieldCheck, Heart, Gem, Compass, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function PublicAboutPage() {
     return (
-        <div className="max-w-4xl mx-auto px-6 py-16 space-y-20 relative">
-            {/* Ambient glows */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 bg-amber-500/5 rounded-full blur-[80px] pointer-events-none" />
-
-            {/* Title */}
-            <div className="text-center space-y-4">
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="inline-flex items-center space-x-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full text-xs text-amber-550 font-semibold uppercase tracking-wider"
-                >
-                    <Sparkles size={12} />
-                    <span>Our Legacy</span>
-                </motion.div>
-                <h1 className="text-3xl sm:text-5xl font-normal tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                    The Art of Pure Brilliance
-                </h1>
-                <div className="w-16 h-[2px] bg-amber-500 mx-auto" />
-                <p className="text-slate-450 dark:text-slate-400 text-xs font-light max-w-md mx-auto leading-relaxed">
-                    Forged with passion, designed with geometric perfection, and hand-finished by master Sri Lankan jewelers since 1998.
-                </p>
-            </div>
-
-            {/* Content grids */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                <div className="space-y-6">
-                    <h2 className="text-xl sm:text-2xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                        Uncompromising Gold Purity
-                    </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-light">
-                        At Rush Jewels, we believe that luxury is defined by authenticity. Every gold piece is cast in certified 22-karat (91.6% pure) yellow gold or premium 18-karat gold for diamond settings. 
+        <div className="w-full bg-white">
+            {/* ══════════════════════════════════════════════════════════
+                DIVISION 1: HERO HEADER (Pure White)
+               ══════════════════════════════════════════════════════════ */}
+            <section className="w-full py-20 px-6 border-b border-stone-200/70 bg-white">
+                <div className="max-w-4xl mx-auto text-center space-y-4">
+                    <span className="text-[11px] font-semibold tracking-[0.3em] text-amber-800 uppercase block">
+                        Our Heritage &bull; Established 1998
+                    </span>
+                    <h1 className="text-3xl sm:text-5xl font-normal tracking-tight text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>
+                        The Art of Pure Brilliance
+                    </h1>
+                    <div className="w-12 h-[2px] bg-amber-500 mx-auto" />
+                    <p className="text-slate-600 text-xs sm:text-sm font-light max-w-xl mx-auto leading-relaxed pt-2">
+                        Forged with passion, sculpted with geometric perfection, and hand-finished by master Sri Lankan goldsmiths and gemologists for over two decades.
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-light">
-                        Each article carries the official stamp of the Sri Lanka State Gem & Jewellery Authority, ensuring international standards of metal fineness.
-                    </p>
-                </div>
-                <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden aspect-video flex items-center justify-center">
-                    <img 
-                        src="/luxury_jewelry_placeholder.png" 
-                        alt="Gold craft" 
-                        className="absolute inset-0 w-full h-full object-cover opacity-60" 
-                    />
-                    <div className="absolute inset-0 bg-slate-950/40" />
-                    <Gem size={42} className="text-amber-400 relative z-10 animate-bounce" />
                 </div>
             </section>
 
-            {/* Core Values */}
-            <section className="space-y-10">
-                <h3 className="text-lg font-bold text-center uppercase tracking-widest" style={{ fontFamily: "'Playfair Display', serif" }}>
-                    Our Pillars of Excellence
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-850 space-y-4">
-                        <Award size={20} className="text-amber-500" />
-                        <h4 className="font-bold text-sm">Fine GIA Diamonds</h4>
-                        <p className="text-[11px] text-slate-500 leading-relaxed font-light">Every diamond above 0.3 carats is GIA-registered, featuring a unique microscopic laser inscription matching its report.</p>
+            {/* ══════════════════════════════════════════════════════════
+                DIVISION 2: CRAFTSMANSHIP & METALLURGY (Light Champagne / Pale Gold)
+               ══════════════════════════════════════════════════════════ */}
+            <section className="w-full py-20 px-6 bg-[#FAF7F0] border-b border-amber-200/60">
+                <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-14 items-center">
+                    <div className="space-y-6">
+                        <span className="text-[11px] font-semibold tracking-[0.25em] text-amber-800 uppercase block">
+                            Assay & Metallurgy
+                        </span>
+                        <h2 className="text-2xl sm:text-3xl font-normal text-slate-900 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                            Uncompromising Gold Purity
+                        </h2>
+                        <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed font-light">
+                            <p>
+                                At Rush Jewels, luxury is defined by rigorous authenticity. Every gold creation is sculpted in certified 22-karat (91.6% pure) yellow gold or premium 18-karat gold for diamond settings.
+                            </p>
+                            <p>
+                                Each article carries the official assay hallmark of the Sri Lanka State Gem & Jewellery Authority, alongside our maker's mark and certified purity guarantee.
+                            </p>
+                        </div>
+                        <div className="pt-2 flex flex-wrap gap-4 text-xs font-semibold text-slate-800">
+                            <div className="flex items-center space-x-2">
+                                <CheckCircle2 size={16} className="text-amber-700" />
+                                <span>916 (22K) & 750 (18K) Assayed</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <CheckCircle2 size={16} className="text-amber-700" />
+                                <span>GIA Certified Solitaires</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-850 space-y-4">
-                        <ShieldCheck size={20} className="text-amber-500" />
-                        <h4 className="font-bold text-sm">Secure Transit</h4>
-                        <p className="text-[11px] text-slate-500 leading-relaxed font-light">Online orders are sealed in tamper-proof treasury bags and shipped via premium courier services with full insurance coverage.</p>
+
+                    <div className="rounded-3xl bg-white border border-stone-200 p-4 shadow-sm overflow-hidden aspect-[4/3] relative">
+                        <img 
+                            src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1000&q=80" 
+                            alt="Fine Gold Craftsmanship" 
+                            className="w-full h-full object-cover rounded-2xl" 
+                        />
                     </div>
-                    <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-850 space-y-4">
-                        <Heart size={20} className="text-amber-500" />
-                        <h4 className="font-bold text-sm">Lifetime Exchange</h4>
-                        <p className="text-[11px] text-slate-500 leading-relaxed font-light">We offer guaranteed buyback and exchanges on our gold items, respecting current market values with minimal wastage fees.</p>
+                </div>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════════
+                DIVISION 3: PILLARS OF EXCELLENCE (Pure White)
+               ══════════════════════════════════════════════════════════ */}
+            <section className="w-full py-20 px-6 bg-white border-b border-stone-200/70">
+                <div className="max-w-6xl mx-auto space-y-12">
+                    <div className="text-center space-y-2">
+                        <span className="text-[11px] font-semibold tracking-[0.25em] text-amber-800 uppercase block">
+                            Our Standards
+                        </span>
+                        <h3 className="text-2xl sm:text-3xl font-normal text-slate-900 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                            Pillars of Excellence
+                        </h3>
+                        <div className="w-12 h-[2px] bg-amber-500 mx-auto" />
                     </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+                        <div className="p-8 rounded-2xl bg-[#FAF9F6] border border-stone-200/80 space-y-4">
+                            <div className="w-10 h-10 rounded-xl bg-amber-100/70 text-amber-800 flex items-center justify-center">
+                                <Award size={20} />
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-900">Fine GIA Diamonds</h4>
+                            <p className="text-xs text-slate-600 leading-relaxed font-light">
+                                Every diamond above 0.3 carats is GIA-registered, featuring a unique microscopic laser inscription matching its worldwide laboratory dossier.
+                            </p>
+                        </div>
+
+                        <div className="p-8 rounded-2xl bg-[#FAF9F6] border border-stone-200/80 space-y-4">
+                            <div className="w-10 h-10 rounded-xl bg-amber-100/70 text-amber-800 flex items-center justify-center">
+                                <ShieldCheck size={20} />
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-900">Insured Vault Transit</h4>
+                            <p className="text-xs text-slate-600 leading-relaxed font-light">
+                                Orders are sealed in tamper-evident security parcels and dispatched with full comprehensive transit insurance across the island.
+                            </p>
+                        </div>
+
+                        <div className="p-8 rounded-2xl bg-[#FAF9F6] border border-stone-200/80 space-y-4">
+                            <div className="w-10 h-10 rounded-xl bg-amber-100/70 text-amber-800 flex items-center justify-center">
+                                <Heart size={20} />
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-900">Lifetime Care & Exchange</h4>
+                            <p className="text-xs text-slate-600 leading-relaxed font-light">
+                                Guaranteed lifetime ultrasonic cleansing, annual prong checks, and buyback or exchange policies based on prevailing gold market rates.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════════
+                DIVISION 4: SALONS & HERITAGE (Light Warm Champagne)
+               ══════════════════════════════════════════════════════════ */}
+            <section className="w-full py-20 px-6 bg-[#FAF7F0]">
+                <div className="max-w-4xl mx-auto text-center space-y-6">
+                    <span className="text-[11px] font-semibold tracking-[0.25em] text-amber-800 uppercase block">
+                        Our Salons
+                    </span>
+                    <h2 className="text-2xl sm:text-4xl font-normal text-slate-900 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                        Colombo &bull; Kandy &bull; Galle Fort
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-600 font-light max-w-lg mx-auto leading-relaxed">
+                        Experience private viewing suites with dedicated gemological consultants to explore our bespoke catalog in complete privacy and comfort.
+                    </p>
                 </div>
             </section>
         </div>

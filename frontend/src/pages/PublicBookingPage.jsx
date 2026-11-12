@@ -117,15 +117,10 @@ export default function PublicBookingPage() {
         <div className="max-w-4xl mx-auto px-6 py-12 space-y-12">
             {/* Header */}
             <div className="text-center space-y-2">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="inline-flex items-center space-x-2 bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 rounded-full text-[10px] text-amber-550 font-bold uppercase tracking-widest"
-                >
-                    <Calendar size={11} className="text-amber-550" />
-                    <span>Lounge Scheduling Desk</span>
-                </motion.div>
-                <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                <span className="text-[11px] font-semibold tracking-[0.25em] text-amber-700 uppercase block">
+                    Private Viewing Suite
+                </span>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>
                     Book Showroom Appointment
                 </h1>
                 <div className="w-16 h-[2px] bg-amber-500 mx-auto" />
