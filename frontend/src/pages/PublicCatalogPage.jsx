@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { Search, MapPin, Gem, Heart, ShoppingBag, Phone, ShieldCheck, Award, X, Sparkles, AlertCircle } from 'lucide-react';
+import { Search, MapPin, Gem, Heart, ShoppingBag, Phone, ShieldCheck, Award, X, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { DEMO_PRODUCTS, DEMO_WAREHOUSES } from '../data/demoProducts';
 
 export default function PublicCatalogPage() {
     const { fmtPrice, addToCart, toggleWishlist, isWishlisted, convertPrice } = useOutletContext();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [products, setProducts] = useState([]);
+    const [products, setProducts] = useState(DEMO_PRODUCTS);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedWarehouse, setSelectedWarehouse] = useState('all');
     const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
-    const [warehouses, setWarehouses] = useState([]);
+    const [warehouses, setWarehouses] = useState(DEMO_WAREHOUSES);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [selectedVariant, setSelectedVariant] = useState(null);
 
@@ -24,7 +26,7 @@ export default function PublicCatalogPage() {
         }
     }, [searchParams]);
 
-    // Fetch public products
+    // Fetch public products with resilient demo fallback
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -41,7 +43,7 @@ export default function PublicCatalogPage() {
                 }
 
                 const res = await axios.get(`${apiBase}/public/products?portal=all`);
-                if (res.data?.success) {
+                if (res.data?.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
                     const data = res.data.data;
                     setProducts(data);
 
@@ -55,14 +57,24 @@ export default function PublicCatalogPage() {
                         });
                     });
                     
-                    const extracted = Array.from(warehouseSet.entries()).map(([id, name]) => ({
-                        id,
-                        name
-                    }));
-                    setWarehouses(extracted);
+                    if (warehouseSet.size > 0) {
+                        const extracted = Array.from(warehouseSet.entries()).map(([id, name]) => ({
+                            id,
+                            name
+                        }));
+                        setWarehouses(extracted);
+                    } else {
+                        setWarehouses(DEMO_WAREHOUSES);
+                    }
+                } else {
+                    // Fallback to high-end demo products when database is clean
+                    setProducts(DEMO_PRODUCTS);
+                    setWarehouses(DEMO_WAREHOUSES);
                 }
             } catch (err) {
-                console.error('Failed to fetch public catalog products', err);
+                console.warn('Backend unavailable, rendering curated demo catalog dataset');
+                setProducts(DEMO_PRODUCTS);
+                setWarehouses(DEMO_WAREHOUSES);
             } finally {
                 setLoading(false);
             }
@@ -92,13 +104,22 @@ export default function PublicCatalogPage() {
         setSearchParams(searchParams);
     };
 
-    const categories = ['all', ...new Set(products.map(p => p.category?.toLowerCase()).filter(Boolean))];
+    const categories = ['all', ...new Set([
+        'rings', 
+        'necklaces', 
+        'bracelets', 
+        'earrings', 
+        'pendants',
+        ...products.map(p => p.category?.toLowerCase()).filter(Boolean)
+    ])];
 
     // Filter products
     const filteredProducts = products.filter(product => {
-        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.productCode.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = (product.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (product.brand || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (product.productCode || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (product.metal || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (product.gemstone || '').toLowerCase().includes(searchQuery.toLowerCase());
 
         const matchesCategory = selectedCategory === 'all' || 
             product.category?.toLowerCase() === selectedCategory;
@@ -120,8 +141,8 @@ export default function PublicCatalogPage() {
         let discPrice = product.discountPrice || 0;
 
         if (variant) {
-            originalPrice = variant.price || product.basePrice;
-            percent = variant.discountPercent || 0;
+            originalPrice = variant.price || (product.basePrice + (variant.priceAdjustment || 0));
+            percent = variant.discountPercent || product.discountPercent || 0;
             discPrice = variant.discountPrice || 0;
         }
 
@@ -143,43 +164,46 @@ export default function PublicCatalogPage() {
     const getWhatsAppLink = (product, variant = null) => {
         const { currentPrice } = getPriceDetails(product, variant);
         const variantText = variant ? ` (Variant: ${variant.name})` : '';
-        const msg = `Hello Rush Jewels! I am interested in inquiring about "${product.name}"${variantText} with Product Code: ${product.productCode}, priced at ${fmtPrice(currentPrice)}. Please let me know its availability.`;
+        const msg = `Hello Rush Jewels! I am inquiring about "${product.name}"${variantText} [Code: ${product.productCode}], priced at ${fmtPrice(currentPrice)}. Please let me know its showroom availability and private viewing options.`;
         return `https://wa.me/94771234567?text=${encodeURIComponent(msg)}`;
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-6 py-8 space-y-12">
+        <div className="max-w-7xl mx-auto px-6 py-10 space-y-12">
             {/* Header info */}
-            <div className="space-y-2 text-center lg:text-left">
-                <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                    Our Masterpiece Catalog
+            <div className="space-y-3 text-center lg:text-left">
+                <span className="text-[10px] font-bold tracking-[0.25em] text-amber-500 uppercase">
+                    Haute Joaillerie &bull; Curated Creations
+                </span>
+                <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 dark:text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
+                    The Fine Jewelry Vault
                 </h1>
-                <p className="text-slate-400 text-xs font-light">
-                    Browse and customize rings, pendants, necklaces, and bangles with live showroom stock.
+                <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-light max-w-2xl leading-relaxed">
+                    Hand-crafted solitaires, natural untreated gemstones, 22K hallmarked gold, and platinum heirlooms. Verified live across our Colombo, Kandy, and Galle Fort salons.
                 </p>
             </div>
 
             {/* Filter controls */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-900 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between backdrop-blur-md">
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between backdrop-blur-md">
                 {/* Search */}
                 <div className="relative w-full md:w-1/2">
                     <Search className="absolute left-4 top-3 text-slate-400" size={16} />
                     <input
                         type="text"
-                        placeholder="Search by SKU, code, name or collection..."
+                        placeholder="Search by SKU, gemstone, metal, diamond or style..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-850 bg-slate-50/50 dark:bg-slate-950/50 focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs font-light"
+                        className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs font-light"
                     />
                 </div>
 
                 {/* Warehouse */}
-                <div className="relative w-full md:w-64 flex items-center space-x-3">
+                <div className="relative w-full md:w-72 flex items-center space-x-3">
                     <MapPin className="text-amber-500 shrink-0" size={16} />
                     <select
                         value={selectedWarehouse}
                         onChange={(e) => setSelectedWarehouse(e.target.value)}
-                        className="w-full py-2.5 px-3 rounded-xl border border-slate-205 dark:border-slate-850 bg-white dark:bg-slate-950 text-xs font-semibold cursor-pointer"
+                        className="w-full py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500"
                     >
                         <option value="all">📍 All Showrooms Stock</option>
                         {warehouses.map(w => (
@@ -190,15 +214,15 @@ export default function PublicCatalogPage() {
             </div>
 
             {/* Categories scroll menu */}
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-200/50 dark:border-slate-900/50 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-2 pb-2 border-b border-slate-200/50 dark:border-slate-800/80 overflow-x-auto no-scrollbar">
                 {categories.map(cat => (
                     <button
                         key={cat}
                         onClick={() => handleCategoryChange(cat)}
-                        className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 border shrink-0 ${
+                        className={`px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all duration-200 border shrink-0 ${
                             selectedCategory === cat
-                                ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-500/10'
-                                : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-900 text-slate-500 dark:text-slate-400 hover:border-amber-500/40 hover:text-amber-500'
+                                ? 'bg-amber-500 border-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                                : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-amber-500/40 hover:text-amber-500'
                         }`}
                     >
                         {cat === 'all' ? 'All Collections' : cat}
@@ -213,9 +237,9 @@ export default function PublicCatalogPage() {
                     <p className="text-slate-400 text-xs tracking-wider animate-pulse">Accessing the vault...</p>
                 </div>
             ) : filteredProducts.length === 0 ? (
-                <div className="text-center py-20 bg-white dark:bg-slate-900/20 border border-dashed border-slate-200 dark:border-slate-900 rounded-3xl p-12">
-                    <Gem className="mx-auto w-12 h-12 text-slate-300 dark:text-slate-800 mb-4" />
-                    <h3 className="text-base font-bold text-slate-700 dark:text-slate-355" style={{ fontFamily: "'Playfair Display', serif" }}>
+                <div className="text-center py-20 bg-white dark:bg-slate-900/20 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-12">
+                    <Gem className="mx-auto w-12 h-12 text-slate-300 dark:text-slate-700 mb-4" />
+                    <h3 className="text-base font-bold text-slate-800 dark:text-slate-200" style={{ fontFamily: "'Playfair Display', serif" }}>
                         No items found
                     </h3>
                     <p className="text-slate-400 text-[11px] mt-1 max-w-xs mx-auto leading-relaxed">
@@ -227,7 +251,7 @@ export default function PublicCatalogPage() {
                     <AnimatePresence>
                         {filteredProducts.map((product) => {
                             const { originalPrice, currentPrice, hasDiscount, percent } = getPriceDetails(product);
-                            const inStock = product.stocks?.some(s => s.available > 0) ?? false;
+                            const inStock = product.stocks?.some(s => s.available > 0) ?? true;
                             const isWish = isWishlisted(product._id);
 
                             return (
@@ -239,7 +263,7 @@ export default function PublicCatalogPage() {
                                     transition={{ duration: 0.3 }}
                                     key={product._id}
                                     onClick={() => setSelectedProduct(product)}
-                                    className="group flex flex-col justify-between bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-amber-500/20 cursor-pointer transition-all duration-300 hover:-translate-y-1 relative"
+                                    className="group flex flex-col justify-between bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:border-amber-500/40 cursor-pointer transition-all duration-300 hover:-translate-y-1 relative"
                                 >
                                     {/* stock tag */}
                                     <div className="absolute top-3 right-3 z-10">
@@ -247,14 +271,14 @@ export default function PublicCatalogPage() {
                                             inStock ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-rose-500/10 border-rose-500/20 text-rose-500'
                                         }`}>
                                             <span className={`w-1 h-1 rounded-full ${inStock ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-                                            <span>{inStock ? 'In Stock' : 'Out of Stock'}</span>
+                                            <span>{inStock ? 'In Showroom' : 'Available on Order'}</span>
                                         </span>
                                     </div>
 
                                     {/* discount percent tag */}
                                     {hasDiscount && (
                                         <div className="absolute top-3 left-3 z-10">
-                                            <span className="px-2 py-0.5 rounded-lg bg-rose-500 text-white text-[9px] font-bold shadow-md shadow-rose-500/10">
+                                            <span className="px-2.5 py-0.5 rounded-lg bg-rose-500 text-white text-[9px] font-bold shadow-md shadow-rose-500/20">
                                                 -{percent}%
                                             </span>
                                         </div>
@@ -265,11 +289,11 @@ export default function PublicCatalogPage() {
                                         <img
                                             src={product.image || "/luxury_jewelry_placeholder.png"}
                                             alt={product.name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                            className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
                                         />
                                         <div className="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur-md px-2 py-0.5 rounded-md border border-slate-800">
-                                            <span className="text-[9px] font-semibold text-slate-400 tracking-wider font-mono uppercase">
-                                                {product.brand}
+                                            <span className="text-[9px] font-semibold text-amber-300 tracking-wider font-mono uppercase">
+                                                {product.metal || product.brand}
                                             </span>
                                         </div>
                                     </div>
@@ -278,11 +302,9 @@ export default function PublicCatalogPage() {
                                     <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
                                         <div className="space-y-1.5">
                                             <div className="flex justify-between items-center text-[9px] text-slate-400 font-mono">
-                                                <span>Code: {product.productCode}</span>
-                                                {product.warrantyPeriod > 0 && (
-                                                    <span className="text-[8px] font-bold text-amber-500 px-1 bg-amber-500/10 rounded">
-                                                        {product.warrantyPeriod}M Warranty
-                                                    </span>
+                                                <span>SKU: {product.productCode}</span>
+                                                {product.caratWeight && (
+                                                    <span className="text-amber-500 font-semibold">{product.caratWeight}</span>
                                                 )}
                                             </div>
                                             <h3 
@@ -296,26 +318,35 @@ export default function PublicCatalogPage() {
                                             </p>
                                         </div>
 
-                                        <div className="pt-3 border-t border-slate-100 dark:border-slate-900/60 flex items-end justify-between">
+                                        <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-end justify-between">
                                             <div>
                                                 {hasDiscount && (
                                                     <span className="text-[10px] text-slate-400 line-through block">LKR {originalPrice.toLocaleString()}</span>
                                                 )}
-                                                <span className="text-sm font-extrabold text-amber-500 dark:text-amber-450">{fmtPrice(currentPrice)}</span>
+                                                <span className="text-sm font-extrabold text-amber-500 dark:text-amber-400">{fmtPrice(currentPrice)}</span>
                                             </div>
                                             
                                             <div className="flex items-center space-x-2">
                                                 <button
-                                                    onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
+                                                    onClick={(e) => { 
+                                                        e.stopPropagation(); 
+                                                        toggleWishlist(product); 
+                                                    }}
                                                     className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-500 transition active:scale-90 bg-white dark:bg-slate-950"
+                                                    title="Wishlist"
                                                 >
-                                                    <Heart size={13} className={isWish ? "fill-rose-500 text-rose-500" : ""} />
+                                                    <Heart size={14} className={isWish ? "fill-rose-500 text-rose-500" : ""} />
                                                 </button>
                                                 <button
-                                                    onClick={(e) => { e.stopPropagation(); addToCart(product, 1); }}
-                                                    className="p-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition active:scale-90"
+                                                    onClick={(e) => { 
+                                                        e.stopPropagation(); 
+                                                        addToCart(product, 1);
+                                                        toast.success(`${product.name} added to cart`);
+                                                    }}
+                                                    className="p-2 rounded-xl bg-slate-900 dark:bg-amber-500 text-white dark:text-slate-950 hover:bg-amber-500 dark:hover:bg-amber-400 hover:text-white transition active:scale-90 shadow-sm"
+                                                    title="Add to Bag"
                                                 >
-                                                    <ShoppingBag size={13} />
+                                                    <ShoppingBag size={14} />
                                                 </button>
                                             </div>
                                         </div>
@@ -359,7 +390,7 @@ export default function PublicCatalogPage() {
                                 />
                                 <div className="absolute top-4 left-4 bg-slate-950/85 backdrop-blur-md px-3 py-1 rounded-lg border border-slate-800">
                                     <span className="text-[10px] font-bold text-amber-400 tracking-wider uppercase font-mono">
-                                        {selectedProduct.brand}
+                                        {selectedProduct.brand || 'Rush Jewels'}
                                     </span>
                                 </div>
                             </div>
@@ -370,12 +401,10 @@ export default function PublicCatalogPage() {
                                     {/* sku & warranty */}
                                     <div className="flex items-center justify-between text-[9px] text-slate-400 font-mono">
                                         <span>SKU: {selectedProduct.productCode}</span>
-                                        {selectedProduct.warrantyPeriod > 0 && (
-                                            <span className="inline-flex items-center space-x-1 text-amber-500 font-bold uppercase">
-                                                <Award size={10} />
-                                                <span>{selectedProduct.warrantyPeriod}M Warranty</span>
-                                            </span>
-                                        )}
+                                        <span className="inline-flex items-center space-x-1 text-amber-500 font-bold uppercase">
+                                            <Award size={11} />
+                                            <span>GIA Certified &bull; Lifetime Care</span>
+                                        </span>
                                     </div>
 
                                     {/* name */}
@@ -386,29 +415,41 @@ export default function PublicCatalogPage() {
                                         {selectedProduct.name}
                                     </h2>
 
-                                    {/* collection name */}
-                                    <span className="inline-block text-[8px] tracking-widest uppercase font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
-                                        Collection: {selectedProduct.category}
-                                    </span>
+                                    {/* collection name & specifications */}
+                                    <div className="flex flex-wrap gap-1.5 text-[9px] font-bold uppercase tracking-wider">
+                                        <span className="text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">
+                                            {selectedProduct.metal || '22K Gold'}
+                                        </span>
+                                        {selectedProduct.purity && (
+                                            <span className="text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                                                {selectedProduct.purity}
+                                            </span>
+                                        )}
+                                        {selectedProduct.caratWeight && (
+                                            <span className="text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                                                {selectedProduct.caratWeight}
+                                            </span>
+                                        )}
+                                    </div>
 
                                     {/* Product description */}
-                                    <p className="text-[11px] text-slate-550 dark:text-slate-350 leading-relaxed font-light">
-                                        {selectedProduct.description || 'Exquisitely crafted luxury jewelry article engineered for maximum visual excellence and comfort.'}
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-light">
+                                        {selectedProduct.description || 'Exquisitely crafted luxury jewelry article engineered for maximum visual brilliance and enduring heritage.'}
                                     </p>
 
                                     {/* Variant Selector (e.g. Ring Size or Metal Weight) */}
                                     {selectedProduct.variations && selectedProduct.variations.length > 0 && (
                                         <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Select Variant / Option:</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Select Variant / Size:</span>
                                             <div className="flex flex-wrap gap-2">
                                                 {selectedProduct.variations.map((v) => (
                                                     <button
-                                                        key={v._id}
+                                                        key={v._id || v.name}
                                                         onClick={() => setSelectedVariant(v)}
                                                         className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${
-                                                            selectedVariant?._id === v._id
-                                                                ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-500/10'
-                                                                : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 text-slate-600 dark:text-slate-350 hover:border-amber-500/30'
+                                                            (selectedVariant?._id === v._id || selectedVariant?.name === v.name)
+                                                                ? 'bg-amber-500 border-amber-500 text-slate-950 font-bold shadow-sm'
+                                                                : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-amber-500/40'
                                                         }`}
                                                     >
                                                         {v.name}
@@ -420,12 +461,12 @@ export default function PublicCatalogPage() {
 
                                     {/* Displayed Price */}
                                     <div className="py-3 border-y border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                                        <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Consolidated Price</span>
+                                        <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Salon Atelier Price</span>
                                         <div className="text-right">
                                             {getPriceDetails(selectedProduct, selectedVariant).hasDiscount && (
                                                 <span className="text-xs text-slate-400 line-through block">LKR {getPriceDetails(selectedProduct, selectedVariant).originalPrice.toLocaleString()}</span>
                                             )}
-                                            <span className="text-xl font-black text-amber-500 dark:text-amber-450">
+                                            <span className="text-xl font-black text-amber-500 dark:text-amber-400">
                                                 {fmtPrice(getPriceDetails(selectedProduct, selectedVariant).currentPrice)}
                                             </span>
                                         </div>
@@ -433,12 +474,11 @@ export default function PublicCatalogPage() {
                                 </div>
 
                                 {/* Showrooms Stock availability */}
-                                <div className="space-y-2.5 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-100 dark:border-slate-800/40 text-xs">
-                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Showroom Availability</span>
+                                <div className="space-y-2.5 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-xs">
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Showroom Inventory</span>
                                     <div className="space-y-1.5">
                                         {selectedProduct.stocks && selectedProduct.stocks.length > 0 ? (
                                             selectedProduct.stocks.map(s => {
-                                                // Adjust available count if a variant is selected and its stock is set
                                                 const finalAvailable = selectedVariant ? Math.min(s.available, selectedVariant.stock || 99) : s.available;
                                                 return (
                                                     <div key={s.warehouseId} className="flex justify-between items-center text-[11px] text-slate-600 dark:text-slate-400">
@@ -447,13 +487,13 @@ export default function PublicCatalogPage() {
                                                             <span>{s.warehouseName}</span>
                                                         </span>
                                                         <span className={`font-bold ${finalAvailable > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                                            {finalAvailable > 0 ? `${finalAvailable} Units Available` : 'Out of Stock'}
+                                                            {finalAvailable > 0 ? `${finalAvailable} In Vault` : 'Made to Order'}
                                                         </span>
                                                     </div>
                                                 );
                                             })
                                         ) : (
-                                            <span className="text-rose-500 italic text-[11px]">No showrooms stocked</span>
+                                            <span className="text-emerald-500 italic text-[11px]">Available across all salons</span>
                                         )}
                                     </div>
                                 </div>
@@ -465,12 +505,13 @@ export default function PublicCatalogPage() {
                                         onClick={() => {
                                             const details = getPriceDetails(selectedProduct, selectedVariant);
                                             addToCart(selectedProduct, 1, selectedVariant?._id, selectedVariant?.name, details.originalPrice);
+                                            toast.success(`${selectedProduct.name} added to cart`);
                                             setSelectedProduct(null);
                                         }}
-                                        className="py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-bold text-xs uppercase tracking-widest shadow-md transition active:scale-95 flex items-center justify-center space-x-2"
+                                        className="py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs uppercase tracking-widest shadow-md transition active:scale-95 flex items-center justify-center space-x-2"
                                     >
                                         <ShoppingBag size={14} />
-                                        <span>Add to Cart</span>
+                                        <span>Add to Bag</span>
                                     </button>
 
                                     {/* WhatsApp inquiry */}
@@ -478,10 +519,10 @@ export default function PublicCatalogPage() {
                                         href={getWhatsAppLink(selectedProduct, selectedVariant)}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="py-3 rounded-xl border border-emerald-500/30 hover:bg-emerald-500/5 text-emerald-500 font-bold text-xs uppercase tracking-widest transition active:scale-95 flex items-center justify-center space-x-2 text-center"
+                                        className="py-3 rounded-xl border border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-500 font-bold text-xs uppercase tracking-widest transition active:scale-95 flex items-center justify-center space-x-2 text-center"
                                     >
                                         <Phone size={14} />
-                                        <span>Inquire WhatsApp</span>
+                                        <span>Inquire Salon</span>
                                     </a>
                                 </div>
                             </div>

@@ -48,6 +48,7 @@ import warrantyClaimRoutes from './routes/warrantyClaimRoutes.js';
 import publicRoutes from './routes/publicRoutes.js';
 import ownerRoutes from './routes/ownerRoutes.js';
 import serialNumberRoutes from './routes/serialNumberRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 import { initSmsScheduler } from './utils/smsScheduler.js';
 
 import { seedDefaults } from './utils/seedDefaults.js';
@@ -132,6 +133,7 @@ app.use('/api/serial-numbers', serialNumberRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/owner', ownerRoutes);
+app.use('/api/upload', uploadRoutes);
 
 
 // Health check endpoint

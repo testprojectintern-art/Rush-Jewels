@@ -27,8 +27,11 @@ const clearDatabaseExceptUsers = async () => {
             const collectionName = col.name;
 
             if (collectionName === 'users') {
+                const deleteNonAdmins = await db.collection(collectionName).deleteMany({
+                    role: { $nin: ['admin', 'owner'] }
+                });
                 const userCount = await db.collection(collectionName).countDocuments();
-                console.log(`- Preserving collection: "${collectionName}" (${userCount} login accounts kept)`);
+                console.log(`- Preserving admin logins in: "${collectionName}" (${userCount} admin accounts kept, ${deleteNonAdmins.deletedCount} non-admin accounts removed)`);
                 continue;
             }
 
@@ -37,7 +40,7 @@ const clearDatabaseExceptUsers = async () => {
             console.log(`  ✓ Cleared "${collectionName}" (${deleteResult.deletedCount} documents deleted)`);
         }
 
-        console.log('\n✓ Database clearing complete! All collections cleared except "users".');
+        console.log('\n✓ Database clearing complete! All collections cleared except Admin logins.');
         process.exit(0);
     } catch (error) {
         console.error('✗ Error clearing database:', error);

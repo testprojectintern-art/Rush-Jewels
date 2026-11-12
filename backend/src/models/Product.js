@@ -208,6 +208,10 @@ const productSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        mysqlId: {
+            type: Number,
+            default: null,
+        },
     },
     { timestamps: true }
 );

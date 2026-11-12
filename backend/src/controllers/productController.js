@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
 import Product from '../models/Product.js';
+import { syncProductToSpringBoot } from '../services/syncService.js';
 
 async function resolveCategoryAndBrand(req) {
     const { categoryName, brandName } = req.body;
@@ -81,6 +82,9 @@ export const createProduct = asyncHandler(async (req, res) => {
     const populated = await Product.findById(product._id)
         .populate('categoryId', 'name code')
         .populate('brandId', 'name');
+
+    // Trigger background sync to Spring Boot
+    syncProductToSpringBoot(product._id);
 
     res.status(201).json({ success: true, data: populated });
 });
@@ -212,6 +216,9 @@ export const updateProduct = asyncHandler(async (req, res) => {
     } catch (err) {
         console.error('StockItem sync failed:', err);
     }
+
+    // Trigger background sync to Spring Boot
+    syncProductToSpringBoot(product._id);
 
     res.json({ success: true, data: product });
 });
